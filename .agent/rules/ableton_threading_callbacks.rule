@@ -1,0 +1,10 @@
+# Ableton Remote Script Threading & Callback Rule
+
+- **Thread Safety:** The Ableton Live API is not thread-safe. All calls to `self.song()` or other Live API objects must be executed on the main thread.
+- **Task Scheduling:** To move execution from a background thread (e.g., a socket listener) to the main thread, use `self.schedule_message(delay, callback, parameter)`.
+- **Callback Delay:**
+    - Use a delay of `1` (one tick) to guarantee the task is queued on the main event loop.
+    - Avoid a delay of `0` as it may attempt synchronous execution on the calling thread, potentially leading to `C++ signature` mismatch errors.
+- **Single Argument Constraint:** 
+    - `self.schedule_message` accepts exactly **three** positional arguments: `delay`, `callback`, and `parameter`. 
+    - The `parameter` argument is a single object. If you need to pass multiple values to the callback, you **MUST** bundle them into a single tuple (e.g., `self.schedule_message(1, callback, (val1, val2))`) and unpack them inside the callback method.
