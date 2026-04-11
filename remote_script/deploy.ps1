@@ -2,7 +2,7 @@
 # Standardized deployment pipeline to transfer the Remote Script from the local workspace to the Ableton Live User Library.
 
 $source = "$PSScriptRoot"
-$destination = "D:\Sync\00 PC Sharing\Ableton\User Library\Remote Scripts\AbletonMCP_with_Gemini_API"
+$destination = "D:\Sync\00 PC Sharing\Ableton\User Library\Remote Scripts\TextToAbleton"
 
 Write-Host "Starting deployment to: $destination"
 
