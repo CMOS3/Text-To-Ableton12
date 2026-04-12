@@ -32,6 +32,9 @@ except Exception as e:
 
 class ChatResponse(BaseModel):
     response: str
+    model_used: str
+    input_tokens: int
+    output_tokens: int
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(req: schema.ChatRequest):
@@ -39,8 +42,13 @@ async def chat_endpoint(req: schema.ChatRequest):
         raise HTTPException(status_code=500, detail="Gemini Client not configured. Check API key.")
     
     try:
-        response_text = gemini_client.chat(req.prompt)
-        return ChatResponse(response=response_text)
+        result = gemini_client.chat(req.prompt, req.chat_history)
+        return ChatResponse(
+            response=result.get("response", ""),
+            model_used=result.get("model_used", "unknown"),
+            input_tokens=result.get("input_tokens", 0),
+            output_tokens=result.get("output_tokens", 0)
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

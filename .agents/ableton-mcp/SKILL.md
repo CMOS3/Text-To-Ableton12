@@ -24,6 +24,12 @@ The integration now actively supports and exposes the following full suite of ca
 - **Browser & Loading:** `get_browser_tree`, `get_browser_items_at_path`, `load_instrument_or_effect`, `load_drum_kit`.
 - **Mixing & Device Parameters:** `get_device_parameters`, `set_device_parameters`. *(Note: The LLM MUST always call `get_device_parameters` first to discover the numeric parameter_index before attempting to `set_device_parameters`!)*
 
+## Intelligent Routing & Context
+- **Intent Router:** The system uses a dual-model approach. `Gemini 3.1 Flash-Lite` acts as a binary classifier to route simple direct commands (tagged `FLASH`) vs complex reasoning tasks (tagged `PRO`).
+- **Context Persistence:** Every user message is prepended with a `[Style: <Genre>]` tag if a Genre is configured in the UI. 
+- **Conversation Memory:** The `chat_history` is passed as an array of `genai.types.Content` objects, enabling the model to reference previous steps (e.g., "Add the same notes to the new track").
+- **Token Efficiency:** The UI monitors `input_tokens` and `output_tokens` via `usage_metadata` for real-time cost-per-session analysis.
+
 ## Implementation Logic
 When this skill is activated, the agent must follow these steps for any communication attempt:
 

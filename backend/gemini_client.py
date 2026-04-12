@@ -30,7 +30,8 @@ class GeminiAbletonClient:
             "unless the user is explicitly specific. For `add_notes_to_clip`, make sure to pass a structured list of properties. "
         )
         
-        self.model_name = "models/gemini-3.1-pro-preview-customtools"
+        self.pro_model = "models/gemini-3.1-pro-preview-customtools"
+        self.flash_model = "models/gemini-3.1-flash-lite-preview"
         
         # Tools to expose to the LLM
         self.tools = [
@@ -242,16 +243,67 @@ class GeminiAbletonClient:
 
     # --- Chat Engine ---
 
-    def chat(self, user_prompt: str) -> str:
+    def _route_intent(self, prompt: str) -> str:
+        """Determines if the prompt is simple (FLASH) or complex (PRO)."""
+        system_instruction = (
+            "You are an intent classifier for an Ableton DAW assistant. Classify the user's prompt into one of two categories. "
+            "If the prompt is a simple, direct, single-step command (e.g., 'play', 'stop', 'create a track', 'set tempo to 120', 'delete clip'), return exactly the word 'FLASH'. "
+            "If the prompt is ambiguous, requires creative reasoning, involves multiple complex steps, or asks a general question (e.g., 'make a techno beat', 'why is my track silent?', 'analyze this clip'), return exactly the word 'PRO'. "
+            "Do not output any markdown, punctuation, or conversational text. Output only a single word."
+        )
+        
+        config = types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            temperature=0.0
+        )
+        
+        response = self.client.models.generate_content(
+            model=self.flash_model,
+            contents=prompt,
+            config=config
+        )
+        
+        result = response.text.strip().upper() if response.text else "PRO"
+        if result != "FLASH":
+            return "PRO"
+        return "FLASH"
+
+    def chat(self, user_prompt: str, chat_history: list = None) -> dict:
         """Executes a single-turn chat with the Gemini model."""
+        if chat_history is None:
+            chat_history = []
+            
+        model_to_use = self._route_intent(user_prompt)
+        selected_model = self.flash_model if model_to_use == "FLASH" else self.pro_model
+        
         config = types.GenerateContentConfig(
             system_instruction=self.system_instruction,
             tools=self.tools,
         )
         
+        contents = []
+        for msg in chat_history:
+            role = msg.get("role", "user")
+            text = msg.get("content", "")
+            
+            # Map UI roles to genai roles
+            if role.lower() in ["assistant", "ai"]:
+                role = "model"
+            elif role.lower() != "model":
+                role = "user"
+                
+            contents.append(
+                types.Content(role=role, parts=[types.Part.from_text(text=text)])
+            )
+            
+        # Append the current prompt
+        contents.append(
+             types.Content(role="user", parts=[types.Part.from_text(text=user_prompt)])
+        )
+        
         response = self.client.models.generate_content(
-            model=self.model_name,
-            contents=user_prompt,
+            model=selected_model,
+            contents=contents,
             config=config
         )
         
@@ -275,5 +327,17 @@ class GeminiAbletonClient:
                     
         if response.text:
             result_texts.append(response.text)
+            
+        # Extract token counts
+        input_tokens = 0
+        output_tokens = 0
+        if hasattr(response, "usage_metadata") and response.usage_metadata:
+            input_tokens = getattr(response.usage_metadata, "prompt_token_count", 0) or 0
+            output_tokens = getattr(response.usage_metadata, "candidates_token_count", 0) or 0
                 
-        return "\n".join(result_texts)
+        return {
+            "response": "\n".join(result_texts),
+            "model_used": "FLASH" if model_to_use == "FLASH" else "PRO",
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens
+        }

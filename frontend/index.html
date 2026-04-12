@@ -10,18 +10,67 @@
     <div class="app-container">
         <header>
             <h1>Text-to-Ableton</h1>
-            <div id="status-indicator" class="status offline">Disconnected</div>
+            <div class="header-right">
+                <div class="session-cost">
+                    <span class="cost-flash" id="cost-flash">Flash: $0.0000</span>
+                    <span class="cost-pro" id="cost-pro">Pro: $0.0000</span>
+                </div>
+                <button id="settings-btn" class="text-btn">⚙ Settings</button>
+                <button id="clear-btn" class="text-btn">New Session</button>
+                <div id="status-indicator" class="status offline">Disconnected</div>
+            </div>
         </header>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal-overlay hidden">
+            <div class="modal-card">
+                <h2>Settings</h2>
+                <div class="input-group">
+                    <label for="backend-url-input">Backend URL</label>
+                    <input type="text" id="backend-url-input" placeholder="http://127.0.0.1:8000">
+                </div>
+
+                <div class="input-group">
+                    <label for="genre-input">Current Genre/Style</label>
+                    <input type="text" id="genre-input" placeholder="e.g. Melodic Techno, Lo-fi Hip Hop">
+                </div>
+
+                <div class="macro-manager">
+                    <h3>Macro Manager</h3>
+                    <div class="macro-inputs">
+                        <input type="text" id="macro-name-input" placeholder="Macro Name">
+                        <textarea id="macro-prompt-input" placeholder="Prompt Payload..."></textarea>
+                        <button id="add-macro-btn" class="secondary-btn">Add Macro</button>
+                    </div>
+                    <div id="macro-list" class="macro-list">
+                        <!-- Macros will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button id="settings-save-btn" class="primary-btn">Save</button>
+                    <button id="settings-cancel-btn" class="secondary-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
         
         <main>
-            <div class="card">
-                <h2>Communication Bridge</h2>
-                <p>Verifying connection to FastAPI backend at <code>127.0.0.1:8000</code>.</p>
-                <div class="actions">
-                    <button id="ping-btn" class="primary-btn">Ping Backend</button>
+            <div class="chat-card">
+                <div id="chat-history" class="chat-history">
+                    <div class="message ai">
+                        <div class="bubble">Hello! I'm your Ableton Assistant. How can I help you today?</div>
+                    </div>
                 </div>
-                <div id="response-log" class="log-area">
-                    Waiting for ping...
+                <div id="quick-launch-bar" class="quick-actions">
+                    <!-- Macro buttons will appear here -->
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" placeholder="Type a command (e.g., 'Add a MIDI track')..." autocomplete="off">
+                    <button id="send-btn" class="send-btn">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </main>

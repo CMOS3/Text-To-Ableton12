@@ -44,5 +44,12 @@ GEMINI_API_KEY=your_api_key_here
 - The backend binds to `127.0.0.1` by default to prevent unauthorized external access.
 - API keys are managed via environment variables and should never be committed to version control.
 
+## ✨ Advanced Features
+- **Intelligent Intent Router**: Automatically selects the most efficient model. Simple commands use `Gemini 3.1 Flash-Lite` ($0.00/mill), while complex composition tasks use `Gemini 3.1 Pro`.
+- **Context Memory**: Remembers past interactions within a session, allowing for conversational multi-step MIDI editing.
+- **Real-time Cost tracking**: Live dashboard showing token usage and estimated USD cost for both models.
+- **Macro Manager**: Save frequently used prompts as custom buttons for one-click execution.
+- **Genre Context**: Persistent style setting that automatically prepends context to your prompts.
+
 ---
 *Maintained at: https://github.com/CMOS3/Text-To-Ableton12*

@@ -12,6 +12,7 @@ class NoteSchema(BaseModel):
 
 class ChatRequest(BaseModel):
     prompt: str
+    chat_history: Optional[List[dict]] = Field(default_factory=list)
 
 class TrackNameRequest(BaseModel):
     track_name: str
