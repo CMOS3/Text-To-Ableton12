@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Ableton</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Text-to-Ableton</h1>
+            <div id="status-indicator" class="status offline">Disconnected</div>
+        </header>
+        
+        <main>
+            <div class="card">
+                <h2>Communication Bridge</h2>
+                <p>Verifying connection to FastAPI backend at <code>127.0.0.1:8000</code>.</p>
+                <div class="actions">
+                    <button id="ping-btn" class="primary-btn">Ping Backend</button>
+                </div>
+                <div id="response-log" class="log-area">
+                    Waiting for ping...
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>&copy; 2026 Text-to-Ableton Project</p>
+        </footer>
+    </div>
+    <script src="renderer.js"></script>
+</body>
+</html>

@@ -1,3 +1,9 @@
+---
+trigger: glob
+description: Critical thread-safety and callback scheduling rules for Ableton Remote Scripts.
+globs: ["remote_script/**/*"]
+---
+
 # Ableton Remote Script Threading & Callback Rule
 
 - **Thread Safety:** The Ableton Live API is not thread-safe. All calls to `self.song()` or other Live API objects must be executed on the main thread.

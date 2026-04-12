@@ -1,3 +1,9 @@
+---
+trigger: glob
+description: Rules for TCP communication with Ableton Live via the MCP bridge on port 9877.
+globs: ["backend/**/*", "remote_script/**/*"]
+---
+
 # Ableton MCP Communication Rule
 
 - **Communication Protocol:** The application relies on the local `ahujasid/ableton-mcp` server to interface with Ableton Live.

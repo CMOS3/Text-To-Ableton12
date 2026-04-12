@@ -1,7 +1,7 @@
 {
-  "name": "frontend",
+  "name": "text-to-ableton-gui",
   "version": "1.0.0",
-  "description": "Text-to-Ableton GUI",
+  "description": "Text-to-Ableton Desktop Application",
   "main": "main.js",
   "scripts": {
     "start": "electron ."

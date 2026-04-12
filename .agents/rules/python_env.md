@@ -1,3 +1,9 @@
+---
+trigger: glob
+description: Standards for virtual environment usage and explicit interpreter paths.
+globs: ["**/*.py", "requirements.txt", "pyproject.toml"]
+---
+
 # Python Environment Rule
 
 - **Interpreter Directive:** All Python operations must use the explicit interpreter located at:
