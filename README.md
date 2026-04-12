@@ -1,44 +1,48 @@
-# Text-to-Ableton
+# Text-to-Ableton 🎹
 
-Desktop application for controlling Ableton Live via Gemini AI.
+A powerful desktop application for controlling Ableton Live using Gemini AI 1.5 and the Model Context Protocol (MCP).
 
-## Architecture
+## 🏗️ Architecture
 
-- **Backend**: Python (FastAPI) - Handles Gemini API logic and MCP protocol.
-- **Frontend**: Electron (Node.js) - Graphical User Interface.
-- **Ableton Integration**: Python Remote Script - TCP listener on port 9877.
+- **Backend**: Python (FastAPI) - Orchestrates Gemini API interactions and serves as a proxy to the Ableton Remote Script.
+- **Frontend**: Electron (Node.js) - A modern, responsive desktop interface.
+- **Ableton Integration**: custom Python Remote Script - Implements a robust TCP-to-JSON-RPC listener within Ableton Live.
 
-## Setup & Startup
+## 🚀 Quick Start (Windows)
+
+The simplest way to start both the backend and frontend simultaneously:
+
+1. Ensure **Ableton Live** is running with the `TextToAbleton` Remote Script active.
+2. Double-click **`start_app.bat`** in the root folder.
+
+This will automatically activate the virtual environment, start the FastAPI server, and launch the Electron desktop app.
+
+## 🛠️ Manual Setup
 
 ### 1. Prerequisites
-- Python 3.10+
-- Node.js & npm
-- `uv` package manager (installed via `python -m pip install uv`)
+- **Python 3.10+** (with a `.venv` in the root)
+- **Node.js & npm**
+- **Ableton Live 11/12**
 
-### 2. Backend Setup
-1. Navigate to the `backend/` directory.
-2. The environment is managed by `uv`.
-3. Start the server:
-   ```bash
-   uv run uvicorn main:app --reload
-   ```
+### 2. Ableton Configuration
+Copy the contents of the `remote_script/` directory to your Ableton User Library:
+`...\Documents\Ableton\User Library\Remote Scripts\TextToAbleton`
 
-### 3. Frontend Setup
-1. Navigate to the `frontend/` directory.
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start Electron:
-   ```bash
-   npm start
-   ```
+Select **TextToAbleton** as a Control Surface in Ableton's Link/Tempo/MIDI preferences.
 
-### 4. Ableton Setup
-Place the `remote_script/` folder in:
-`D:\Sync\00 PC Sharing\Ableton\User Library\Remote Scripts`
-Restart Ableton Live and select the script in Link/Tempo/MIDI preferences.
+### 3. Environment Variables
+Create a `.env` file in the root directory:
+```env
+GEMINI_API_KEY=your_api_key_here
+```
 
-## Security
-API keys should be placed in the root `.env` file under `GEMINI_API_KEY`.
-The MCP server binds only to `127.0.0.1` for safety.
+### 4. Component Details
+- **Backend**: Runs on `http://127.0.0.1:8000`. API documentation available at `/docs` when running.
+- **Frontend**: Electron app located in `frontend/`. Use `npm install` inside the folder before first run.
+
+## 🔒 Security
+- The backend binds to `127.0.0.1` by default to prevent unauthorized external access.
+- API keys are managed via environment variables and should never be committed to version control.
+
+---
+*Maintained at: https://github.com/CMOS3/Text-To-Ableton12*
