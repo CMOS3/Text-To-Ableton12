@@ -244,8 +244,15 @@ async function handleSendMessage() {
     showThinking();
 
     try {
-        // 4. Call API with configured backendUrl
-        const data = await window.api.sendChatMessage(text, backendUrl, chatHistoryArray);
+        // 4. Call API with configured backendUrl and stream callback
+        const data = await window.api.sendChatMessage(text, backendUrl, chatHistoryArray, (chunk) => {
+            if (chunk.type === 'status') {
+                const thinkingContent = document.querySelector('#thinking-indicator .thinking');
+                if (thinkingContent) {
+                    thinkingContent.textContent = chunk.message;
+                }
+            }
+        });
         
         // 5. Success
         removeThinking();

@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import asyncio
 from dotenv import load_dotenv
 
 from google import genai
@@ -18,8 +19,13 @@ load_dotenv()
 class GeminiAbletonClient:
     def __init__(self):
         api_key = os.getenv("GEMINI_API_KEY")
+        print(f"DEBUG: GEMINI_API_KEY found: {bool(api_key)}")
+        
         if not api_key:
-            raise ValueError("GEMINI_API_KEY not found in .env file")
+            raise ValueError(
+                "GEMINI_API_KEY not found in environment. Please ensure you have a '.env' file "
+                "in the project root directory with 'GEMINI_API_KEY=your_key_here'."
+            )
         
         self.client = genai.Client(api_key=api_key)
         
@@ -59,7 +65,11 @@ class GeminiAbletonClient:
             self.delete_track,
             self.delete_clip,
             self.get_device_parameters,
-            self.set_device_parameters
+            self.set_device_parameters,
+            self.set_track_volume_by_name,
+            self.load_device_to_track_by_name,
+            self.generate_named_midi_pattern,
+            self.get_session_mix_status
         ]
 
     # --- Core Toolset Implementations ---
@@ -225,7 +235,7 @@ class GeminiAbletonClient:
         except ValidationError as e:
             return str(e)
 
-    def get_device_parameters(self, track_index: int, device_index: int = 0) -> str:
+    def get_device_parameters(self, track_index: int, device_index: int) -> str:
         """Gets all parameters for a device on a track to discover their parameter_index. You MUST use this before set_device_parameters."""
         try:
             req = schema.DeviceIndexRequest(track_index=track_index, device_index=device_index)
@@ -241,9 +251,83 @@ class GeminiAbletonClient:
         except ValidationError as e:
             return str(e)
 
+    # --- Compound Tools ---
+    def _get_track_index_by_name(self, track_name: str) -> int:
+        res = proxy.request_state("get_session_info")
+        if res.get("status") == "success":
+            for i, trk in enumerate(res.get("data", {}).get("tracks", [])):
+                if trk.get("name") == track_name:
+                    return i
+        return -1
+
+    def set_track_volume_by_name(self, track_name: str, gain_db: float) -> str:
+        """Sets the volume of a track by its name in dB."""
+        try:
+            track_index = self._get_track_index_by_name(track_name)
+            if track_index == -1:
+                return f"Error: Track '{track_name}' not found."
+            return str(proxy.send_command("set_track_volume", {"track_index": track_index, "volume": gain_db}))
+        except Exception as e:
+            return str(e)
+
+    def load_device_to_track_by_name(self, track_name: str, device_name: str) -> str:
+        """Loads a device onto a track, both specified by name."""
+        try:
+            track_index = self._get_track_index_by_name(track_name)
+            if track_index == -1:
+                return f"Error: Track '{track_name}' not found."
+            return self.load_instrument_or_effect(track_index, device_name)
+        except Exception as e:
+            return str(e)
+
+    def generate_named_midi_pattern(self, track_name: str, clip_name: str, clip_length_bars: float, notes_array: list[dict]) -> str:
+        """Creates a clip, names it, and populates it with MIDI notes in one step."""
+        try:
+            track_index = self._get_track_index_by_name(track_name)
+            if track_index == -1:
+                return f"Error: Track '{track_name}' not found."
+            
+            session = proxy.request_state("get_session_info")
+            if session.get("status") != "success":
+                return "Error retrieving session info."
+                
+            tracks = session.get("data", {}).get("tracks", [])
+            clip_slots = tracks[track_index].get("clip_slots", [])
+            open_slot = next((i for i, slot in enumerate(clip_slots) if not slot.get("has_clip")), -1)
+            
+            if open_slot == -1:
+                return "Error: No open clip slots found on this track."
+                
+            self.create_clip(track_index, open_slot, clip_length_bars * 4.0)
+            self.set_clip_name(track_index, open_slot, clip_name)
+            return self.add_notes_to_clip(track_index, open_slot, notes_array)
+        except Exception as e:
+            return str(e)
+
+    def get_session_mix_status(self) -> str:
+        """Retrieves a summary of volume/gain status for all tracks in the session in one go."""
+        try:
+            res = proxy.request_state("get_session_info")
+            if res.get("status") != "success":
+                return "Error: Could not retrieve session info."
+            
+            tracks = res.get("data", {}).get("tracks", [])
+            status_lines = []
+            for i, trk in enumerate(tracks):
+                name = trk.get("name", "Unnamed")
+                # Look for tracked volume or utility gain
+                volume = trk.get("volume", "---")
+                if isinstance(volume, (int, float)):
+                    volume = f"{volume:.1f}"
+                status_lines.append(f"Track {i} ({name}): {volume}dB")
+            
+            return "\n".join(status_lines) if status_lines else "No tracks found."
+        except Exception as e:
+            return str(e)
+
     # --- Chat Engine ---
 
-    def _route_intent(self, prompt: str) -> str:
+    async def _route_intent(self, prompt: str) -> str:
         """Determines if the prompt is simple (FLASH) or complex (PRO)."""
         system_instruction = (
             "You are an intent classifier for an Ableton DAW assistant. Classify the user's prompt into one of two categories. "
@@ -257,7 +341,7 @@ class GeminiAbletonClient:
             temperature=0.0
         )
         
-        response = self.client.models.generate_content(
+        response = await self.client.aio.models.generate_content(
             model=self.flash_model,
             contents=prompt,
             config=config
@@ -268,12 +352,12 @@ class GeminiAbletonClient:
             return "PRO"
         return "FLASH"
 
-    def chat(self, user_prompt: str, chat_history: list = None) -> dict:
-        """Executes a single-turn chat with the Gemini model."""
+    async def chat(self, user_prompt: str, chat_history: list = None):
+        """Executes an agentic multi-turn chat loop as an async generator."""
         if chat_history is None:
             chat_history = []
             
-        model_to_use = self._route_intent(user_prompt)
+        model_to_use = await self._route_intent(user_prompt)
         selected_model = self.flash_model if model_to_use == "FLASH" else self.pro_model
         
         config = types.GenerateContentConfig(
@@ -301,43 +385,75 @@ class GeminiAbletonClient:
              types.Content(role="user", parts=[types.Part.from_text(text=user_prompt)])
         )
         
-        response = self.client.models.generate_content(
+        total_input_tokens = 0
+        total_output_tokens = 0
+        
+        yield json.dumps({"type": "status", "message": "Agent thinking..."}) + "\n"
+        await asyncio.sleep(0.01)
+        
+        response = await self.client.aio.models.generate_content(
             model=selected_model,
             contents=contents,
             config=config
         )
         
-        result_texts = []
-        if response.function_calls:
+        if hasattr(response, "usage_metadata") and response.usage_metadata:
+            total_input_tokens += getattr(response.usage_metadata, "prompt_token_count", 0) or 0
+            total_output_tokens += getattr(response.usage_metadata, "candidates_token_count", 0) or 0
+            
+        while response.function_calls:
+            contents.append(response.candidates[0].content)
+            tool_parts = []
+            
             for fc in response.function_calls:
                 func_name = fc.name
                 args = fc.args if fc.args else {}
                 
-                # Dynamically call the corresponding method matching the function name
+                yield json.dumps({"type": "status", "message": f"Agent calling: {func_name}..."}) + "\n"
+                await asyncio.sleep(0.01)
+                
+                tool_result = None
                 if hasattr(self, func_name):
                     method = getattr(self, func_name)
                     try:
-                        # Attempt to pass args directly
-                        tool_result = method(**args) 
-                        result_texts.append(f"Model invoked tool '{func_name}'.\nResult: {tool_result}")
+                        res = method(**args)
+                        tool_result = {"result": res}
+                    except TypeError as e:
+                        if "positional argument" in str(e) or "missing" in str(e).lower():
+                            tool_result = {"error": f"Missing required parameter. {str(e)}. You must use the appropriate 'get' tools (e.g., get_session_info, get_device_parameters) on the hierarchy first to find the correct index."}
+                        else:
+                            tool_result = {"error": str(e)}
                     except Exception as e:
-                        result_texts.append(f"Error executing '{func_name}': {str(e)}")
+                        tool_result = {"error": str(e)}
                 else:
-                    result_texts.append(f"Model attempted to call unknown tool: {func_name}")
+                    tool_result = {"error": f"Unknown tool: {func_name}"}
                     
-        if response.text:
-            result_texts.append(response.text)
-            
-        # Extract token counts
-        input_tokens = 0
-        output_tokens = 0
-        if hasattr(response, "usage_metadata") and response.usage_metadata:
-            input_tokens = getattr(response.usage_metadata, "prompt_token_count", 0) or 0
-            output_tokens = getattr(response.usage_metadata, "candidates_token_count", 0) or 0
+                tool_parts.append(types.Part.from_function_response(name=func_name, response=tool_result))
                 
-        return {
-            "response": "\n".join(result_texts),
-            "model_used": "FLASH" if model_to_use == "FLASH" else "PRO",
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens
-        }
+            contents.append(types.Content(role="user", parts=tool_parts))
+            
+            yield json.dumps({"type": "status", "message": "Agent analyzing tool results..."}) + "\n"
+            await asyncio.sleep(0.01)
+            
+            response = await self.client.aio.models.generate_content(
+                model=selected_model,
+                contents=contents,
+                config=config
+            )
+            
+            if hasattr(response, "usage_metadata") and response.usage_metadata:
+                total_input_tokens += getattr(response.usage_metadata, "prompt_token_count", 0) or 0
+                total_output_tokens += getattr(response.usage_metadata, "candidates_token_count", 0) or 0
+                
+        final_text = response.text if response.text else "Tasks executed successfully."
+                
+        yield json.dumps({
+            "type": "final",
+            "data": {
+                "response": final_text,
+                "model_used": "FLASH" if model_to_use == "FLASH" else "PRO",
+                "input_tokens": total_input_tokens,
+                "output_tokens": total_output_tokens
+            }
+        }) + "\n"
+        await asyncio.sleep(0.01)

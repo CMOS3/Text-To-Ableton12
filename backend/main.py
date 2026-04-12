@@ -1,8 +1,16 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+import logging
+
+# Load environment variables at the very top
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import uvicorn
-import logging
 
 from .gemini_client import GeminiAbletonClient
 from . import schema
@@ -36,21 +44,12 @@ class ChatResponse(BaseModel):
     input_tokens: int
     output_tokens: int
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/chat")
 async def chat_endpoint(req: schema.ChatRequest):
     if not gemini_client:
         raise HTTPException(status_code=500, detail="Gemini Client not configured. Check API key.")
     
-    try:
-        result = gemini_client.chat(req.prompt, req.chat_history)
-        return ChatResponse(
-            response=result.get("response", ""),
-            model_used=result.get("model_used", "unknown"),
-            input_tokens=result.get("input_tokens", 0),
-            output_tokens=result.get("output_tokens", 0)
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return StreamingResponse(gemini_client.chat(req.prompt, req.chat_history), media_type="application/x-ndjson")
 
 # --- Direct API Endpoints for UI Tester ---
 

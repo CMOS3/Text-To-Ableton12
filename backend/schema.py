@@ -72,7 +72,7 @@ class DeleteNotesRequest(BaseModel):
 
 class DeviceIndexRequest(BaseModel):
     track_index: int
-    device_index: int = 0
+    device_index: int
 
 class SetDeviceParameterRequest(BaseModel):
     track_index: int
