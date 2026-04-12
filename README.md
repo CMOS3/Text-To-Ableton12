@@ -38,16 +38,19 @@ GEMINI_API_KEY=your_api_key_here
 
 ### 4. Component Details
 - **Backend**: Runs on `http://127.0.0.1:8000`. API documentation available at `/docs` when running.
-- **Frontend**: Electron app located in `frontend/`. Use `npm install` inside the folder before first run.
+- **Frontend**: Electron app located in `frontend/`. Run `npm install` inside the folder before the first run.
 
 ## 🔒 Security
 - The backend binds to `127.0.0.1` by default to prevent unauthorized external access.
 - API keys are managed via environment variables and should never be committed to version control.
 
 ## ✨ Advanced Features
-- **Intelligent Intent Router**: Automatically selects the most efficient model. Simple commands use `Gemini 3.1 Flash-Lite` ($0.00/mill), while complex composition tasks use `Gemini 3.1 Pro`.
+
+- **Intelligent Intent Router**: Automatically selects the most efficient model. Simple commands use `Gemini 3.1 Flash-Lite`, while complex composition tasks use `Gemini 3.1 Pro`.
+- **NDJSON Streaming**: Real-time feedback in the UI during agentic loops, showing exactly what the AI is "thinking" or calling in Ableton.
+- **Anthracite UI**: A premium, glassmorphic dark theme inspired by Ableton Live 12, featuring custom scrollbars and interactive state feedback.
 - **Context Memory**: Remembers past interactions within a session, allowing for conversational multi-step MIDI editing.
-- **Real-time Cost tracking**: Live dashboard showing token usage and estimated USD cost for both models.
+- **Token Analysis**: Live dashboard showing token usage for every interaction to monitor efficiency.
 - **Macro Manager**: Save frequently used prompts as custom buttons for one-click execution.
 - **Genre Context**: Persistent style setting that automatically prepends context to your prompts.
 

@@ -12,7 +12,7 @@ Establish and maintain a stable, secure bridge between the Python backend and Ab
 - **Host:** 127.0.0.1 (Strict Localhost)
 - **Port:** 9877
 - **Protocol:** TCP/IP using JSON-encoded payloads.
-- **Backend Architecture:** A uvicorn/FastAPI server (`backend/main.py`) running on `127.0.0.1:8000` exposing REST endpoints and wrapping the `GeminiAbletonClient`. The Streamlit frontend (`app.py`) is strictly an HTTP client mimicking an Electron-style UI.
+- **Backend Architecture:** A uvicorn/FastAPI server (`backend/main.py`) running on `127.0.0.1:8000` exposing REST endpoints and wrapping the `GeminiAbletonClient`. The frontend is a secure Electron desktop application (`frontend/`) that communicates via NDJSON streaming for real-time status updates.
 - **Remote Script Path:** D:\Sync\00 PC Sharing\Ableton\User Library\Remote Scripts
 
 ## Core Toolset Capabilities

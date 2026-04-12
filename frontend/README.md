@@ -9,7 +9,14 @@ This directory contains the Electron-based GUI for the Text-to-Ableton project.
 
 ## Technical Details
 - **Architecture**: Electron (Main + Renderer).
-- **Styling**: Modern dark-themed CSS with glassmorphism effects.
-- **Connection**: Communicates with the backend at `http://127.0.0.1:8000`.
+- **Styling**: "Anthracite" dark-themed CSS with glassmorphism, inspired by Ableton Live 12.
+- **Connection**: Communicates with the FastAPI backend using NDJSON streaming for real-time agentic status updates.
+
+## Development
+```bash
+npm install
+npm start
+```
+*Note: Ensure the backend is running first for full functionality.*
 
 For installation and startup instructions, please refer to the [root README](../README.md).
