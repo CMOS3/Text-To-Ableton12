@@ -152,11 +152,9 @@ class GeminiRemoteScript(ControlSurface):
         elif method == "get_browser_items_at_path":
             self.execute_safely(self._do_get_browser_items_at_path, (params.get("path", ""), client))
         elif method == "load_instrument_or_effect":
-            self.execute_safely(self._do_load_device, params)
-            self._send_response(client, "ok")
+            self.execute_safely(self._do_load_device, (params, client))
         elif method == "load_drum_kit":
-            self.execute_safely(self._do_load_drum_kit, params)
-            self._send_response(client, "ok")
+            self.execute_safely(self._do_load_drum_kit, (params, client))
             
         # --- Advanced Editing & Parameters ---
         elif method == "get_notes_from_clip":
@@ -377,22 +375,28 @@ class GeminiRemoteScript(ControlSurface):
         except Exception as e:
             self._send_error(client, f"Get browser items err: {e}")
 
-    def _do_load_device(self, params):
+    def _do_load_device(self, args):
+        params, client = args
         try:
             t_idx = params.get("track_index", 0)
             path = params.get("browser_path", "")
             
             node = self._traverse_browser_path(path)
             if not node or node.is_folder:
-                raise Exception(f"Device not found or is a folder: {path}")
+                self._send_error(client, f"Device '{path}' not found in Ableton Browser.")
+                return
             
             track = self.song().tracks[t_idx]
+            self.song().view.selected_track = track
             self.application().browser.load_item(node)
             self.log_message(f"Loaded {path} onto track {t_idx}")
+            self._send_response(client, "ok")
         except Exception as e:
             self.log_message(f"Load device err: {e}")
+            self._send_error(client, f"Load device err: {e}")
 
-    def _do_load_drum_kit(self, params):
+    def _do_load_drum_kit(self, args):
+        params, client = args
         try:
             t_idx = params.get("track_index", 0)
             path = params.get("drum_kit_path", "")
@@ -400,13 +404,16 @@ class GeminiRemoteScript(ControlSurface):
             # The structure for drum kits allows treating them identically to generic load_item
             node = self._traverse_browser_path(path)
             if not node or node.is_folder:
-                raise Exception(f"Drum Kit not found or is a folder: {path}")
+                self._send_error(client, f"Drum Kit '{path}' not found in Ableton Browser.")
+                return
             
             self.song().view.selected_track = self.song().tracks[t_idx]
             self.application().browser.load_item(node)
             self.log_message(f"Loaded drum kit {path} onto track {t_idx}")
+            self._send_response(client, "ok")
         except Exception as e:
             self.log_message(f"Load drum kit err: {e}")
+            self._send_error(client, f"Load drum kit err: {e}")
 
     # --- Advanced Editing Additions ---
     

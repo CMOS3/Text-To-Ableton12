@@ -76,41 +76,58 @@ class GeminiAbletonClient:
 
     # --- Core Toolset Implementations ---
 
+    def _execute_proxy_request(self, command: str, **kwargs):
+        res = proxy.request_state(command, kwargs if kwargs else None)
+        print(f"DEBUG - RAW PROXY RESPONSE ({command}): {res}")
+        
+        if res.get("status") != "success":
+            raise Exception(f"Ableton Proxy Error: {res.get('status')} - {res.get('message', '')}")
+            
+        data = res.get("data", {})
+        if isinstance(data, dict) and "error" in data:
+            raise Exception(f"Ableton Error: {data['error']}")
+            
+        if isinstance(data, dict) and "result" in data:
+            return data["result"]
+            
+        return data
+
+
     def test_ableton_connection(self) -> str:
         """Attempts to send a JSON 'ping' message to the Ableton Server."""
-        res = proxy.ping()
+        res = self._execute_proxy_request("ping")
         return str(res)
 
     def get_session_info(self) -> str:
         """Retrieves the current tracks and state in the Ableton Live session."""
-        res = proxy.request_state("get_session_info")
+        res = self._execute_proxy_request("get_session_info")
         return str(res)
 
     def set_tempo(self, tempo: float) -> str:
         """Sets the tempo (BPM) of the Ableton session."""
         try:
             req = schema.TempoRequest(tempo=tempo)
-            return str(proxy.send_command("set_tempo", req.model_dump()))
+            return str(self._execute_proxy_request("set_tempo", **req.model_dump()))
         except ValidationError as e:
             return f"Validation error: {e}"
 
     def start_playback(self) -> str:
         """Starts playback in Ableton."""
-        return str(proxy.send_command("start_playback"))
+        return str(self._execute_proxy_request("start_playback"))
 
     def stop_playback(self) -> str:
         """Stops playback in Ableton."""
-        return str(proxy.send_command("stop_playback"))
+        return str(self._execute_proxy_request("stop_playback"))
 
     def get_track_info(self, track_index: int) -> str:
         """Gets detailed info about a specific track by its integer index (0-indexed)."""
-        return str(proxy.request_state("get_track_info", {"track_index": track_index}))
+        return str(self._execute_proxy_request("get_track_info", **{"track_index": track_index}))
 
     def create_midi_track(self, track_name: str) -> str:
         """Creates a new MIDI track in Ableton Live."""
         try:
             req = schema.TrackNameRequest(track_name=track_name)
-            return str(proxy.send_command("create_midi_track", req.model_dump()))
+            return str(self._execute_proxy_request("create_midi_track", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -118,19 +135,19 @@ class GeminiAbletonClient:
         """Sets the name of a specific track."""
         try:
             req = schema.TrackIndexNameRequest(track_index=track_index, name=name)
-            return str(proxy.send_command("set_track_name", req.model_dump()))
+            return str(self._execute_proxy_request("set_track_name", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
     def select_track(self, track_name: str) -> str:
         """Selects (focuses) a track by name."""
-        return str(proxy.send_command("select_track", {"track_name": track_name}))
+        return str(self._execute_proxy_request("select_track", **{"track_name": track_name}))
 
     def arm_track(self, track_name: str, arm: bool = True) -> str:
         """Arms or disarms a track for recording by name."""
         try:
             req = schema.TrackArmRequest(track_name=track_name, arm=arm)
-            return str(proxy.send_command("arm_track", req.model_dump()))
+            return str(self._execute_proxy_request("arm_track", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -138,7 +155,7 @@ class GeminiAbletonClient:
         """Creates a new MIDI clip in a specific track and clip slot."""
         try:
             req = schema.CreateClipRequest(track_index=track_index, clip_slot_index=clip_slot_index, length=length)
-            return str(proxy.send_command("create_clip", req.model_dump()))
+            return str(self._execute_proxy_request("create_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -146,7 +163,7 @@ class GeminiAbletonClient:
         """Sets the name of an existing clip."""
         try:
             req = schema.SetClipNameRequest(track_index=track_index, clip_slot_index=clip_slot_index, name=name)
-            return str(proxy.send_command("set_clip_name", req.model_dump()))
+            return str(self._execute_proxy_request("set_clip_name", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -156,7 +173,7 @@ class GeminiAbletonClient:
             # Reconstruct the list as pydantic validation requires dict unpacking or straight execution
             valid_notes = [schema.NoteSchema(**n) if isinstance(n, dict) else n for n in notes]
             req = schema.AddNotesRequest(track_index=track_index, clip_slot_index=clip_slot_index, notes=valid_notes)
-            return str(proxy.send_command("add_notes_to_clip", req.model_dump()))
+            return str(self._execute_proxy_request("add_notes_to_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -164,7 +181,7 @@ class GeminiAbletonClient:
         """Fires (plays) a specific clip."""
         try:
             req = schema.ClipActionRequest(track_index=track_index, clip_slot_index=clip_slot_index)
-            return str(proxy.send_command("fire_clip", req.model_dump()))
+            return str(self._execute_proxy_request("fire_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -172,19 +189,19 @@ class GeminiAbletonClient:
         """Stops playback of a specific clip."""
         try:
             req = schema.ClipActionRequest(track_index=track_index, clip_slot_index=clip_slot_index)
-            return str(proxy.send_command("stop_clip", req.model_dump()))
+            return str(self._execute_proxy_request("stop_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
     def get_browser_tree(self) -> str:
         """Retrieves the root level tree of the Ableton Live browser."""
-        return str(proxy.request_state("get_browser_tree"))
+        return str(self._execute_proxy_request("get_browser_tree"))
 
     def get_browser_items_at_path(self, path: str) -> str:
         """Gets browser items available at a specific path, e.g. 'Instruments/Wavetable'."""
         try:
             req = schema.BrowserPathRequest(path=path)
-            return str(proxy.request_state("get_browser_items_at_path", req.model_dump()))
+            return str(self._execute_proxy_request("get_browser_items_at_path", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -192,7 +209,7 @@ class GeminiAbletonClient:
         """Loads a device (instrument or effect) onto a track from the browser."""
         try:
             req = schema.LoadDeviceRequest(track_index=track_index, browser_path=browser_path)
-            return str(proxy.send_command("load_instrument_or_effect", req.model_dump()))
+            return str(self._execute_proxy_request("load_instrument_or_effect", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -200,7 +217,7 @@ class GeminiAbletonClient:
         """Loads a drum kit onto a track."""
         try:
             req = schema.LoadDrumKitRequest(track_index=track_index, drum_kit_path=drum_kit_path)
-            return str(proxy.send_command("load_drum_kit", req.model_dump()))
+            return str(self._execute_proxy_request("load_drum_kit", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -208,7 +225,7 @@ class GeminiAbletonClient:
         """Retrieves an array of all notes in a specific clip."""
         try:
             req = schema.ClipActionRequest(track_index=track_index, clip_slot_index=clip_slot_index)
-            return str(proxy.request_state("get_notes_from_clip", req.model_dump()))
+            return str(self._execute_proxy_request("get_notes_from_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -217,7 +234,7 @@ class GeminiAbletonClient:
         try:
             valid_notes = [schema.NoteSchema(**n) if isinstance(n, dict) else n for n in notes]
             req = schema.DeleteNotesRequest(track_index=track_index, clip_slot_index=clip_slot_index, notes=valid_notes)
-            return str(proxy.send_command("delete_notes_from_clip", req.model_dump()))
+            return str(self._execute_proxy_request("delete_notes_from_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -225,7 +242,7 @@ class GeminiAbletonClient:
         """Deletes a track by its integer index."""
         try:
             req = schema.TrackIndexRequest(track_index=track_index)
-            return str(proxy.send_command("delete_track", req.model_dump()))
+            return str(self._execute_proxy_request("delete_track", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -233,7 +250,7 @@ class GeminiAbletonClient:
         """Deletes a clip from a specific track and slot index."""
         try:
             req = schema.ClipActionRequest(track_index=track_index, clip_slot_index=clip_slot_index)
-            return str(proxy.send_command("delete_clip", req.model_dump()))
+            return str(self._execute_proxy_request("delete_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -241,7 +258,7 @@ class GeminiAbletonClient:
         """Gets all parameters for a device on a track to discover their parameter_index. You MUST use this before set_device_parameters."""
         try:
             req = schema.DeviceIndexRequest(track_index=track_index, device_index=device_index)
-            return str(proxy.request_state("get_device_parameters", req.model_dump()))
+            return str(self._execute_proxy_request("get_device_parameters", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -249,19 +266,20 @@ class GeminiAbletonClient:
         """Sets the numeric value of a specific parameter index on a device."""
         try:
             req = schema.SetDeviceParameterRequest(track_index=track_index, device_index=device_index, parameter_index=parameter_index, value=value)
-            return str(proxy.send_command("set_device_parameters", req.model_dump()))
+            return str(self._execute_proxy_request("set_device_parameters", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
     # --- Compound Tools ---
     def _get_track_index_by_name(self, track_name: str) -> int:
-        res = proxy.request_state("get_session_info")
-        if res.get("status") == "success":
-            data = res.get("data", {})
-            tracks = data.get("result", {}).get("tracks", [])
+        try:
+            res = self._execute_proxy_request("get_session_info")
+            tracks = res.get("tracks", [])
             for i, trk in enumerate(tracks):
                 if trk.get("name") == track_name:
                     return i
+        except Exception:
+            pass
         return -1
 
     def set_track_volume_by_name(self, track_name: str, gain_db: float) -> str:
@@ -270,7 +288,7 @@ class GeminiAbletonClient:
             track_index = self._get_track_index_by_name(track_name)
             if track_index == -1:
                 return f"Error: Track '{track_name}' not found."
-            return str(proxy.send_command("set_track_volume", {"track_index": track_index, "volume": gain_db}))
+            return str(self._execute_proxy_request("set_track_volume", **{"track_index": track_index, "volume": gain_db}))
         except Exception as e:
             return str(e)
 
@@ -291,11 +309,11 @@ class GeminiAbletonClient:
             if track_index == -1:
                 return f"Error: Track '{track_name}' not found."
             
-            session = proxy.request_state("get_session_info")
-            if session.get("status") != "success":
-                return "Error retrieving session info."
+            session = self._execute_proxy_request("get_session_info")
+            tracks = session.get("tracks", [])
+            if not tracks:
+                return "Error retrieving session info properly, or no tracks."
                 
-            tracks = session.get("data", {}).get("tracks", [])
             clip_slots = tracks[track_index].get("clip_slots", [])
             open_slot = next((i for i, slot in enumerate(clip_slots) if not slot.get("has_clip")), -1)
             
@@ -311,17 +329,9 @@ class GeminiAbletonClient:
     def get_session_mix_status(self) -> str:
         """[COMPOUND TOOL - PREFERRED] Retrieves a summary of volume/gain status for all tracks in the session in one go."""
         try:
-            res = proxy.request_state("get_session_info")
-            print(f"DEBUG - RAW PROXY RESPONSE: {res}")
+            res = self._execute_proxy_request("get_session_info")
             
-            if res.get("status") != "success":
-                return f"Error: Could not retrieve session info. proxy status: {res.get('status')} - {res.get('message', '')}"
-            
-            data = res.get("data", {})
-            if "error" in data:
-                return f"Error from Ableton Remote Script: {data['error']}"
-                
-            tracks = data.get("result", {}).get("tracks", [])
+            tracks = res.get("tracks", [])
             status_lines = []
             for i, trk in enumerate(tracks):
                 name = trk.get("name", "Unnamed")
