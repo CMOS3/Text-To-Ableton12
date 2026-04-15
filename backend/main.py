@@ -54,80 +54,137 @@ async def chat_endpoint(req: schema.ChatRequest):
 # --- Direct API Endpoints for UI Tester ---
 
 @app.get("/api/ping")
-async def ping():
-    return proxy.ping()
+def ping():
+    try:
+        return proxy.ping()
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.get("/api/session")
-async def get_session():
-    return proxy.request_state("get_session_info")
+def get_session():
+    try:
+        return proxy.request_state("get_session_info")
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/tempo")
-async def set_tempo(req: schema.TempoRequest):
-    return proxy.send_command("set_tempo", req.model_dump())
+def set_tempo(req: schema.TempoRequest):
+    try:
+        return proxy.send_command("set_tempo", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/playback/start")
-async def start_playback():
-    return proxy.send_command("start_playback")
+def start_playback():
+    try:
+        return proxy.send_command("start_playback")
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/playback/stop")
-async def stop_playback():
-    return proxy.send_command("stop_playback")
+def stop_playback():
+    try:
+        return proxy.send_command("stop_playback")
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/track/create")
-async def create_track(req: schema.TrackNameRequest):
-    return proxy.send_command("create_midi_track", req.model_dump())
+def create_track(req: schema.TrackNameRequest):
+    try:
+        return proxy.send_command("create_midi_track", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/track/rename")
-async def rename_track(req: schema.TrackIndexNameRequest):
-    return proxy.send_command("set_track_name", req.model_dump())
+def rename_track(req: schema.TrackIndexNameRequest):
+    try:
+        return proxy.send_command("set_track_name", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.get("/api/browser/tree")
-async def get_browser_tree():
-    return proxy.request_state("get_browser_tree")
+def get_browser_tree():
+    try:
+        return proxy.request_state("get_browser_tree")
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/browser/items")
-async def get_browser_items(req: schema.BrowserPathRequest):
-    return proxy.request_state("get_browser_items_at_path", req.model_dump())
+def get_browser_items(req: schema.BrowserPathRequest):
+    try:
+        return proxy.request_state("get_browser_items_at_path", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/track/load_device")
-async def load_device(req: schema.LoadDeviceRequest):
-    return proxy.send_command("load_instrument_or_effect", req.model_dump())
+def load_device(req: schema.LoadDeviceRequest):
+    try:
+        return proxy.send_command("load_instrument_or_effect", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/track/load_drum_kit")
-async def load_drum_kit(req: schema.LoadDrumKitRequest):
-    return proxy.send_command("load_drum_kit", req.model_dump())
+def load_drum_kit(req: schema.LoadDrumKitRequest):
+    try:
+        return proxy.send_command("load_drum_kit", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/clip/rename")
-async def rename_clip(req: schema.SetClipNameRequest):
-    return proxy.send_command("set_clip_name", req.model_dump())
+def rename_clip(req: schema.SetClipNameRequest):
+    try:
+        return proxy.send_command("set_clip_name", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/clip/stop")
-async def stop_clip(req: schema.StopClipRequest):
-    return proxy.send_command("stop_clip", req.model_dump())
+def stop_clip(req: schema.StopClipRequest):
+    try:
+        return proxy.send_command("stop_clip", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/clip/notes")
-async def get_notes_from_clip(req: schema.ClipActionRequest):
-    return proxy.request_state("get_notes_from_clip", req.model_dump())
+def get_notes_from_clip(req: schema.ClipActionRequest):
+    try:
+        return proxy.request_state("get_notes_from_clip", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.delete("/api/clip/notes")
-async def delete_notes_from_clip(req: schema.DeleteNotesRequest):
-    return proxy.send_command("delete_notes_from_clip", req.model_dump())
+def delete_notes_from_clip(req: schema.DeleteNotesRequest):
+    try:
+        return proxy.send_command("delete_notes_from_clip", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.delete("/api/track")
-async def delete_track(req: schema.TrackIndexRequest):
-    return proxy.send_command("delete_track", req.model_dump())
+def delete_track(req: schema.TrackIndexRequest):
+    try:
+        return proxy.send_command("delete_track", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.delete("/api/clip")
-async def delete_clip(req: schema.ClipActionRequest):
-    return proxy.send_command("delete_clip", req.model_dump())
+def delete_clip(req: schema.ClipActionRequest):
+    try:
+        return proxy.send_command("delete_clip", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.post("/api/device/parameters")
-async def get_device_parameters(req: schema.DeviceIndexRequest):
-    return proxy.request_state("get_device_parameters", req.model_dump())
+def get_device_parameters(req: schema.DeviceIndexRequest):
+    try:
+        return proxy.request_state("get_device_parameters", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.put("/api/device/parameter")
-async def set_device_parameters(req: schema.SetDeviceParameterRequest):
-    return proxy.send_command("set_device_parameters", req.model_dump())
+def set_device_parameters(req: schema.SetDeviceParameterRequest):
+    try:
+        return proxy.send_command("set_device_parameters", req.model_dump())
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

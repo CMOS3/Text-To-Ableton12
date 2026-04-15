@@ -15,7 +15,7 @@ class MCPProxy:
             return True
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.settimeout(2.0)
+            self.sock.settimeout(3.0)
             self.sock.connect((self.host, self.port))
             # Remove timeout for persistent connection
             self.sock.settimeout(None) 

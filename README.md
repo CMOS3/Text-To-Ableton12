@@ -1,6 +1,6 @@
 # Text-to-Ableton 🎹
 
-A powerful desktop application for controlling Ableton Live using Gemini AI 1.5 and the Model Context Protocol (MCP).
+A powerful desktop application for controlling Ableton Live using Gemini AI and the Model Context Protocol (MCP).
 
 ## 🏗️ Architecture
 

@@ -187,7 +187,21 @@ class GeminiRemoteScript(ControlSurface):
         try:
             tracks_info = []
             for i, track in enumerate(self.song().tracks):
-                tracks_info.append({"index": i, "name": track.name, "is_armed": track.arm if track.can_be_armed else False})
+                vol = "UNKNOWN"
+                pan = "UNKNOWN"
+                try:
+                    vol = track.mixer_device.volume.value
+                    pan = track.mixer_device.panning.value
+                except Exception:
+                    pass
+                    
+                tracks_info.append({
+                    "index": i, 
+                    "name": track.name, 
+                    "is_armed": track.arm if track.can_be_armed else False,
+                    "volume": vol,
+                    "panning": pan
+                })
             
             info = {
                 "tempo": self.song().tempo,

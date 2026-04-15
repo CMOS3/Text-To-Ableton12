@@ -34,6 +34,8 @@ class GeminiAbletonClient:
             "You can control transport, tracks, clips, and the browser. "
             "Always try to gather context (like session info or browser trees) before making destructive or complex actions, "
             "unless the user is explicitly specific. For `add_notes_to_clip`, make sure to pass a structured list of properties. "
+            "CRITICAL RULE: You MUST prioritize Compound Tools (like get_session_mix_status) over atomic tools to gather bulk data. "
+            "Do not iterate through individual tracks to check states if a single bulk tool exists."
         )
         
         self.pro_model = "models/gemini-3.1-pro-preview-customtools"
@@ -255,13 +257,15 @@ class GeminiAbletonClient:
     def _get_track_index_by_name(self, track_name: str) -> int:
         res = proxy.request_state("get_session_info")
         if res.get("status") == "success":
-            for i, trk in enumerate(res.get("data", {}).get("tracks", [])):
+            data = res.get("data", {})
+            tracks = data.get("result", {}).get("tracks", [])
+            for i, trk in enumerate(tracks):
                 if trk.get("name") == track_name:
                     return i
         return -1
 
     def set_track_volume_by_name(self, track_name: str, gain_db: float) -> str:
-        """Sets the volume of a track by its name in dB."""
+        """[COMPOUND TOOL - PREFERRED] Sets the volume of a track by its name in dB."""
         try:
             track_index = self._get_track_index_by_name(track_name)
             if track_index == -1:
@@ -271,7 +275,7 @@ class GeminiAbletonClient:
             return str(e)
 
     def load_device_to_track_by_name(self, track_name: str, device_name: str) -> str:
-        """Loads a device onto a track, both specified by name."""
+        """[COMPOUND TOOL - PREFERRED] Loads a device onto a track, both specified by name."""
         try:
             track_index = self._get_track_index_by_name(track_name)
             if track_index == -1:
@@ -281,7 +285,7 @@ class GeminiAbletonClient:
             return str(e)
 
     def generate_named_midi_pattern(self, track_name: str, clip_name: str, clip_length_bars: float, notes_array: list[dict]) -> str:
-        """Creates a clip, names it, and populates it with MIDI notes in one step."""
+        """[COMPOUND TOOL - PREFERRED] Creates a clip, names it, and populates it with MIDI notes in one step."""
         try:
             track_index = self._get_track_index_by_name(track_name)
             if track_index == -1:
@@ -305,21 +309,31 @@ class GeminiAbletonClient:
             return str(e)
 
     def get_session_mix_status(self) -> str:
-        """Retrieves a summary of volume/gain status for all tracks in the session in one go."""
+        """[COMPOUND TOOL - PREFERRED] Retrieves a summary of volume/gain status for all tracks in the session in one go."""
         try:
             res = proxy.request_state("get_session_info")
-            if res.get("status") != "success":
-                return "Error: Could not retrieve session info."
+            print(f"DEBUG - RAW PROXY RESPONSE: {res}")
             
-            tracks = res.get("data", {}).get("tracks", [])
+            if res.get("status") != "success":
+                return f"Error: Could not retrieve session info. proxy status: {res.get('status')} - {res.get('message', '')}"
+            
+            data = res.get("data", {})
+            if "error" in data:
+                return f"Error from Ableton Remote Script: {data['error']}"
+                
+            tracks = data.get("result", {}).get("tracks", [])
             status_lines = []
             for i, trk in enumerate(tracks):
                 name = trk.get("name", "Unnamed")
-                # Look for tracked volume or utility gain
                 volume = trk.get("volume", "---")
+                panning = trk.get("panning", "---")
+                
                 if isinstance(volume, (int, float)):
                     volume = f"{volume:.1f}"
-                status_lines.append(f"Track {i} ({name}): {volume}dB")
+                if isinstance(panning, (int, float)):
+                    panning = f"{panning:.2f}"
+                    
+                status_lines.append(f"Track {i} ({name}): Vol={volume}dB | Pan={panning}")
             
             return "\n".join(status_lines) if status_lines else "No tracks found."
         except Exception as e:
@@ -338,7 +352,8 @@ class GeminiAbletonClient:
         
         config = types.GenerateContentConfig(
             system_instruction=system_instruction,
-            temperature=0.0
+            temperature=0.0,
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
         )
         
         response = await self.client.aio.models.generate_content(
@@ -363,6 +378,7 @@ class GeminiAbletonClient:
         config = types.GenerateContentConfig(
             system_instruction=self.system_instruction,
             tools=self.tools,
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
         )
         
         contents = []
@@ -416,7 +432,7 @@ class GeminiAbletonClient:
                 if hasattr(self, func_name):
                     method = getattr(self, func_name)
                     try:
-                        res = method(**args)
+                        res = await asyncio.to_thread(method, **args)
                         tool_result = {"result": res}
                     except TypeError as e:
                         if "positional argument" in str(e) or "missing" in str(e).lower():
