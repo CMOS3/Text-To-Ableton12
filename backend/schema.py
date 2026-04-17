@@ -3,9 +3,10 @@ from typing import List, Optional
 
 # ---- Note Models ----
 class NoteSchema(BaseModel):
-    pitch: int = Field(..., description="MIDI pitch (0-127). Middle C is 60.")
-    start_time: float = Field(..., description="Start time in beats.")
-    duration: float = Field(..., description="Duration in beats.")
+    pitch_name: str = Field(..., description="Semantic pitch name (e.g., 'C1', 'Eb2', 'F#3'). Use flats (b) or sharps (#).")
+    pitch: Optional[int] = Field(None, description="MIDI pitch (0-127). Derived automatically by backend, leave empty.")
+    start_time: float = Field(..., description="Start time STRICTLY in beats. E.g., beat 1 = 0.0, beat 2 = 1.0.")
+    duration: float = Field(..., description="Duration STRICTLY in beats. 1 bar = 4.0 beats (in 4/4).")
     velocity: int = Field(100, description="Velocity (1-127).")
 
 # ---- Request Models for FastAPI & Gemini Tools ----
@@ -31,7 +32,7 @@ class TempoRequest(BaseModel):
 class CreateClipRequest(BaseModel):
     track_index: int
     clip_slot_index: int
-    length: float = Field(4.0, description="Length of the new clip in beats.")
+    length: float = Field(4.0, description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.")
 
 class SetClipNameRequest(BaseModel):
     track_index: int

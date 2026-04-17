@@ -8,6 +8,9 @@ This directory contains the custom Ableton Live Remote Script that enables exter
 - **Thread Safety**: Uses a task queue and the `update_display` callback to ensure all Ableton API calls happen on the main thread.
 
 ## Installation
+**Automatic Deployment (Windows):** Run the `deploy.ps1` PowerShell script in this directory to automatically deploy the files.
+
+**Manual Deployment:**
 1. Copy this folder to your Ableton User Library:
    `...\Documents\Ableton\User Library\Remote Scripts\TextToAbleton`
 2. Restart Ableton Live.

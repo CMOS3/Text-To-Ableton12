@@ -25,7 +25,9 @@ This will automatically activate the virtual environment, start the FastAPI serv
 - **Ableton Live 11/12**
 
 ### 2. Ableton Configuration
-Copy the contents of the `remote_script/` directory to your Ableton User Library:
+**Automatic Deployment (Windows):** Run the `remote_script/deploy.ps1` PowerShell script to automatically copy the Remote Script to your Ableton User Library.
+
+**Manual Deployment:** Copy the contents of the `remote_script/` directory to your Ableton User Library:
 `...\Documents\Ableton\User Library\Remote Scripts\TextToAbleton`
 
 Select **TextToAbleton** as a Control Surface in Ableton's Link/Tempo/MIDI preferences.
@@ -47,10 +49,11 @@ GEMINI_API_KEY=your_api_key_here
 ## ✨ Advanced Features
 
 - **Intelligent Intent Router**: Automatically selects the most efficient model. Simple commands use `Gemini 3.1 Flash-Lite`, while complex composition tasks use `Gemini 3.1 Pro`.
-- **NDJSON Streaming**: Real-time feedback in the UI during agentic loops, showing exactly what the AI is "thinking" or calling in Ableton.
+- **Compound Tools (Optimized)**: High-priority backend macros (e.g., `get_session_mix_status`, `generate_named_midi_pattern`) group complex multi-step operations. Now featuring centralized result extraction and detailed parsing for volume, panning, and track states.
+- **NDJSON Streaming**: Real-time feedback in the UI during agentic loops, showing exactly what the AI is "thinking" or calling in Ableton with granular status updates.
+- **Robust Error Propagation**: Centralized handler detects and propagates specific Ableton Live errors back to the AI, enabling intelligent self-correction for failed commands.
 - **Anthracite UI**: A premium, glassmorphic dark theme inspired by Ableton Live 12, featuring custom scrollbars and interactive state feedback.
-- **Context Memory**: Remembers past interactions within a session, allowing for conversational multi-step MIDI editing.
-- **Token Analysis**: Live dashboard showing token usage for every interaction to monitor efficiency.
+- **Token Analysis**: Live dashboard showing token usage for every interaction to monitor efficiency in real-time.
 - **Macro Manager**: Save frequently used prompts as custom buttons for one-click execution.
 - **Genre Context**: Persistent style setting that automatically prepends context to your prompts.
 

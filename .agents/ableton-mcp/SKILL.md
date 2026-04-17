@@ -24,6 +24,13 @@ The integration now actively supports and exposes the following full suite of ca
 - **Browser & Loading:** `get_browser_tree`, `get_browser_items_at_path`, `load_instrument_or_effect`, `load_drum_kit`.
 - **Mixing & Device Parameters:** `get_device_parameters`, `set_device_parameters`. *(Note: The LLM MUST always call `get_device_parameters` first to discover the numeric parameter_index before attempting to `set_device_parameters`!)*
 
+## Compound Tools (Highest Priority)
+**CRITICAL RULE:** You MUST prioritize Compound Tools over atomic tools to gather bulk data or perform multi-step operations. Do not iterate through individual tracks or perform atomic operations when a single compound tool exists.
+- `get_session_mix_status`: Retrieves a summary of volume/gain status for all tracks in one go.
+- `set_track_volume_by_name`: Sets the volume of a track by its name in dB.
+- `load_device_to_track_by_name`: Loads a device onto a track, both specified by name.
+- `generate_named_midi_pattern`: Creates a clip, names it, and populates it with MIDI notes in one step.
+
 ## Intelligent Routing & Context
 - **Intent Router:** The system uses a dual-model approach. `Gemini 3.1 Flash-Lite` acts as a binary classifier to route simple direct commands (tagged `FLASH`) vs complex reasoning tasks (tagged `PRO`).
 - **Context Persistence:** Every user message is prepended with a `[Style: <Genre>]` tag if a Genre is configured in the UI. 
@@ -37,9 +44,12 @@ When this skill is activated, the agent must follow these steps for any communic
 2. **Schema Validation:** Use strictly defined Pydantic models (in `backend/schema.py`) to validate complex JSON payloads like MIDI notes, validating data BEFORE dispatching it to the proxy.
 3. **Payload Structure:** All messages must be formatted as JSON on the TCP socket.
    - Example Ping: `{"method": "ping", "params": {}}`
-4. **Connection Handling:**
-   - Use a non-blocking socket approach or a short timeout (2.0 seconds) initially, removing the timeout for persistent connections to prevent the application from hanging.
-   - Gracefully handle `ConnectionRefusedError` and any JSON decoding errors from the Ableton side, ensuring errors propagate safely across the HTTP boundary to the UI.
+4. **Execution & Extraction:**
+   - Always wrap synchronous proxy calls in `asyncio.to_thread` when executing within the async agent loop.
+   - Use the centralized extraction pattern: Detect `status != "success"` at the proxy level, then drill into `data["error"]` for Ableton-specific failures, and finally extract `data["result"]` for tool consumption.
+   - Propagate clear, human-readable errors back to the LLM so it can attempt self-correction (e.g., "Clip Slot index out of range").
+5. **Connection Handling:**
+   - Use a persistent, thread-safe socket approach. Gracefully handle `ConnectionRefusedError` and ensure the proxy can re-establish the bridge automatically if Ableton is restarted.
 
 ## Constraints
 - Do not attempt to use MIDI ports directly; always route through the TCP bridge on port 9877.

@@ -98,6 +98,8 @@ class GeminiRemoteScript(ControlSurface):
         self.log_message(f"Dispatching method: {method} with params: {params}")
         if method == "ping":
             self.execute_safely(self._do_ping, client)
+        elif method == "get_song_scale":
+            self.schedule_message(1, self._do_get_song_scale, (client,))
         
         # --- Session & Transport ---
         elif method == "get_session_info":
@@ -178,6 +180,20 @@ class GeminiRemoteScript(ControlSurface):
             self.log_message(f"MCP: Unknown method '{method}'")
 
     # ---- Handlers ----
+    def _do_get_song_scale(self, args):
+        client, = args
+        try:
+            is_active = getattr(self.song(), "scale_mode", 0) == 1
+            root_note = getattr(self.song(), "root_note", -1)
+            scale_name = getattr(self.song(), "scale_name", "Unknown")
+            self._send_response(client, {
+                "is_active": is_active,
+                "root_note": root_note, 
+                "scale_name": scale_name
+            })
+        except Exception as e:
+            self._send_error(client, str(e))
+
     def _do_ping(self, client):
         self._send_response(client, "pong")
 

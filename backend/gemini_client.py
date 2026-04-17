@@ -34,8 +34,11 @@ class GeminiAbletonClient:
             "You can control transport, tracks, clips, and the browser. "
             "Always try to gather context (like session info or browser trees) before making destructive or complex actions, "
             "unless the user is explicitly specific. For `add_notes_to_clip`, make sure to pass a structured list of properties. "
+            "When asked to create a clip or generate notes, you MUST call `get_song_scale` first to establish the `root_note` and `scale_name`. Use this as your musical foundation. "
             "CRITICAL RULE: You MUST prioritize Compound Tools (like get_session_mix_status) over atomic tools to gather bulk data. "
-            "Do not iterate through individual tracks to check states if a single bulk tool exists."
+            "Do not iterate through individual tracks to check states if a single bulk tool exists. "
+            "CRITICAL TIME RULE: Ableton length and time values are strictly in BEATS, not bars! "
+            "If the user asks for a 4-bar loop in 4/4 time, you MUST set length to 16.0. 1 Bar = 4.0 Beats."
         )
         
         self.pro_model = "models/gemini-3.1-pro-preview-customtools"
@@ -44,6 +47,7 @@ class GeminiAbletonClient:
         # Tools to expose to the LLM
         self.tools = [
             self.test_ableton_connection,
+            self.get_song_scale,
             self.get_session_info,
             self.set_tempo,
             self.start_playback,
@@ -97,6 +101,10 @@ class GeminiAbletonClient:
         """Attempts to send a JSON 'ping' message to the Ableton Server."""
         res = self._execute_proxy_request("ping")
         return str(res)
+
+    def get_song_scale(self) -> str:
+        """Retrieves whether Scale Mode is active, the root note, and the scale name (e.g. Minor, Major)."""
+        return str(self._execute_proxy_request("get_song_scale"))
 
     def get_session_info(self) -> str:
         """Retrieves the current tracks and state in the Ableton Live session."""
@@ -168,14 +176,34 @@ class GeminiAbletonClient:
             return str(e)
 
     def add_notes_to_clip(self, track_index: int, clip_slot_index: int, notes: list[schema.NoteSchema]) -> str:
-        """Adds MIDI notes to a clip."""
+        """Adds MIDI notes to a clip using semantic pitch names (e.g. 'C3', 'Eb2')."""
         try:
-            # Reconstruct the list as pydantic validation requires dict unpacking or straight execution
-            valid_notes = [schema.NoteSchema(**n) if isinstance(n, dict) else n for n in notes]
+            processed_notes = []
+            for n in notes:
+                if hasattr(n, "model_dump"):
+                    note_dict = n.model_dump()
+                elif isinstance(n, dict):
+                    note_dict = n.copy()
+                else:
+                    note_dict = getattr(n, "__dict__", {}).copy()
+                    
+                pitch_name = note_dict.get("pitch_name")
+                if not pitch_name:
+                    return "Error: Missing 'pitch_name' in note payload. You must provide semantic pitch names."
+                
+                try:
+                    midi_val = self._pitch_name_to_midi(pitch_name)
+                except ValueError as ve:
+                    return f"Error with pitch '{pitch_name}': {ve}"
+                    
+                note_dict["pitch"] = midi_val
+                processed_notes.append(note_dict)
+
+            valid_notes = [schema.NoteSchema(**n) for n in processed_notes]
             req = schema.AddNotesRequest(track_index=track_index, clip_slot_index=clip_slot_index, notes=valid_notes)
             return str(self._execute_proxy_request("add_notes_to_clip", **req.model_dump()))
-        except ValidationError as e:
-            return str(e)
+        except Exception as e:
+            return f"Error adding notes: {e}"
 
     def fire_clip(self, track_index: int, clip_slot_index: int) -> str:
         """Fires (plays) a specific clip."""
@@ -270,6 +298,29 @@ class GeminiAbletonClient:
         except ValidationError as e:
             return str(e)
 
+    # --- Helper Algorithms ---
+    def _pitch_name_to_midi(self, pitch_name: str) -> int:
+        import re
+        notes = {
+            'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3,
+            'E': 4, 'F': 5, 'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8, 'Ab': 8,
+            'A': 9, 'A#': 10, 'Bb': 10, 'B': 11
+        }
+        match = re.match(r"^([A-Ga-g][#b]?)(-?\d+)$", str(pitch_name).strip())
+        if not match:
+            raise ValueError(f"Invalid pitch name format: {pitch_name}. Expected format like 'C3', 'Eb2'.")
+            
+        note_str = match.group(1).capitalize()
+        octave = int(match.group(2))
+        
+        if note_str not in notes:
+            raise ValueError(f"Invalid note name: {note_str} in {pitch_name}.")
+            
+        midi = notes[note_str] + (octave + 2) * 12
+        if not (0 <= midi <= 127):
+            raise ValueError(f"Pitch {pitch_name} translates to {midi}, which is out of MIDI range (0-127).")
+        return midi
+
     # --- Compound Tools ---
     def _get_track_index_by_name(self, track_name: str) -> int:
         try:
@@ -303,7 +354,7 @@ class GeminiAbletonClient:
             return str(e)
 
     def generate_named_midi_pattern(self, track_name: str, clip_name: str, clip_length_bars: float, notes_array: list[dict]) -> str:
-        """[COMPOUND TOOL - PREFERRED] Creates a clip, names it, and populates it with MIDI notes in one step."""
+        """[COMPOUND TOOL - PREFERRED] Creates a clip, names it, and populates it with MIDI notes in one step. Notes are routed through add_notes_to_clip for Scale-Aware snapping."""
         try:
             track_index = self._get_track_index_by_name(track_name)
             if track_index == -1:
@@ -322,6 +373,7 @@ class GeminiAbletonClient:
                 
             self.create_clip(track_index, open_slot, clip_length_bars * 4.0)
             self.set_clip_name(track_index, open_slot, clip_name)
+            # Snapping is delegated to add_notes_to_clip
             return self.add_notes_to_clip(track_index, open_slot, notes_array)
         except Exception as e:
             return str(e)
