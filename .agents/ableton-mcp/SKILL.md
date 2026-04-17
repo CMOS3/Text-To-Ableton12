@@ -20,7 +20,9 @@ The integration now actively supports and exposes the following full suite of ca
 - **Session & Transport:** `get_session_info`, `set_tempo`, `start_playback`, `stop_playback`.
 - **Track Management:** `get_track_info`, `create_midi_track`, `set_track_name`, `select_track`, `arm_track`, `delete_track`.
 - **Clip Operations:** `create_clip`, `set_clip_name`, `fire_clip`, `stop_clip`, `delete_clip`.
-- **Advanced MIDI Editing:** `add_notes_to_clip`, `get_notes_from_clip`, `delete_notes_from_clip` (requires matching both pitch and start_time).
+- **Advanced MIDI Editing:** `add_notes_to_clip`, `get_notes_from_clip`, `delete_notes_from_clip`.
+  - **Note Format:** Uses semantic `pitch_name` strings (e.g., "C3", "Eb2", "G#4") instead of MIDI integers.
+  - **Timing:** All `start_time` and `duration` values are STRICTLY in beats (e.g., 4.0 = one bar in 4/4). Use floats for precision (e.g., 0.25 for a sixteenth note).
 - **Browser & Loading:** `get_browser_tree`, `get_browser_items_at_path`, `load_instrument_or_effect`, `load_drum_kit`.
 - **Mixing & Device Parameters:** `get_device_parameters`, `set_device_parameters`. *(Note: The LLM MUST always call `get_device_parameters` first to discover the numeric parameter_index before attempting to `set_device_parameters`!)*
 
