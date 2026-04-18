@@ -52,8 +52,14 @@ class StopClipRequest(BaseModel):
     track_index: int
     clip_slot_index: int
 
-class BrowserPathRequest(BaseModel):
-    path: str
+
+class InjectMidiRequest(BaseModel):
+    track_index: int
+    length: float = Field(4.0, description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.")
+    notes: List[NoteSchema]
+
+class BrowserItemsRequest(BaseModel):
+    path: str = Field(..., description="Path to a folder in the browser, e.g. 'Packs/Lost and Found'.")
 
 class LoadDeviceRequest(BaseModel):
     track_index: int

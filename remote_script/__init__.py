@@ -152,7 +152,9 @@ class GeminiRemoteScript(ControlSurface):
         elif method == "get_browser_tree":
             self.execute_safely(self._do_get_browser_tree, client)
         elif method == "get_browser_items_at_path":
-            self.execute_safely(self._do_get_browser_items_at_path, (params.get("path", ""), client))
+            self.execute_safely(self._do_get_browser_items_at_path, (params, client))
+        elif method == "inject_midi_to_new_clip":
+            self.execute_safely(self._do_inject_midi_to_new_clip, (params, client))
         elif method == "load_instrument_or_effect":
             self.execute_safely(self._do_load_device, (params, client))
         elif method == "load_drum_kit":
@@ -339,6 +341,23 @@ class GeminiRemoteScript(ControlSurface):
         except Exception as e:
             self._send_error(client, f"Get browser tree err: {e}")
 
+    def _do_get_browser_items_at_path(self, args):
+        params, client = args
+        try:
+            path = params.get("path", "")
+            node = self._traverse_browser_path(path)
+            if not node:
+                self._send_error(client, f"Path '{path}' not found in Ableton Browser.")
+                return
+                
+            items = []
+            for child in node.children:
+                items.append({"name": child.name, "is_folder": child.is_folder})
+                
+            self._send_response(client, items)
+        except Exception as e:
+            self._send_error(client, f"Get browser items err: {e}")
+
     def _traverse_browser_path(self, path):
         parts = [p.strip() for p in path.split("/") if p.strip()]
         if not parts:
@@ -376,20 +395,47 @@ class GeminiRemoteScript(ControlSurface):
                 
         return current_node
 
-    def _do_get_browser_items_at_path(self, args):
-        path, client = args
+
+    def _do_inject_midi_to_new_clip(self, args):
+        params, client = args
         try:
-            node = self._traverse_browser_path(path)
-            if not node:
-                self._send_error(client, f"Path not found: {path}")
+            t_idx = params.get("track_index", 0)
+            length = params.get("length", 4.0)
+            notes_req = params.get("notes", [])
+            
+            if t_idx >= len(self.song().tracks):
+                self._send_error(client, "Track index out of bounds")
                 return
                 
-            items = []
-            for child in node.children:
-                items.append({"name": child.name, "is_folder": child.is_folder})
-            self._send_response(client, items)
+            track = self.song().tracks[t_idx]
+            
+            open_slot_idx = -1
+            for i, slot in enumerate(track.clip_slots):
+                if not slot.has_clip:
+                    open_slot_idx = i
+                    break
+                    
+            if open_slot_idx == -1:
+                self._send_error(client, "No empty clip slots available on the track.")
+                return
+                
+            slot = track.clip_slots[open_slot_idx]
+            slot.create_clip(length)
+            clip = slot.clip
+            
+            if notes_req and clip:
+                notes_to_add = tuple(Live.Clip.MidiNoteSpecification(
+                    pitch=n["pitch"],
+                    start_time=n["start_time"],
+                    duration=n["duration"],
+                    velocity=n["velocity"],
+                    mute=False
+                ) for n in notes_req)
+                clip.add_new_notes(notes_to_add)
+                
+            self._send_response(client, {"status": "success", "clip_slot_index": open_slot_idx})
         except Exception as e:
-            self._send_error(client, f"Get browser items err: {e}")
+            self._send_error(client, f"Inject midi err: {e}")
 
     def _do_load_device(self, args):
         params, client = args
@@ -398,7 +444,7 @@ class GeminiRemoteScript(ControlSurface):
             path = params.get("browser_path", "")
             
             node = self._traverse_browser_path(path)
-            if not node or node.is_folder:
+            if not node:
                 self._send_error(client, f"Device '{path}' not found in Ableton Browser.")
                 return
             
@@ -419,7 +465,7 @@ class GeminiRemoteScript(ControlSurface):
             
             # The structure for drum kits allows treating them identically to generic load_item
             node = self._traverse_browser_path(path)
-            if not node or node.is_folder:
+            if not node:
                 self._send_error(client, f"Drum Kit '{path}' not found in Ableton Browser.")
                 return
             

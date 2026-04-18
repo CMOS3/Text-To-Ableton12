@@ -40,7 +40,7 @@ class MCPProxy:
         """Sends a command and attempts to read an ack response."""
         try:
             self.connect()
-            self.sock.settimeout(5.0) # Set timeout so we don't hang forever
+            self.sock.settimeout(15.0) # Set timeout so we don't hang forever
             self.sock.sendall(self._create_payload(method, params))
             
             # Try to read the acknowledgment
@@ -69,7 +69,7 @@ class MCPProxy:
         """Requests state and attempts to parse the JSON response."""
         try:
             self.connect()
-            self.sock.settimeout(5.0) # Set timeout so we don't hang forever
+            self.sock.settimeout(15.0) # Set timeout so we don't hang forever
             self.sock.sendall(self._create_payload(method, params))
             
             data = self.sock.recv(65536) # Read response

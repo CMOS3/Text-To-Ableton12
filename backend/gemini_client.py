@@ -2,8 +2,9 @@ import os
 import json
 import logging
 import asyncio
+import re
+import httpx
 from dotenv import load_dotenv
-
 from google import genai
 from google.genai import types
 from pydantic import ValidationError
@@ -75,7 +76,8 @@ class GeminiAbletonClient:
             self.set_track_volume_by_name,
             self.load_device_to_track_by_name,
             self.generate_named_midi_pattern,
-            self.get_session_mix_status
+            self.get_session_mix_status,
+            self.inject_midi_to_new_clip
         ]
 
     # --- Core Toolset Implementations ---
@@ -226,12 +228,42 @@ class GeminiAbletonClient:
         return str(self._execute_proxy_request("get_browser_tree"))
 
     def get_browser_items_at_path(self, path: str) -> str:
-        """Gets browser items available at a specific path, e.g. 'Instruments/Wavetable'."""
+        """Retrieves a list of children items and folders at a specific path in the Ableton Live browser. Use this to dive deeper into folders."""
         try:
-            req = schema.BrowserPathRequest(path=path)
+            req = schema.BrowserItemsRequest(path=path)
             return str(self._execute_proxy_request("get_browser_items_at_path", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+
+    def inject_midi_to_new_clip(self, track_index: int, length: float, notes: list[schema.NoteSchema]) -> str:
+        """Finds the first empty clip slot on the track, creates a clip of the specified length, and injects the semantic notes."""
+        try:
+            processed_notes = []
+            for n in notes:
+                if hasattr(n, "model_dump"):
+                    note_dict = n.model_dump()
+                elif isinstance(n, dict):
+                    note_dict = n.copy()
+                else:
+                    note_dict = getattr(n, "__dict__", {}).copy()
+                    
+                pitch_name = note_dict.get("pitch_name")
+                if not pitch_name:
+                    return "Error: Missing 'pitch_name' in note payload. You must provide semantic pitch names."
+                
+                try:
+                    midi_val = self._pitch_name_to_midi(pitch_name)
+                except ValueError as ve:
+                    return f"Error with pitch '{pitch_name}': {ve}"
+                    
+                note_dict["pitch"] = midi_val
+                processed_notes.append(note_dict)
+
+            valid_notes = [schema.NoteSchema(**n) for n in processed_notes]
+            req = schema.InjectMidiRequest(track_index=track_index, length=length, notes=valid_notes)
+            return str(self._execute_proxy_request("inject_midi_to_new_clip", **req.model_dump()))
+        except Exception as e:
+            return f"Error injecting midi: {e}"
 
     def load_instrument_or_effect(self, track_index: int, browser_path: str) -> str:
         """Loads a device (instrument or effect) onto a track from the browser."""
@@ -403,9 +435,58 @@ class GeminiAbletonClient:
 
     # --- Chat Engine ---
 
-    async def _route_intent(self, prompt: str) -> str:
-        """Determines if the prompt is simple (FLASH) or complex (PRO)."""
-        system_instruction = (
+    async def _route_intent(self, prompt: str):
+        """Determines if the prompt is simple enough for Ollama, otherwise falls back to Gemini Flash, then Pro."""
+        system_instruction_ollama = (
+            "You are an intent classifier for an Ableton DAW assistant. "
+            "Analyze the user's prompt. "
+            "If the prompt EXACTLY maps to one of these three atomic tools: "
+            "1) set_tempo (requires 'tempo' float) "
+            "2) start_playback (no params) "
+            "3) stop_playback (no params) "
+            "Output ONLY a strict JSON payload representing the tool name and its parameters. "
+            "Example 1: {\"tool\": \"set_tempo\", \"payload\": {\"tempo\": 120.0}} "
+            "Example 2: {\"tool\": \"start_playback\", \"payload\": {}} "
+            "If the prompt requires creative reasoning, track changes, clip generation, or ANYTHING "
+            "outside of those 3 atomic transport commands, output EXACTLY the phrase: "
+            "STATUS: COMPLEX\n"
+            "DO NOT use Markdown, bolding, asterisks, or code blocks. Output raw text or raw JSON only."
+        )
+
+        ollama_payload = {
+            "model": "gemma4:e4b",
+            "prompt": prompt,
+            "system": system_instruction_ollama,
+            "stream": False
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                res = await client.post("http://localhost:11434/api/generate", json=ollama_payload)
+                res.raise_for_status()
+                data = res.json()
+                result_text = data.get("response", "").strip()
+
+                yield {"type": "debug", "content": f"RAW_OLLAMA_RESPONSE:\n{result_text}"}
+
+                clean_json = re.sub(r'^```json\s*', '', result_text, flags=re.MULTILINE)
+                clean_json = re.sub(r'^```\s*', '', clean_json, flags=re.MULTILINE).strip()
+
+                if "STATUS: COMPLEX" not in clean_json.upper():
+                    yield {"type": "result", "content": clean_json}
+                    return
+                else:
+                    yield {"type": "result", "content": "STATUS: COMPLEX"}
+                    return
+
+        except Exception as e:
+            import traceback
+            tb_str = traceback.format_exc()
+            yield {"type": "debug", "content": f"TRACEBACK:\n{tb_str}"}
+            yield {"type": "warning", "message": f"Local model offline or timed out. Falling back to Cloud APIs."}
+            logger.warning(f"Ollama local routing failed or timed out: {e}. Falling back to flash-lite.")
+
+        system_instruction_flash = (
             "You are an intent classifier for an Ableton DAW assistant. Classify the user's prompt into one of two categories. "
             "If the prompt is a simple, direct, single-step command (e.g., 'play', 'stop', 'create a track', 'set tempo to 120', 'delete clip'), return exactly the word 'FLASH'. "
             "If the prompt is ambiguous, requires creative reasoning, involves multiple complex steps, or asks a general question (e.g., 'make a techno beat', 'why is my track silent?', 'analyze this clip'), return exactly the word 'PRO'. "
@@ -413,29 +494,84 @@ class GeminiAbletonClient:
         )
         
         config = types.GenerateContentConfig(
-            system_instruction=system_instruction,
+            system_instruction=system_instruction_flash,
             temperature=0.0,
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
         )
         
-        response = await self.client.aio.models.generate_content(
-            model=self.flash_model,
-            contents=prompt,
-            config=config
-        )
-        
-        result = response.text.strip().upper() if response.text else "PRO"
-        if result != "FLASH":
-            return "PRO"
-        return "FLASH"
+        try:
+            response = await self.client.aio.models.generate_content(
+                model=self.flash_model,
+                contents=prompt,
+                config=config
+            )
+            result = response.text.strip().upper() if response.text else "PRO"
+            if result == "FLASH":
+                yield {"type": "result", "content": "STATUS: FLASH"}
+                return
+        except Exception as e:
+            logger.error(f"Flash routing failed: {e}")
+
+        yield {"type": "result", "content": "STATUS: COMPLEX"}
 
     async def chat(self, user_prompt: str, chat_history: list = None):
         """Executes an agentic multi-turn chat loop as an async generator."""
         if chat_history is None:
             chat_history = []
             
-        model_to_use = await self._route_intent(user_prompt)
-        selected_model = self.flash_model if model_to_use == "FLASH" else self.pro_model
+        route_result = ""
+        async for chunk in self._route_intent(user_prompt):
+            if chunk["type"] == "debug":
+                yield json.dumps(chunk) + "\n"
+                await asyncio.sleep(0.01)
+            elif chunk["type"] == "result":
+                route_result = chunk["content"]
+                
+        route_result_upper = route_result.upper()
+        
+        if "STATUS: COMPLEX" in route_result_upper:
+            selected_model = self.pro_model
+        elif "STATUS: FLASH" in route_result_upper:
+            selected_model = self.flash_model
+        else:
+            try:
+                # Sanitize markdown just in case before loading
+                clean_json_str = route_result.strip()
+                clean_json_str = re.sub(r'^```json\s*', '', clean_json_str, flags=re.MULTILINE)
+                clean_json_str = re.sub(r'^```\s*', '', clean_json_str, flags=re.MULTILINE).strip()
+                
+                parsed = json.loads(clean_json_str)
+                tool_name = parsed.get("tool")
+                payload = parsed.get("payload", {})
+                if tool_name in ["set_tempo", "start_playback", "stop_playback"] and hasattr(self, tool_name):
+                    yield json.dumps({"type": "status", "message": "Local Model executing fast path..."}) + "\n"
+                    await asyncio.sleep(0.01)
+                    
+                    method = getattr(self, tool_name)
+                    payload.pop("dummy", None)
+                    res = await asyncio.to_thread(method, **payload)
+                    
+                    yield json.dumps({
+                        "type": "final",
+                        "data": {
+                            "response": f"Executed local fast path: {tool_name}\nResult: {res}",
+                            "model_used": "gemma4:26b (Local)",
+                            "input_tokens": 0,
+                            "output_tokens": 0
+                        }
+                    }) + "\n"
+                    return
+                else:
+                    yield json.dumps({"type": "warning", "message": f"Local model referenced an unknown tool: {tool_name}. Relying on Gemni Flash."}) + "\n"
+                    selected_model = self.flash_model
+            except json.JSONDecodeError:
+                yield json.dumps({"type": "warning", "message": f"Failed to parse fast path JSON from local model. Falling back to Cloud."}) + "\n"
+                logger.warning(f"Failed to parse fast path JSON from local model. Output was: {route_result.strip()}")
+                selected_model = self.flash_model
+            except Exception as e:
+                yield json.dumps({"type": "warning", "message": f"Local fast path execution failed ({e}). Falling back to Cloud."}) + "\n"
+                logger.warning(f"Error executing local fast path: {e}")
+                selected_model = self.flash_model
         
         config = types.GenerateContentConfig(
             system_instruction=self.system_instruction,
@@ -529,7 +665,7 @@ class GeminiAbletonClient:
             "type": "final",
             "data": {
                 "response": final_text,
-                "model_used": "FLASH" if model_to_use == "FLASH" else "PRO",
+                "model_used": "PRO",
                 "input_tokens": total_input_tokens,
                 "output_tokens": total_output_tokens
             }

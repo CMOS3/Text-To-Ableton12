@@ -11,9 +11,21 @@
         <header>
             <h1>Text-to-Ableton</h1>
             <div class="header-right">
-                <div class="session-cost">
-                    <span class="cost-flash" id="cost-flash">Flash: $0.0000</span>
-                    <span class="cost-pro" id="cost-pro">Pro: $0.0000</span>
+                <div id="models-used-container" style="display:flex; flex-direction:column; align-items:flex-end; margin-right: 20px; font-size: 0.8em; opacity: 0.9;">
+                    <div style="font-weight: bold; margin-bottom: 2px;">Models Used (Current Prompt):</div>
+                    <div id="models-list" style="display:flex; flex-direction:column; align-items:flex-end; color:#a5d6a7;"></div>
+                </div>
+                <div class="session-cost" style="display:flex; flex-direction:column; align-items:flex-end;">
+                    <div>
+                        <span class="cost-flash" id="cost-flash">Flash: $0.0000</span>
+                        <span class="cost-pro" id="cost-pro" style="margin-left: 8px;">Pro: $0.0000</span>
+                    </div>
+                    <div style="font-size:0.85em; opacity:0.8; margin-top:2px;">
+                        <span>History: </span>
+                        <span class="history-flash" id="history-flash">Flash: $0.0000</span>
+                        <span class="history-pro" id="history-pro" style="margin-left: 8px;">Pro: $0.0000</span>
+                        <button id="reset-history-btn" class="text-btn" style="font-size:0.8em; padding:0; min-width:auto; margin-left:8px;">[Clear]</button>
+                    </div>
                 </div>
                 <button id="settings-btn" class="text-btn">⚙ Settings</button>
                 <button id="clear-btn" class="text-btn">New Session</button>

@@ -110,7 +110,7 @@ def get_browser_tree():
         return {"status": "error", "message": str(e)}
 
 @app.post("/api/browser/items")
-def get_browser_items(req: schema.BrowserPathRequest):
+def get_browser_items(req: schema.BrowserItemsRequest):
     try:
         return proxy.request_state("get_browser_items_at_path", req.model_dump())
     except Exception as e:

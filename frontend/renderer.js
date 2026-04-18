@@ -26,9 +26,45 @@ let costFlash = 0.0;
 let costPro = 0.0;
 let flashTokens = 0;
 let proTokens = 0;
+let historyFlashCost = parseFloat(localStorage.getItem('historyFlashCost') || '0.0');
+let historyProCost = parseFloat(localStorage.getItem('historyProCost') || '0.0');
 
 const costFlashM = document.getElementById('cost-flash');
 const costProM = document.getElementById('cost-pro');
+const historyFlashM = document.getElementById('history-flash');
+const historyProM = document.getElementById('history-pro');
+const resetHistoryBtn = document.getElementById('reset-history-btn');
+
+historyFlashM.textContent = `Flash: $${historyFlashCost.toFixed(4)}`;
+historyProM.textContent = `Pro: $${historyProCost.toFixed(4)}`;
+
+historyFlashM.textContent = `Flash: $${historyFlashCost.toFixed(4)}`;
+historyProM.textContent = `Pro: $${historyProCost.toFixed(4)}`;
+
+const modelsList = document.getElementById('models-list');
+let currentPromptModels = new Set();
+
+function clearModelsUsed() {
+    currentPromptModels.clear();
+    if (modelsList) modelsList.innerHTML = '';
+}
+
+function addModelUsed(modelName) {
+    if (!modelName || currentPromptModels.has(modelName)) return;
+    currentPromptModels.add(modelName);
+    const el = document.createElement('div');
+    el.textContent = modelName;
+    if (modelsList) modelsList.appendChild(el);
+}
+
+resetHistoryBtn.addEventListener('click', () => {
+    historyFlashCost = 0.0;
+    historyProCost = 0.0;
+    localStorage.setItem('historyFlashCost', '0.0');
+    localStorage.setItem('historyProCost', '0.0');
+    historyFlashM.textContent = `Flash: $0.0000`;
+    historyProM.textContent = `Pro: $0.0000`;
+});
 
 /**
  * Basic Markdown Parser using Regex.
@@ -239,6 +275,9 @@ async function handleSendMessage() {
     chatInput.value = '';
     chatInput.disabled = true;
     sendBtn.disabled = true;
+    
+    // Clear models used list for the new prompt
+    clearModelsUsed();
 
     // 3. Show thinking indicator
     showThinking();
@@ -251,27 +290,56 @@ async function handleSendMessage() {
                 if (thinkingContent) {
                     thinkingContent.textContent = chunk.message;
                 }
+            } else if (chunk.type === 'debug') {
+                console.log('%c[OLLAMA DEBUG] \n' + chunk.content, 'color: #00FF00; font-family: monospace; background: #111; padding: 4px;');
+                if (chunk.content && chunk.content.includes("RAW_OLLAMA") || chunk.content.includes("TRACEBACK")) {
+                    addModelUsed("gemma4:e4b (Local Router)");
+                }
+            } else if (chunk.type === 'warning') {
+                const warningDiv = document.createElement('div');
+                warningDiv.style.color = '#ffb74d';
+                warningDiv.style.fontSize = '0.85em';
+                warningDiv.style.fontStyle = 'italic';
+                warningDiv.style.margin = '4px 0 8px 12px';
+                warningDiv.style.opacity = '0.8';
+                warningDiv.textContent = `⚠️ Warning: ${chunk.message}`;
+                chatHistory.appendChild(warningDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
             }
         });
         
         // 5. Success
         removeThinking();
-        appendMessage('ai', data.response || "I couldn't process that request.");
+        const messageDiv = appendMessage('ai', data.response || "I couldn't process that request.");
+        
+        if (data.model_used) {
+            addModelUsed(data.model_used);
+        }
+
         chatHistoryArray.push({ role: "assistant", content: data.response || "" });
         
         // Calculate cost
+        let stepCost = 0.0;
         if (data.model_used && data.input_tokens !== undefined && data.output_tokens !== undefined) {
             const totalTokens = data.input_tokens + data.output_tokens;
-            if (data.model_used === 'FLASH') {
-                const stepCost = (data.input_tokens / 1000000) * 0.25 + (data.output_tokens / 1000000) * 1.50;
+            if (data.model_used.includes('FLASH')) {
+                stepCost = (data.input_tokens / 1000000) * 0.25 + (data.output_tokens / 1000000) * 1.50;
                 costFlash += stepCost;
                 flashTokens += totalTokens;
                 costFlashM.textContent = `Flash: $${costFlash.toFixed(4)} (${flashTokens} tk)`;
-            } else if (data.model_used === 'PRO') {
-                const stepCost = (data.input_tokens / 1000000) * 2.00 + (data.output_tokens / 1000000) * 12.00;
+                
+                historyFlashCost += stepCost;
+                localStorage.setItem('historyFlashCost', historyFlashCost.toString());
+                historyFlashM.textContent = `Flash: $${historyFlashCost.toFixed(4)}`;
+            } else if (data.model_used.includes('PRO')) {
+                stepCost = (data.input_tokens / 1000000) * 2.00 + (data.output_tokens / 1000000) * 12.00;
                 costPro += stepCost;
                 proTokens += totalTokens;
                 costProM.textContent = `Pro: $${costPro.toFixed(4)} (${proTokens} tk)`;
+                
+                historyProCost += stepCost;
+                localStorage.setItem('historyProCost', historyProCost.toString());
+                historyProM.textContent = `Pro: $${historyProCost.toFixed(4)}`;
             }
         }
 
