@@ -19,25 +19,26 @@ Establish and maintain a stable, secure bridge between the Python backend and Ab
 The integration now actively supports and exposes the following full suite of capabilities to the Gemini model and the frontend interface:
 - **Session & Transport:** `get_session_info`, `set_tempo`, `start_playback`, `stop_playback`.
 - **Track Management:** `get_track_info`, `create_midi_track`, `set_track_name`, `select_track`, `arm_track`, `delete_track`.
-- **Clip Operations:** `create_clip`, `set_clip_name`, `fire_clip`, `stop_clip`, `delete_clip`.
+- **Clip Operations:** `create_clip`, `set_clip_name`, `fire_clip`, `stop_clip`, `delete_clip`, `inject_midi_to_new_clip`.
 - **Advanced MIDI Editing:** `add_notes_to_clip`, `get_notes_from_clip`, `delete_notes_from_clip`.
-  - **Note Format:** Uses semantic `pitch_name` strings (e.g., "C3", "Eb2", "G#4") instead of MIDI integers.
-  - **Timing:** All `start_time` and `duration` values are STRICTLY in beats (e.g., 4.0 = one bar in 4/4). Use floats for precision (e.g., 0.25 for a sixteenth note).
+  - **Note Format:** Uses semantic `pitch_name` strings (e.g., "C3", "Eb2", "G#4").
+  - **Timing:** All `start_time` and `duration` values are STRICTLY in beats (e.g., 4.0 = one bar in 4/4).
 - **Browser & Loading:** `get_browser_tree`, `get_browser_items_at_path`, `load_instrument_or_effect`, `load_drum_kit`.
-- **Mixing & Device Parameters:** `get_device_parameters`, `set_device_parameters`. *(Note: The LLM MUST always call `get_device_parameters` first to discover the numeric parameter_index before attempting to `set_device_parameters`!)*
+- **Mixing & Device Parameters:** `get_device_parameters`, `set_device_parameters`.
 
 ## Compound Tools (Highest Priority)
-**CRITICAL RULE:** You MUST prioritize Compound Tools over atomic tools to gather bulk data or perform multi-step operations. Do not iterate through individual tracks or perform atomic operations when a single compound tool exists.
-- `get_session_mix_status`: Retrieves a summary of volume/gain status for all tracks in one go.
-- `set_track_volume_by_name`: Sets the volume of a track by its name in dB.
-- `load_device_to_track_by_name`: Loads a device onto a track, both specified by name.
-- `generate_named_midi_pattern`: Creates a clip, names it, and populates it with MIDI notes in one step.
+**CRITICAL RULE:** You MUST prioritize Compound Tools over atomic tools.
+- `get_session_mix_status`: Summary of volume/gain for all tracks.
+- `set_track_volume_by_name`: Vol control by name.
+- `load_device_to_track_by_name`: Load devices on named tracks.
+- `generate_named_midi_pattern`: One-step clip creation and population.
 
-## Intelligent Routing & Context
-- **Intent Router:** The system uses a dual-model approach. `Gemini 3.1 Flash-Lite` acts as a binary classifier to route simple direct commands (tagged `FLASH`) vs complex reasoning tasks (tagged `PRO`).
-- **Context Persistence:** Every user message is prepended with a `[Style: <Genre>]` tag if a Genre is configured in the UI. 
-- **Conversation Memory:** The `chat_history` is passed as an array of `genai.types.Content` objects, enabling the model to reference previous steps (e.g., "Add the same notes to the new track").
-- **Token Efficiency:** The UI monitors `input_tokens` and `output_tokens` via `usage_metadata` for real-time cost-per-session analysis.
+## Intelligent Routing & Context (Hybrid AI)
+- **Local Router (Ollama):** The system first pings `gemma4:e4b` locally. If the command is a simple transport action (`play`, `stop`, `set tempo`), it is executed instantly with zero API cost.
+- **Semantic Filter (Gemini Flash):** For complex requests, Gemini Flash filters the toolset to only the necessary 3-5 schemas, preventing token bloat.
+- **Pro Reasoning (Gemini Pro):** The final creative reasoning and multi-step execution are handled by Gemini Pro with the lean, filtered toolset.
+- **Context Persistence:** Preprends `[Style: <Genre>]` and `[Scale: <Root> <Name>]` context to prompts.
+- **Token Efficiency:** Monitored via NDJSON stream.
 
 ## Implementation Logic
 When this skill is activated, the agent must follow these steps for any communication attempt:

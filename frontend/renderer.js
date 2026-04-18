@@ -322,16 +322,7 @@ async function handleSendMessage() {
         let stepCost = 0.0;
         if (data.model_used && data.input_tokens !== undefined && data.output_tokens !== undefined) {
             const totalTokens = data.input_tokens + data.output_tokens;
-            if (data.model_used.includes('FLASH')) {
-                stepCost = (data.input_tokens / 1000000) * 0.25 + (data.output_tokens / 1000000) * 1.50;
-                costFlash += stepCost;
-                flashTokens += totalTokens;
-                costFlashM.textContent = `Flash: $${costFlash.toFixed(4)} (${flashTokens} tk)`;
-                
-                historyFlashCost += stepCost;
-                localStorage.setItem('historyFlashCost', historyFlashCost.toString());
-                historyFlashM.textContent = `Flash: $${historyFlashCost.toFixed(4)}`;
-            } else if (data.model_used.includes('PRO')) {
+            if (data.model_used.toUpperCase().includes('PRO')) {
                 stepCost = (data.input_tokens / 1000000) * 2.00 + (data.output_tokens / 1000000) * 12.00;
                 costPro += stepCost;
                 proTokens += totalTokens;
@@ -340,6 +331,15 @@ async function handleSendMessage() {
                 historyProCost += stepCost;
                 localStorage.setItem('historyProCost', historyProCost.toString());
                 historyProM.textContent = `Pro: $${historyProCost.toFixed(4)}`;
+            } else if (data.model_used.toUpperCase().includes('FLASH')) {
+                stepCost = (data.input_tokens / 1000000) * 0.25 + (data.output_tokens / 1000000) * 1.50;
+                costFlash += stepCost;
+                flashTokens += totalTokens;
+                costFlashM.textContent = `Flash: $${costFlash.toFixed(4)} (${flashTokens} tk)`;
+                
+                historyFlashCost += stepCost;
+                localStorage.setItem('historyFlashCost', historyFlashCost.toString());
+                historyFlashM.textContent = `Flash: $${historyFlashCost.toFixed(4)}`;
             }
         }
 

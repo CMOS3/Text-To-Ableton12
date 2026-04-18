@@ -79,6 +79,12 @@ class GeminiAbletonClient:
             self.get_session_mix_status,
             self.inject_midi_to_new_clip
         ]
+        
+        self.atomic_tools = [
+            self.set_tempo,
+            self.start_playback,
+            self.stop_playback
+        ]
 
     # --- Core Toolset Implementations ---
 
@@ -435,6 +441,45 @@ class GeminiAbletonClient:
 
     # --- Chat Engine ---
 
+    async def _get_required_tools_via_flash(self, prompt: str) -> tuple[list[str], int, int]:
+        """Uses Gemini Flash to determine the required tools for the given prompt to resolve token bloat."""
+        tools_description = "\n".join([f"- {t.__name__}: {t.__doc__}" for t in self.tools])
+        system_instruction = (
+            "You are a semantic routing agent for an Ableton Live assistant. "
+            "Analyze the user's prompt and select the necessary tools to accomplish the task from the provided list. "
+            "Output ONLY a strict JSON array of strings representing the exact tool names required. "
+            "Example: [\"get_song_scale\", \"generate_named_midi_pattern\"]\n\n"
+            f"Available tools:\n{tools_description}"
+        )
+        
+        config = types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            temperature=0.0,
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
+        )
+        
+        try:
+            response = await self.client.aio.models.generate_content(
+                model=self.flash_model,
+                contents=prompt,
+                config=config
+            )
+            
+            p_tokens = getattr(response.usage_metadata, "prompt_token_count", 0) if hasattr(response, "usage_metadata") and response.usage_metadata else 0
+            c_tokens = getattr(response.usage_metadata, "candidates_token_count", 0) if hasattr(response, "usage_metadata") and response.usage_metadata else 0
+            
+            result_text = response.text.strip()
+            clean_json = re.sub(r'^```json\s*', '', result_text, flags=re.MULTILINE)
+            clean_json = re.sub(r'^```\s*', '', clean_json, flags=re.MULTILINE).strip()
+            
+            tool_names = json.loads(clean_json)
+            if not isinstance(tool_names, list):
+                raise ValueError("Response is not a valid JSON array.")
+            return tool_names, p_tokens, c_tokens
+        except Exception as e:
+            logger.warning(f"Semantic filtering via Flash failed: {e}. Falling back to full toolset.")
+            return [t.__name__ for t in self.tools], 0, 0
+
     async def _route_intent(self, prompt: str):
         """Determines if the prompt is simple enough for Ollama, otherwise falls back to Gemini Flash, then Pro."""
         system_instruction_ollama = (
@@ -519,6 +564,10 @@ class GeminiAbletonClient:
         if chat_history is None:
             chat_history = []
             
+        total_prompt_tokens = 0
+        total_candidate_tokens = 0
+        models_used_chain = ["gemma4:e4b (Local Router)"]
+            
         route_result = ""
         async for chunk in self._route_intent(user_prompt):
             if chunk["type"] == "debug":
@@ -528,11 +577,29 @@ class GeminiAbletonClient:
                 route_result = chunk["content"]
                 
         route_result_upper = route_result.upper()
+        active_tools = self.tools
         
         if "STATUS: COMPLEX" in route_result_upper:
             selected_model = self.pro_model
+            models_used_chain.append("Gemini 3 Flash (Semantic Filter)")
+            models_used_chain.append("Gemini 3.1 Pro (Execution)")
+            
+            # Phase 2: Tool-filtering payload generation
+            yield json.dumps({"type": "status", "message": "Applying semantic filtering via Flash..."}) + "\n"
+            await asyncio.sleep(0.01)
+            required_tool_names, p_tokens, c_tokens = await self._get_required_tools_via_flash(user_prompt)
+            total_prompt_tokens += p_tokens
+            total_candidate_tokens += c_tokens
+            
+            active_tools = [t for t in self.tools if t.__name__ in required_tool_names]
+            if not active_tools:
+                logger.warning("Semantic filter returned 0 matching tools. Falling back to full list.")
+                active_tools = self.tools
+
         elif "STATUS: FLASH" in route_result_upper:
             selected_model = self.flash_model
+            models_used_chain.append("Gemini 3 Flash (Fallback)")
+            active_tools = self.atomic_tools
         else:
             try:
                 # Sanitize markdown just in case before loading
@@ -555,27 +622,33 @@ class GeminiAbletonClient:
                         "type": "final",
                         "data": {
                             "response": f"Executed local fast path: {tool_name}\nResult: {res}",
-                            "model_used": "gemma4:26b (Local)",
-                            "input_tokens": 0,
-                            "output_tokens": 0
+                            "model_used": "\n".join(models_used_chain),
+                            "input_tokens": total_prompt_tokens,
+                            "output_tokens": total_candidate_tokens
                         }
                     }) + "\n"
                     return
                 else:
                     yield json.dumps({"type": "warning", "message": f"Local model referenced an unknown tool: {tool_name}. Relying on Gemni Flash."}) + "\n"
                     selected_model = self.flash_model
+                    models_used_chain.append("Gemini 3 Flash (Fallback)")
+                    active_tools = self.atomic_tools
             except json.JSONDecodeError:
                 yield json.dumps({"type": "warning", "message": f"Failed to parse fast path JSON from local model. Falling back to Cloud."}) + "\n"
                 logger.warning(f"Failed to parse fast path JSON from local model. Output was: {route_result.strip()}")
                 selected_model = self.flash_model
+                models_used_chain.append("Gemini 3 Flash (Fallback)")
+                active_tools = self.atomic_tools
             except Exception as e:
                 yield json.dumps({"type": "warning", "message": f"Local fast path execution failed ({e}). Falling back to Cloud."}) + "\n"
                 logger.warning(f"Error executing local fast path: {e}")
                 selected_model = self.flash_model
+                models_used_chain.append("Gemini 3 Flash (Fallback)")
+                active_tools = self.atomic_tools
         
         config = types.GenerateContentConfig(
             system_instruction=self.system_instruction,
-            tools=self.tools,
+            tools=active_tools,
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
         )
         
@@ -599,9 +672,6 @@ class GeminiAbletonClient:
              types.Content(role="user", parts=[types.Part.from_text(text=user_prompt)])
         )
         
-        total_input_tokens = 0
-        total_output_tokens = 0
-        
         yield json.dumps({"type": "status", "message": "Agent thinking..."}) + "\n"
         await asyncio.sleep(0.01)
         
@@ -612,8 +682,8 @@ class GeminiAbletonClient:
         )
         
         if hasattr(response, "usage_metadata") and response.usage_metadata:
-            total_input_tokens += getattr(response.usage_metadata, "prompt_token_count", 0) or 0
-            total_output_tokens += getattr(response.usage_metadata, "candidates_token_count", 0) or 0
+            total_prompt_tokens += getattr(response.usage_metadata, "prompt_token_count", 0) or 0
+            total_candidate_tokens += getattr(response.usage_metadata, "candidates_token_count", 0) or 0
             
         while response.function_calls:
             contents.append(response.candidates[0].content)
@@ -656,8 +726,8 @@ class GeminiAbletonClient:
             )
             
             if hasattr(response, "usage_metadata") and response.usage_metadata:
-                total_input_tokens += getattr(response.usage_metadata, "prompt_token_count", 0) or 0
-                total_output_tokens += getattr(response.usage_metadata, "candidates_token_count", 0) or 0
+                total_prompt_tokens += getattr(response.usage_metadata, "prompt_token_count", 0) or 0
+                total_candidate_tokens += getattr(response.usage_metadata, "candidates_token_count", 0) or 0
                 
         final_text = response.text if response.text else "Tasks executed successfully."
                 
@@ -665,9 +735,9 @@ class GeminiAbletonClient:
             "type": "final",
             "data": {
                 "response": final_text,
-                "model_used": "PRO",
-                "input_tokens": total_input_tokens,
-                "output_tokens": total_output_tokens
+                "model_used": "\n".join(models_used_chain),
+                "input_tokens": total_prompt_tokens,
+                "output_tokens": total_candidate_tokens
             }
         }) + "\n"
         await asyncio.sleep(0.01)

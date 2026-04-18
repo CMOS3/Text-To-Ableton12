@@ -69,16 +69,17 @@ To move safely from the As-Is state to the To-Be state, development should follo
 
 ## **4. Current Status (April 2026 Progress Report)**
 
-As of mid-April 2026, the application is in a **Hybrid Phase 1 / Phase 3 state**.
+As of mid-April 2026, the application is in an **Advanced Hybrid State**, with all foundational routing layers active.
 
 ### **Progress Highlights**
 
-*   **Phase 1 (Local Interception):** [✅ COMPLETED] Atomic transport commands (`set_tempo`, `start_playback`, `stop_playback`) are successfully intercepted by `gemma4:e4b`.
-*   **Phase 2 (Tool Filtering):** [❌ PENDING] **This is the current bottleneck.** All 30+ tools are being sent to Gemini Pro for every complex request, leading to high token usage.
-*   **Phase 3 (LOM Expansion):** [🚀 ADVANCED] We have outpaced the roadmap here. Deep LOM access (Browser Navigation, MIDI Note Manipulation, Device Parameter control) is already fully operational.
+*   **Phase 1 (Local Interception):** [✅ COMPLETED] Atomic transport commands (`set_tempo`, `start_playback`, `stop_playback`) are successfully intercepted by `gemma4:e4b` for zero-cost execution.
+*   **Phase 2 (Tool Filtering):** [✅ COMPLETED] Semantic tool filtering via Gemini Flash is operational, reducing schema bloat for Gemini Pro.
+*   **Phase 3 (LOM Expansion):** [✅ COMPLETED] Deep LOM access (Browser Navigation, MIDI Note Manipulation, Device Parameter control) is already fully operational.
+*   **Scale-Aware MIDI:** [✅ COMPLETED] The `add_notes_to_clip` tool now supports semantic pitch names (e.g., "C3") and is scale-aware.
 
-### **Identified Technical Inconsistencies**
+### **Resolved Technical Inconsistencies**
 
-1.  **Reporting Glitch:** The backend reports `model_used: gemma4:26b (Local)` for fast-path results, even though it is currently using the lighter `e4b` model.
-2.  **Redundant Routing:** There is a secondary Gemini Flash router active after the local model returns `STATUS: COMPLEX`, which adds latency and cost.
-3.  **Missing Filtering Layer:** The code jumps from "Local Intercept" directly to "Full Cloud Reasoning," bypassing the "Local Tool Selection" phase.
+1.  **Reporting Corrected:** The backend now accurately reports `gemma4:e4b (Local Router)` in the chain, resolving the reporting glitch.
+2.  **Optimized Routing:** The intent routing has been unified, and the redundant Flash router now serves as a fall-back if the local model is offline.
+3.  **Active Filtering Layer:** The semantic filtering layer is now fully integrated into the `chat` loop.
