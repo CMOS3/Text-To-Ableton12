@@ -20,39 +20,38 @@ The integration now actively supports and exposes the following full suite of ca
 - **Session & Transport:** `get_session_info`, `set_tempo`, `start_playback`, `stop_playback`.
 - **Track Management:** `get_track_info`, `create_midi_track`, `set_track_name`, `select_track`, `arm_track`, `delete_track`.
 - **Clip Operations:** `create_clip`, `set_clip_name`, `fire_clip`, `stop_clip`, `delete_clip`, `inject_midi_to_new_clip`.
-- **Advanced MIDI Editing:** `add_notes_to_clip`, `get_notes_from_clip`, `delete_notes_from_clip`.
-  - **Note Format:** Uses semantic `pitch_name` strings (e.g., "C3", "Eb2", "G#4").
-  - **Timing:** All `start_time` and `duration` values are STRICTLY in beats (e.g., 4.0 = one bar in 4/4).
-- **Browser & Loading:** `get_browser_tree`, `get_browser_items_at_path`, `load_instrument_or_effect`, `load_drum_kit`.
-- **Mixing & Device Parameters:** `get_device_parameters`, `set_device_parameters`.
+- **Mixing & Device Parameters:** `get_track_devices`, `get_device_parameters`, `set_device_parameter`, `design_sound`.
+  - **Parameter Matching:** `set_device_parameter` uses **string names** (e.g., "Cutoff", "Freq"). This is case-insensitive and synonym-aware (e.g., "cutoff" will match "Filter Freq").
+  - **Normalization:** You MUST provide parameter values as floats strictly between **0.0 and 1.0**. The backend automatically scales these to the device's native min/max range.
 
 ## Compound Tools (Highest Priority)
 **CRITICAL RULE:** You MUST prioritize Compound Tools over atomic tools.
+- `design_sound`: [SUB-AGENT] Autonomously designs a sound based on a creative description (e.g., "roaring bass"). It scans all devices on the track and maps the intent to parameter changes natively.
 - `get_session_mix_status`: Summary of volume/gain for all tracks.
 - `set_track_volume_by_name`: Vol control by name.
 - `load_device_to_track_by_name`: Load devices on named tracks.
 - `generate_named_midi_pattern`: One-step clip creation and population.
 
 ## Intelligent Routing & Context (Hybrid AI)
-- **Local Router (Ollama):** The system first pings `gemma4:e4b` locally. If the command is a simple transport action (`play`, `stop`, `set tempo`), it is executed instantly with zero API cost.
-- **Semantic Filter (Gemini Flash):** For complex requests, Gemini Flash filters the toolset to only the necessary 3-5 schemas, preventing token bloat.
-- **Pro Reasoning (Gemini Pro):** The final creative reasoning and multi-step execution are handled by Gemini Pro with the lean, filtered toolset.
-- **Context Persistence:** Preprends `[Style: <Genre>]` and `[Scale: <Root> <Name>]` context to prompts.
-- **Token Efficiency:** Monitored via NDJSON stream.
+- **Local Router (Ollama):** The system first pings `gemma4:e4b` locally for zero-latency transport commands.
+- **Semantic Filter (Gemini Flash):** Filters the toolset for complex requests to prevent token bloat.
+- **Pro Reasoning (Gemini Pro):** Deep musical reasoning with the lean toolset.
+- **Sub-Agent Execution:** Specialized agents (e.g., `design_sound`) use the Pro model to orchestrate multi-parameter changes natively.
+- **Context Persistence:** Preprends style/scale information.
+- **Token Efficiency:** Live monitoring via NDJSON stream.
 
 ## Implementation Logic
-When this skill is activated, the agent must follow these steps for any communication attempt:
+When this skill is activated, the agent must follow these steps:
 
-1. **Safety Check:** Ensure the destination IP is strictly `127.0.0.1`. Never attempt to bind to `0.0.0.0` or any external interface.
-2. **Schema Validation:** Use strictly defined Pydantic models (in `backend/schema.py`) to validate complex JSON payloads like MIDI notes, validating data BEFORE dispatching it to the proxy.
+1. **0-Based Indexing Rule:** ALWAYS use 0-based integers for track and device indices.
+   - User says "Track 1" -> `track_index: 0`.
+   - User says "Device 2" -> `device_index: 1`.
+2. **Schema Validation:** Use strictly defined Pydantic models (in `backend/schema.py`) to validate data BEFORE dispatching.
 3. **Payload Structure:** All messages must be formatted as JSON on the TCP socket.
-   - Example Ping: `{"method": "ping", "params": {}}`
 4. **Execution & Extraction:**
-   - Always wrap synchronous proxy calls in `asyncio.to_thread` when executing within the async agent loop.
-   - Use the centralized extraction pattern: Detect `status != "success"` at the proxy level, then drill into `data["error"]` for Ableton-specific failures, and finally extract `data["result"]` for tool consumption.
-   - Propagate clear, human-readable errors back to the LLM so it can attempt self-correction (e.g., "Clip Slot index out of range").
-5. **Connection Handling:**
-   - Use a persistent, thread-safe socket approach. Gracefully handle `ConnectionRefusedError` and ensure the proxy can re-establish the bridge automatically if Ableton is restarted.
+   - Always wrap synchronous proxy calls in `asyncio.to_thread`.
+   - Use the centralized extraction pattern: Detect `status != "success"` at the proxy level and extract `data["result"]`.
+
 
 ## Constraints
 - Do not attempt to use MIDI ports directly; always route through the TCP bridge on port 9877.

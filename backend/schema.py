@@ -19,7 +19,7 @@ class TrackNameRequest(BaseModel):
     track_name: str
 
 class TrackIndexNameRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     name: str
 
 class TrackArmRequest(BaseModel):
@@ -30,31 +30,31 @@ class TempoRequest(BaseModel):
     tempo: float = Field(..., description="BPM, e.g. 120.0")
 
 class CreateClipRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     clip_slot_index: int
     length: float = Field(4.0, description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.")
 
 class SetClipNameRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     clip_slot_index: int
     name: str
 
 class AddNotesRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     clip_slot_index: int
     notes: List[NoteSchema]
 
 class ClipActionRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     clip_slot_index: int
 
 class StopClipRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     clip_slot_index: int
 
 
 class InjectMidiRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     length: float = Field(4.0, description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.")
     notes: List[NoteSchema]
 
@@ -62,27 +62,43 @@ class BrowserItemsRequest(BaseModel):
     path: str = Field(..., description="Path to a folder in the browser, e.g. 'Packs/Lost and Found'.")
 
 class LoadDeviceRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     browser_path: str = Field(..., description="Path to the instrument or effect in the browser.")
 
 class LoadDrumKitRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     drum_kit_path: str
 
 class TrackIndexRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
 
 class DeleteNotesRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     clip_slot_index: int
     notes: List[NoteSchema]
 
+class TrackDevicesRequest(BaseModel):
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+
 class DeviceIndexRequest(BaseModel):
-    track_index: int
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     device_index: int
 
-class SetDeviceParameterRequest(BaseModel):
-    track_index: int
+class SetDeviceParameterByNameRequest(BaseModel):
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     device_index: int
-    parameter_index: int
+    parameter_name: str
     value: float
+
+class DesignSoundRequest(BaseModel):
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    creative_description: str = Field(..., description="A vivid description of the desired sound (e.g., 'warm vintage pad').")
+
+class ParameterChange(BaseModel):
+    device_index: int
+    parameter_name: str
+    value: float
+
+class SubAgentSoundDesignResponse(BaseModel):
+    changes: List[ParameterChange]
+

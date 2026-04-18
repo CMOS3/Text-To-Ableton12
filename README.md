@@ -51,7 +51,9 @@ GEMINI_API_KEY=your_api_key_here
 
 ## ✨ Advanced Features
 
+- **Autonomous Sound Design**: A specialized sub-agent that manipulates native Ableton device parameters based on creative descriptions (e.g., "Give me a gritty, dark warehouse bass").
 - **Hybrid Intelligence**: Combines local open-weight models for speed/cost with cloud-scale reasoning for creativity.
+
 - **Semantic Tool Filtering**: Dynamically builds the LLM's function list based on intent, keeping context windows lean.
 - **STRICT Beat-Based Timing**: Orchestral-grade precision where all MIDI lengths and start times are handled in beats (e.g., 4 bars = 16.0 beats in 4/4).
 - **Compound Tools (Optimized)**: High-priority macros (`get_session_mix_status`, `generate_named_midi_pattern`) that parse volume, panning, and track states in bulk.

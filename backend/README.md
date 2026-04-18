@@ -6,6 +6,8 @@ This directory contains the Python-based backend for the Text-to-Ableton project
 - **FastAPI Server**: Provides a REST API for the frontend and AI clients.
 - **Gemini AI Client**: Integrates with Google's Generative AI (`google-genai`) to interpret musical intent and call tools.
 - **MCP Proxy**: Orchestrates the communication between the AI and the Ableton Remote Script via JSON-RPC over TCP.
+- **Sound Design Sub-Agent**: Leverages specialized model instructions to autonomously design native Ableton instrument and effect chains.
+
 
 ## Technical Details
 - **Port**: Binds to `127.0.0.1:8000`.

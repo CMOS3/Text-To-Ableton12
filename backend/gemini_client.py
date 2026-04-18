@@ -71,13 +71,15 @@ class GeminiAbletonClient:
             self.delete_notes_from_clip,
             self.delete_track,
             self.delete_clip,
+            self.get_track_devices,
             self.get_device_parameters,
-            self.set_device_parameters,
+            self.set_device_parameter,
             self.set_track_volume_by_name,
             self.load_device_to_track_by_name,
             self.generate_named_midi_pattern,
             self.get_session_mix_status,
-            self.inject_midi_to_new_clip
+            self.inject_midi_to_new_clip,
+            self.design_sound
         ]
         
         self.atomic_tools = [
@@ -85,6 +87,8 @@ class GeminiAbletonClient:
             self.start_playback,
             self.stop_playback
         ]
+        
+        self._sub_agent_telemetry = {"p_tokens": 0, "c_tokens": 0, "used": False}
 
     # --- Core Toolset Implementations ---
 
@@ -320,19 +324,27 @@ class GeminiAbletonClient:
         except ValidationError as e:
             return str(e)
 
+    def get_track_devices(self, track_index: int) -> str:
+        """Gets all devices loaded on a specific track. Args: track_index (int): The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc."""
+        try:
+            req = schema.TrackDevicesRequest(track_index=track_index)
+            return str(self._execute_proxy_request("get_track_devices", **req.model_dump()))
+        except ValidationError as e:
+            return str(e)
+
     def get_device_parameters(self, track_index: int, device_index: int) -> str:
-        """Gets all parameters for a device on a track to discover their parameter_index. You MUST use this before set_device_parameters."""
+        """Gets all parameters for a device on a track to discover their names, minimums, and maximums. You MUST use this before set_device_parameter. WARNING: Many Ableton parameters (Hz, dB, ms) are normalized to floats between 0.0 and 1.0. You must inspect the `min` and `max` values returned by this tool. Args: track_index (int): The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc."""
         try:
             req = schema.DeviceIndexRequest(track_index=track_index, device_index=device_index)
             return str(self._execute_proxy_request("get_device_parameters", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
-    def set_device_parameters(self, track_index: int, device_index: int, parameter_index: int, value: float) -> str:
-        """Sets the numeric value of a specific parameter index on a device."""
+    def set_device_parameter(self, track_index: int, device_index: int, parameter_name: str, value: float) -> str:
+        """Sets the numeric value of a specific parameter by its string name on a device. CRITICAL: If the parameter's min is 0.0 and max is 1.0, the value is normalized. You CANNOT send absolute real-world values (e.g., 400 for 400Hz). You MUST mathematically estimate and scale the desired real-world value into a float between 0.0 and 1.0 before making this call."""
         try:
-            req = schema.SetDeviceParameterRequest(track_index=track_index, device_index=device_index, parameter_index=parameter_index, value=value)
-            return str(self._execute_proxy_request("set_device_parameters", **req.model_dump()))
+            req = schema.SetDeviceParameterByNameRequest(track_index=track_index, device_index=device_index, parameter_name=parameter_name, value=value)
+            return str(self._execute_proxy_request("set_device_parameter", **req.model_dump()))
         except ValidationError as e:
             return str(e)
 
@@ -438,6 +450,86 @@ class GeminiAbletonClient:
             return "\n".join(status_lines) if status_lines else "No tracks found."
         except Exception as e:
             return str(e)
+
+    async def design_sound(self, track_index: int, creative_description: str) -> str:
+        """[COMPOUND TOOL - PREFERRED] Autonomously designs a sound on a track using a specialized sub-agent. Provide a vivid description of the sound (e.g., 'roaring bass') and the sub-agent will manipulate device parameters natively. Args: track_index (int): The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc."""
+        print(f"DEBUG: design_sound triggered with track_index={track_index}")
+        try:
+            devices_data = await asyncio.to_thread(self._execute_proxy_request, "get_track_devices", track_index=track_index)
+            if not devices_data or not isinstance(devices_data, list):
+                return "Error: No devices found on track, or track does not exist."
+                
+            parameter_context = ""
+            for i, dev in enumerate(devices_data):
+                dev_name = dev.get("name", "Unknown") if isinstance(dev, dict) else str(dev)
+                try:
+                    params_data = await asyncio.to_thread(self._execute_proxy_request, "get_device_parameters", track_index=track_index, device_index=i)
+                    parameter_context += f"Device {i} ({dev_name}):\n"
+                    if isinstance(params_data, list):
+                        for p in params_data:
+                            name = p.get("name", "")
+                            p_min = p.get("min", 0.0)
+                            p_max = p.get("max", 1.0)
+                            p_val = p.get("value", 0.0)
+                            parameter_context += f" - {name} (current: {p_val}, min: {p_min}, max: {p_max})\n"
+                    parameter_context += "\n"
+                except Exception as e:
+                    logger.warning(f"Failed to get params for device {i}: {e}")
+                    
+            sys_instruct = (
+                "You are an Ableton Sound Design sub-agent. Your goal is to design a sound based on a creative description. "
+                "You only interact with native Ableton Audio Effects and Instruments. "
+                "You MUST normalize your chosen values strictly between 0.0 and 1.0 based on the parameter's min/max limits. "
+                "Select the appropriate parameters to change from the provided list to achieve the creative description. "
+                "Parameter names are logically matched (spaces and casing are ignored natively), but try to match the provided parameter list text accurately."
+            )
+            
+            prompt = (
+                f"Creative Description: '{creative_description}'\n\n"
+                f"Available Devices and Parameters:\n{parameter_context}\n"
+                "Return a JSON array of changes matching the required schema."
+            )
+            
+            config = types.GenerateContentConfig(
+                system_instruction=sys_instruct,
+                temperature=0.7,
+                response_mime_type="application/json",
+                response_schema=schema.SubAgentSoundDesignResponse
+            )
+            
+            response = await self.client.aio.models.generate_content(
+                model=self.pro_model,
+                contents=prompt,
+                config=config
+            )
+            
+            if response.usage_metadata:
+                p_toks = getattr(response.usage_metadata, "prompt_token_count", 0)
+                c_toks = getattr(response.usage_metadata, "candidates_token_count", 0)
+                self._sub_agent_telemetry = {"p_tokens": p_toks, "c_tokens": c_toks, "used": True}
+                
+            try:
+                parsed_res = schema.SubAgentSoundDesignResponse.model_validate_json(response.text)
+                
+                applied = []
+                for change in parsed_res.changes:
+                    ui_string = await asyncio.to_thread(
+                        self._execute_proxy_request, 
+                        "set_device_parameter", 
+                        track_index=track_index, 
+                        device_index=change.device_index, 
+                        parameter_name=change.parameter_name, 
+                        value=change.value
+                    )
+                    applied.append(f"Set '{change.parameter_name}' on Device {change.device_index} to {ui_string}")
+                    
+                if not applied:
+                    return "Sub-agent decided no parameter changes were necessary."
+                return "Designed sound based on description. Applied changes:\n" + "\n".join(applied)
+            except Exception as e:
+                return f"Sub-agent execution failed: {str(e)}"
+        except Exception as e:
+            return f"Error in sub-agent design_sound: {e}"
 
     # --- Chat Engine ---
 
@@ -700,7 +792,10 @@ class GeminiAbletonClient:
                 if hasattr(self, func_name):
                     method = getattr(self, func_name)
                     try:
-                        res = await asyncio.to_thread(method, **args)
+                        if asyncio.iscoroutinefunction(method):
+                            res = await method(**args)
+                        else:
+                            res = await asyncio.to_thread(method, **args)
                         tool_result = {"result": res}
                     except TypeError as e:
                         if "positional argument" in str(e) or "missing" in str(e).lower():
@@ -711,6 +806,13 @@ class GeminiAbletonClient:
                         tool_result = {"error": str(e)}
                 else:
                     tool_result = {"error": f"Unknown tool: {func_name}"}
+                    
+                if getattr(self, "_sub_agent_telemetry", {}).get("used"):
+                    total_prompt_tokens += self._sub_agent_telemetry.get("p_tokens", 0)
+                    total_candidate_tokens += self._sub_agent_telemetry.get("c_tokens", 0)
+                    if "Gemini 3.1 Pro (Sub-Agent)" not in models_used_chain:
+                        models_used_chain.append("Gemini 3.1 Pro (Sub-Agent)")
+                    self._sub_agent_telemetry = {"p_tokens": 0, "c_tokens": 0, "used": False}
                     
                 tool_parts.append(types.Part.from_function_response(name=func_name, response=tool_result))
                 

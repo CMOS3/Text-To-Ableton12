@@ -76,7 +76,9 @@ As of mid-April 2026, the application is in an **Advanced Hybrid State**, with a
 *   **Phase 1 (Local Interception):** [✅ COMPLETED] Atomic transport commands (`set_tempo`, `start_playback`, `stop_playback`) are successfully intercepted by `gemma4:e4b` for zero-cost execution.
 *   **Phase 2 (Tool Filtering):** [✅ COMPLETED] Semantic tool filtering via Gemini Flash is operational, reducing schema bloat for Gemini Pro.
 *   **Phase 3 (LOM Expansion):** [✅ COMPLETED] Deep LOM access (Browser Navigation, MIDI Note Manipulation, Device Parameter control) is already fully operational.
+*   **Sound Design Sub-Agent:** [🚀 NEW] A specialized sub-agent for autonomous sound creation (`design_sound`) is now in early release.
 *   **Scale-Aware MIDI:** [✅ COMPLETED] The `add_notes_to_clip` tool now supports semantic pitch names (e.g., "C3") and is scale-aware.
+*   **String-Based Parameters:** [✅ COMPLETED] Device parameter control now uses string names with fuzzy/synonym matching, removing the need for manual index discovery.
 
 ### **Resolved Technical Inconsistencies**
 

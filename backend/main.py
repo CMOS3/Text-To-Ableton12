@@ -180,9 +180,9 @@ def get_device_parameters(req: schema.DeviceIndexRequest):
         return {"status": "error", "message": str(e)}
 
 @app.put("/api/device/parameter")
-def set_device_parameters(req: schema.SetDeviceParameterRequest):
+def set_device_parameter_by_name(req: schema.SetDeviceParameterByNameRequest):
     try:
-        return proxy.send_command("set_device_parameters", req.model_dump())
+        return proxy.send_command("set_device_parameter", req.model_dump())
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
