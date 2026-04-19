@@ -96,7 +96,6 @@ class GeminiAbletonClient:
 
     def _execute_proxy_request(self, command: str, **kwargs):
         res = proxy.request_state(command, kwargs if kwargs else None)
-        print(f"DEBUG - RAW PROXY RESPONSE ({command}): {res}")
         
         if res.get("status") != "success":
             raise Exception(f"Ableton Proxy Error: {res.get('status')} - {res.get('message', '')}")
@@ -599,18 +598,12 @@ class GeminiAbletonClient:
                 },
                 "keep_alive": -1
             }
-            
-            with open("ollama_debug_log.txt", "a", encoding="utf-8") as log_file:
-                log_file.write(f"\n{'='*50}\nRAW PAYLOAD SENT TO OLLAMA:\n{json.dumps(payload, indent=2)}\n{'='*50}\n")
 
             try:
                 async with httpx.AsyncClient(timeout=300.0) as client:
                     res = await client.post("http://127.0.0.1:11434/api/chat", json=payload)
                     res.raise_for_status()
                     data = res.json()
-                    
-                    with open("ollama_debug_log.txt", "a", encoding="utf-8") as log_file:
-                        log_file.write(f"\n{'*'*50}\nRAW RESPONSE RECEIVED FROM OLLAMA:\n{json.dumps(data.get('message', {}), indent=2)}\n{'*'*50}\n")
             except Exception as e:
                 import traceback
                 tb_str = traceback.format_exc()

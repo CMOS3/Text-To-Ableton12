@@ -4,3 +4,6 @@ __pycache__/
 node_modules/
 dist/
 *.pyc
+.pytest_cache/
+*.log
+ollama_debug_log.txt
