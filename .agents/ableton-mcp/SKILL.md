@@ -20,9 +20,13 @@ The integration now actively supports and exposes the following full suite of ca
 - **Session & Transport:** `get_session_info`, `set_tempo`, `start_playback`, `stop_playback`.
 - **Track Management:** `get_track_info`, `create_midi_track`, `set_track_name`, `select_track`, `arm_track`, `delete_track`.
 - **Clip Operations:** `create_clip`, `set_clip_name`, `fire_clip`, `stop_clip`, `delete_clip`, `inject_midi_to_new_clip`.
+- **Advanced MIDI Editing:** `add_notes_to_clip`, `get_notes_from_clip`, `delete_notes_from_clip`.
+  - **Note Format:** Uses semantic `pitch_name` strings (e.g., "C3", "Eb2", "G#4").
+  - **STRICTLY In Beats:** All `start_time` and `duration` values MUST be in beats (e.g., 4.0 = one bar in 4/4). Use floats for precision (0.25 = sixteenth note).
 - **Mixing & Device Parameters:** `get_track_devices`, `get_device_parameters`, `set_device_parameter`, `design_sound`.
-  - **Parameter Matching:** `set_device_parameter` uses **string names** (e.g., "Cutoff", "Freq"). This is case-insensitive and synonym-aware (e.g., "cutoff" will match "Filter Freq").
-  - **Normalization:** You MUST provide parameter values as floats strictly between **0.0 and 1.0**. The backend automatically scales these to the device's native min/max range.
+  - **Parameter Matching:** Uses fuzzy **string names** (e.g., "Cutoff", "Freq"). This is synonym-aware: "cutoff" will match "Filter Freq", and "gain" will match "Level".
+  - **Normalization:** You MUST provide parameter values as floats strictly between **0.0 and 1.0**. The system scales these to the native device range.
+
 
 ## Compound Tools (Highest Priority)
 **CRITICAL RULE:** You MUST prioritize Compound Tools over atomic tools.

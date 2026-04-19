@@ -22,8 +22,8 @@ This directory contains the Python-based backend for the Text-to-Ableton project
 - `main.py`: FastAPI entry point for the Electron shell.
 - `gemini_client.py`: Core logic for intent routing, semantic filtering, and tool implementation.
 - `mcp_proxy.py`: Persistent TCP socket manager for the Ableton bridge.
-- `schema.py`: Pydantic models for type-safe communication.
-- `test_gemini_client.py`: Comprehensive test suite for the hybrid routing and tool logic.
+- **Validation Layers**:
+    - `schema.py`: Pydantic models serving as strict guardrails for all AI tool payloads.
+    - `test_gemini_client.py`: Comprehensive validation suite ensuring routing, filtering, and 0-indexed track logic remain robust.
 
 For setup instructions, please refer to the [root README](../README.md).
-

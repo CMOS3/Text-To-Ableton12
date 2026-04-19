@@ -51,7 +51,7 @@ GEMINI_API_KEY=your_api_key_here
 
 ## ✨ Advanced Features
 
-- **Autonomous Sound Design**: A specialized sub-agent that manipulates native Ableton device parameters based on creative descriptions (e.g., "Give me a gritty, dark warehouse bass").
+- **Autonomous Sound Design**: A specialized sub-agent (`design_sound`) that independently scans track device chains and orchestrates parameter changes based on creative descriptions (e.g., "Give me a gritty, dark warehouse bass").
 - **Hybrid Intelligence**: Combines local open-weight models for speed/cost with cloud-scale reasoning for creativity.
 
 - **Semantic Tool Filtering**: Dynamically builds the LLM's function list based on intent, keeping context windows lean.
