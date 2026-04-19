@@ -4,13 +4,14 @@ A powerful desktop application for controlling Ableton Live using Gemini AI and 
 
 ## 🏗️ Architecture
 
-- **Hybrid AI Pipeline**: A multi-tiered orchestration layer:
-    - **Local Router**: Ollama (`gemma4:e4b`) intercepts atomic transport/playback commands for zero-latency execution.
-    - **Semantic Filter**: Gemini 3 Flash analyzes complex prompts to pick only the necessary tool schemas, preventing token bloat.
-    - **Cloud Execution**: Gemini 3.1 Pro handles deep musical reasoning and multi-step composition.
-- **Backend**: Python (FastAPI) - Manages the model chains and serves as the JSON-RPC proxy.
-- **Frontend**: Electron (Node.js) - "Anthracite UI" with real-time NDJSON status streaming.
+- **Local-First Orchestration**: The primary agentic loop runs locally via **Ollama** (`gemma4-26b-16GB-VRAM`).
+    - **Native Tool Calling**: The local model autonomously selects and executes tools in an iterative loop (max 5 iterations).
+    - **Zero Latency**: Core session control is handled entirely within the user's private network.
+- **Cloud Expert Bypass**: A specialized tool (`consult_cloud_expert`) provides a textual bridge to **Gemini 3.1 Pro**. This expert is used for complex music theory advice and sound design guidance without further tool looping.
+- **Backend**: Python (FastAPI) - Manages the iterative tool loop, model telemetry, and the JSON-RPC proxy.
+- **Frontend**: Electron (Node.js) - Real-time NDJSON status streaming showing the orchestrator's thoughts.
 - **Ableton Integration**: Custom Python Remote Script - Stable TCP-to-LOM bridge on 127.0.0.1:9877.
+
 
 ## 🚀 Quick Start (Windows)
 
@@ -51,14 +52,12 @@ GEMINI_API_KEY=your_api_key_here
 
 ## ✨ Advanced Features
 
-- **Autonomous Sound Design**: A specialized sub-agent (`design_sound`) that independently scans track device chains and orchestrates parameter changes based on creative descriptions (e.g., "Give me a gritty, dark warehouse bass").
-- **Hybrid Intelligence**: Combines local open-weight models for speed/cost with cloud-scale reasoning for creativity.
-
-- **Semantic Tool Filtering**: Dynamically builds the LLM's function list based on intent, keeping context windows lean.
+- **Local Orchestrator**: High-performance local tool calling for private, zero-cost DAW control.
+- **Cloud Production Expert**: Direct access to Google’s most powerful model for musical creative consulting.
+- **Iterative Reasoning**: A stateful loop that allows the orchestrator to check state, make a change, and verify results autonomously.
 - **STRICT Beat-Based Timing**: Orchestral-grade precision where all MIDI lengths and start times are handled in beats (e.g., 4 bars = 16.0 beats in 4/4).
 - **Compound Tools (Optimized)**: High-priority macros (`get_session_mix_status`, `generate_named_midi_pattern`) that parse volume, panning, and track states in bulk.
-- **NDJSON Streaming**: Real-time feedback window showing granular agent status (Thinking -> Filtering -> Calling -> Analyzing).
-- **Robust Error Propagation**: Centralized handler enables the AI to self-correct based on specific Ableton API feedback.
+- **NDJSON Streaming**: Real-time feedback window showing granular agent status (Thinking -> Executing -> Analyzing).
 - **Anthracite UI**: Premium dark theme inspired by Ableton Live 12 with glassmorphic elements.
 
 

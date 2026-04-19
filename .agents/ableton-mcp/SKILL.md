@@ -30,19 +30,18 @@ The integration now actively supports and exposes the following full suite of ca
 
 ## Compound Tools (Highest Priority)
 **CRITICAL RULE:** You MUST prioritize Compound Tools over atomic tools.
-- `design_sound`: [SUB-AGENT] Autonomously designs a sound based on a creative description (e.g., "roaring bass"). It scans all devices on the track and maps the intent to parameter changes natively.
+- `consult_cloud_expert`: [CLOUD BYPASS] Consults an advanced cloud AI expert for advice on Ableton Live, music production, or sound design. Use this when you are unsure how to achieve a sound or use a feature. This expert provides text advice only and stops the local loop.
 - `get_session_mix_status`: Summary of volume/gain for all tracks.
 - `set_track_volume_by_name`: Vol control by name.
 - `load_device_to_track_by_name`: Load devices on named tracks.
 - `generate_named_midi_pattern`: One-step clip creation and population.
 
-## Intelligent Routing & Context (Hybrid AI)
-- **Local Router (Ollama):** The system first pings `gemma4:e4b` locally for zero-latency transport commands.
-- **Semantic Filter (Gemini Flash):** Filters the toolset for complex requests to prevent token bloat.
-- **Pro Reasoning (Gemini Pro):** Deep musical reasoning with the lean toolset.
-- **Sub-Agent Execution:** Specialized agents (e.g., `design_sound`) use the Pro model to orchestrate multi-parameter changes natively.
-- **Context Persistence:** Preprends style/scale information.
-- **Token Efficiency:** Live monitoring via NDJSON stream.
+## Intelligent Routing & Context (Local-First)
+- **Local Orchestrator (Ollama):** The system primarily uses `gemma4-26b` for the main agentic loop. It has native access to all Ableton tools.
+- **Iterative Tool Loop:** The local model can check the state of the session, execute a command, and then re-evaluate the result in up to 5 consecutive iterations.
+- **Cloud Expert Bypass:** For high-level creative reasoning or complex synthesis guides, the model uses `consult_cloud_expert` which invokes Gemini 3 Pro.
+- **Tone & Style:** The local model maintain absolute session control.
+
 
 ## Implementation Logic
 When this skill is activated, the agent must follow these steps:

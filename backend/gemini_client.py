@@ -1,3 +1,4 @@
+import ast
 import os
 import json
 import logging
@@ -31,15 +32,16 @@ class GeminiAbletonClient:
         self.client = genai.Client(api_key=api_key)
         
         self.system_instruction = (
-            "You are a session-aware Ableton expert. You have access to a full suite of Ableton Live tools. "
+            "You are a local Ableton session orchestrator with access to a full suite of Ableton Live tools. "
             "You can control transport, tracks, clips, and the browser. "
-            "Always try to gather context (like session info or browser trees) before making destructive or complex actions, "
-            "unless the user is explicitly specific. For `add_notes_to_clip`, make sure to pass a structured list of properties. "
+            "You must use 0-based indexing for tracks and devices. "
+            "For `add_notes_to_clip`, make sure to pass a structured list of properties. "
             "When asked to create a clip or generate notes, you MUST call `get_song_scale` first to establish the `root_note` and `scale_name`. Use this as your musical foundation. "
             "CRITICAL RULE: You MUST prioritize Compound Tools (like get_session_mix_status) over atomic tools to gather bulk data. "
             "Do not iterate through individual tracks to check states if a single bulk tool exists. "
             "CRITICAL TIME RULE: Ableton length and time values are strictly in BEATS, not bars! "
-            "If the user asks for a 4-bar loop in 4/4 time, you MUST set length to 16.0. 1 Bar = 4.0 Beats."
+            "If the user asks for a 4-bar loop in 4/4 time, you MUST set length to 16.0. 1 Bar = 4.0 Beats. "
+            "CRITICAL: If you call `consult_cloud_expert`, DO NOT attempt to execute the sound design steps it returns. Simply synthesize the text and present the guide to the user, then stop."
         )
         
         self.pro_model = "models/gemini-3.1-pro-preview-customtools"
@@ -79,7 +81,7 @@ class GeminiAbletonClient:
             self.generate_named_midi_pattern,
             self.get_session_mix_status,
             self.inject_midi_to_new_clip,
-            self.design_sound
+            self.consult_cloud_expert
         ]
         
         self.atomic_tools = [
@@ -88,7 +90,7 @@ class GeminiAbletonClient:
             self.stop_playback
         ]
         
-        self._sub_agent_telemetry = {"p_tokens": 0, "c_tokens": 0, "used": False}
+        self._cloud_consult_telemetry = {"p_tokens": 0, "c_tokens": 0, "used": False}
 
     # --- Core Toolset Implementations ---
 
@@ -451,395 +453,283 @@ class GeminiAbletonClient:
         except Exception as e:
             return str(e)
 
-    async def design_sound(self, track_index: int, creative_description: str) -> str:
-        """[COMPOUND TOOL - PREFERRED] Autonomously designs a sound on a track using a specialized sub-agent. Provide a vivid description of the sound (e.g., 'roaring bass') and the sub-agent will manipulate device parameters natively. Args: track_index (int): The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc."""
-        print(f"DEBUG: design_sound triggered with track_index={track_index}")
+    async def consult_cloud_expert(self, query: str) -> str:
+        """[COMPOUND TOOL - PREFERRED] Consults an advanced cloud AI expert for advice on Ableton Live, music production, or sound design. Use this when you are unsure how to achieve a sound or use a feature. Do not use this tool for requesting parameter changes; this expert provides text advice only."""
+        print(f"DEBUG: consult_cloud_expert triggered with query='{query}'")
         try:
-            devices_data = await asyncio.to_thread(self._execute_proxy_request, "get_track_devices", track_index=track_index)
-            if not devices_data or not isinstance(devices_data, list):
-                return "Error: No devices found on track, or track does not exist."
-                
-            parameter_context = ""
-            for i, dev in enumerate(devices_data):
-                dev_name = dev.get("name", "Unknown") if isinstance(dev, dict) else str(dev)
-                try:
-                    params_data = await asyncio.to_thread(self._execute_proxy_request, "get_device_parameters", track_index=track_index, device_index=i)
-                    parameter_context += f"Device {i} ({dev_name}):\n"
-                    if isinstance(params_data, list):
-                        for p in params_data:
-                            name = p.get("name", "")
-                            p_min = p.get("min", 0.0)
-                            p_max = p.get("max", 1.0)
-                            p_val = p.get("value", 0.0)
-                            parameter_context += f" - {name} (current: {p_val}, min: {p_min}, max: {p_max})\n"
-                    parameter_context += "\n"
-                except Exception as e:
-                    logger.warning(f"Failed to get params for device {i}: {e}")
-                    
             sys_instruct = (
-                "You are an Ableton Sound Design sub-agent. Your goal is to design a sound based on a creative description. "
-                "You only interact with native Ableton Audio Effects and Instruments. "
-                "You MUST normalize your chosen values strictly between 0.0 and 1.0 based on the parameter's min/max limits. "
-                "Select the appropriate parameters to change from the provided list to achieve the creative description. "
-                "Parameter names are logically matched (spaces and casing are ignored natively), but try to match the provided parameter list text accurately."
-            )
-            
-            prompt = (
-                f"Creative Description: '{creative_description}'\n\n"
-                f"Available Devices and Parameters:\n{parameter_context}\n"
-                "Return a JSON array of changes matching the required schema."
+                "You are an expert Ableton Live and sound design consultant. Provide clear, concise, "
+                "step-by-step advice to help the user achieve their musical goals. Avoid formatting "
+                "with markdown code blocks for JSON, just return plain text readable advice."
             )
             
             config = types.GenerateContentConfig(
                 system_instruction=sys_instruct,
                 temperature=0.7,
-                response_mime_type="application/json",
-                response_schema=schema.SubAgentSoundDesignResponse
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
             )
             
             response = await self.client.aio.models.generate_content(
                 model=self.pro_model,
-                contents=prompt,
+                contents=query,
                 config=config
             )
             
             if response.usage_metadata:
                 p_toks = getattr(response.usage_metadata, "prompt_token_count", 0)
                 c_toks = getattr(response.usage_metadata, "candidates_token_count", 0)
-                self._sub_agent_telemetry = {"p_tokens": p_toks, "c_tokens": c_toks, "used": True}
+                self._cloud_consult_telemetry = {"p_tokens": p_toks, "c_tokens": c_toks, "used": True}
                 
-            try:
-                parsed_res = schema.SubAgentSoundDesignResponse.model_validate_json(response.text)
-                
-                applied = []
-                for change in parsed_res.changes:
-                    ui_string = await asyncio.to_thread(
-                        self._execute_proxy_request, 
-                        "set_device_parameter", 
-                        track_index=track_index, 
-                        device_index=change.device_index, 
-                        parameter_name=change.parameter_name, 
-                        value=change.value
-                    )
-                    applied.append(f"Set '{change.parameter_name}' on Device {change.device_index} to {ui_string}")
-                    
-                if not applied:
-                    return "Sub-agent decided no parameter changes were necessary."
-                return "Designed sound based on description. Applied changes:\n" + "\n".join(applied)
-            except Exception as e:
-                return f"Sub-agent execution failed: {str(e)}"
+            return response.text if response.text else "The expert did not return any advice."
         except Exception as e:
-            return f"Error in sub-agent design_sound: {e}"
+            return f"Error querying cloud expert: {e}"
 
     # --- Chat Engine ---
 
-    async def _get_required_tools_via_flash(self, prompt: str) -> tuple[list[str], int, int]:
-        """Uses Gemini Flash to determine the required tools for the given prompt to resolve token bloat."""
-        tools_description = "\n".join([f"- {t.__name__}: {t.__doc__}" for t in self.tools])
-        system_instruction = (
-            "You are a semantic routing agent for an Ableton Live assistant. "
-            "Analyze the user's prompt and select the necessary tools to accomplish the task from the provided list. "
-            "Output ONLY a strict JSON array of strings representing the exact tool names required. "
-            "Example: [\"get_song_scale\", \"generate_named_midi_pattern\"]\n\n"
-            f"Available tools:\n{tools_description}"
-        )
-        
-        config = types.GenerateContentConfig(
-            system_instruction=system_instruction,
-            temperature=0.0,
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
-        )
-        
-        try:
-            response = await self.client.aio.models.generate_content(
-                model=self.flash_model,
-                contents=prompt,
-                config=config
-            )
-            
-            p_tokens = getattr(response.usage_metadata, "prompt_token_count", 0) if hasattr(response, "usage_metadata") and response.usage_metadata else 0
-            c_tokens = getattr(response.usage_metadata, "candidates_token_count", 0) if hasattr(response, "usage_metadata") and response.usage_metadata else 0
-            
-            result_text = response.text.strip()
-            clean_json = re.sub(r'^```json\s*', '', result_text, flags=re.MULTILINE)
-            clean_json = re.sub(r'^```\s*', '', clean_json, flags=re.MULTILINE).strip()
-            
-            tool_names = json.loads(clean_json)
-            if not isinstance(tool_names, list):
-                raise ValueError("Response is not a valid JSON array.")
-            return tool_names, p_tokens, c_tokens
-        except Exception as e:
-            logger.warning(f"Semantic filtering via Flash failed: {e}. Falling back to full toolset.")
-            return [t.__name__ for t in self.tools], 0, 0
-
-    async def _route_intent(self, prompt: str):
-        """Determines if the prompt is simple enough for Ollama, otherwise falls back to Gemini Flash, then Pro."""
-        system_instruction_ollama = (
-            "You are an intent classifier for an Ableton DAW assistant. "
-            "Analyze the user's prompt. "
-            "If the prompt EXACTLY maps to one of these three atomic tools: "
-            "1) set_tempo (requires 'tempo' float) "
-            "2) start_playback (no params) "
-            "3) stop_playback (no params) "
-            "Output ONLY a strict JSON payload representing the tool name and its parameters. "
-            "Example 1: {\"tool\": \"set_tempo\", \"payload\": {\"tempo\": 120.0}} "
-            "Example 2: {\"tool\": \"start_playback\", \"payload\": {}} "
-            "If the prompt requires creative reasoning, track changes, clip generation, or ANYTHING "
-            "outside of those 3 atomic transport commands, output EXACTLY the phrase: "
-            "STATUS: COMPLEX\n"
-            "DO NOT use Markdown, bolding, asterisks, or code blocks. Output raw text or raw JSON only."
-        )
-
-        ollama_payload = {
-            "model": "gemma4:e4b",
-            "prompt": prompt,
-            "system": system_instruction_ollama,
-            "stream": False
+    async def _generate_ollama_tools(self) -> list[dict]:
+        tool_schema_map = {
+            "test_ableton_connection": None,
+            "get_song_scale": None,
+            "get_session_info": None,
+            "set_tempo": schema.TempoRequest,
+            "start_playback": None,
+            "stop_playback": None,
+            "get_track_info": schema.TrackIndexRequest,
+            "create_midi_track": schema.TrackNameRequest,
+            "set_track_name": schema.TrackIndexNameRequest,
+            "select_track": schema.TrackNameRequest,
+            "arm_track": schema.TrackArmRequest,
+            "create_clip": schema.CreateClipRequest,
+            "set_clip_name": schema.SetClipNameRequest,
+            "add_notes_to_clip": schema.AddNotesRequest,
+            "fire_clip": schema.ClipActionRequest,
+            "stop_clip": schema.ClipActionRequest,
+            "get_browser_tree": None,
+            "get_browser_items_at_path": schema.BrowserItemsRequest,
+            "load_instrument_or_effect": schema.LoadDeviceRequest,
+            "load_drum_kit": schema.LoadDrumKitRequest,
+            "get_notes_from_clip": schema.ClipActionRequest,
+            "delete_notes_from_clip": schema.DeleteNotesRequest,
+            "delete_track": schema.TrackIndexRequest,
+            "delete_clip": schema.ClipActionRequest,
+            "get_track_devices": schema.TrackDevicesRequest,
+            "get_device_parameters": schema.DeviceIndexRequest,
+            "set_device_parameter": schema.SetDeviceParameterByNameRequest,
+            "set_track_volume_by_name": schema.SetTrackVolumeByNameRequest,
+            "load_device_to_track_by_name": schema.LoadDeviceToTrackByNameRequest,
+            "generate_named_midi_pattern": schema.GenerateNamedMidiPatternRequest,
+            "get_session_mix_status": None,
+            "inject_midi_to_new_clip": schema.InjectMidiRequest,
+            "consult_cloud_expert": schema.ConsultCloudExpertRequest
         }
-
-        try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                res = await client.post("http://localhost:11434/api/generate", json=ollama_payload)
-                res.raise_for_status()
-                data = res.json()
-                result_text = data.get("response", "").strip()
-
-                yield {"type": "debug", "content": f"RAW_OLLAMA_RESPONSE:\n{result_text}"}
-
-                clean_json = re.sub(r'^```json\s*', '', result_text, flags=re.MULTILINE)
-                clean_json = re.sub(r'^```\s*', '', clean_json, flags=re.MULTILINE).strip()
-
-                if "STATUS: COMPLEX" not in clean_json.upper():
-                    yield {"type": "result", "content": clean_json}
-                    return
-                else:
-                    yield {"type": "result", "content": "STATUS: COMPLEX"}
-                    return
-
-        except Exception as e:
-            import traceback
-            tb_str = traceback.format_exc()
-            yield {"type": "debug", "content": f"TRACEBACK:\n{tb_str}"}
-            yield {"type": "warning", "message": f"Local model offline or timed out. Falling back to Cloud APIs."}
-            logger.warning(f"Ollama local routing failed or timed out: {e}. Falling back to flash-lite.")
-
-        system_instruction_flash = (
-            "You are an intent classifier for an Ableton DAW assistant. Classify the user's prompt into one of two categories. "
-            "If the prompt is a simple, direct, single-step command (e.g., 'play', 'stop', 'create a track', 'set tempo to 120', 'delete clip'), return exactly the word 'FLASH'. "
-            "If the prompt is ambiguous, requires creative reasoning, involves multiple complex steps, or asks a general question (e.g., 'make a techno beat', 'why is my track silent?', 'analyze this clip'), return exactly the word 'PRO'. "
-            "Do not output any markdown, punctuation, or conversational text. Output only a single word."
-        )
         
-        config = types.GenerateContentConfig(
-            system_instruction=system_instruction_flash,
-            temperature=0.0,
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
-        )
-        
-        try:
-            response = await self.client.aio.models.generate_content(
-                model=self.flash_model,
-                contents=prompt,
-                config=config
-            )
-            result = response.text.strip().upper() if response.text else "PRO"
-            if result == "FLASH":
-                yield {"type": "result", "content": "STATUS: FLASH"}
-                return
-        except Exception as e:
-            logger.error(f"Flash routing failed: {e}")
-
-        yield {"type": "result", "content": "STATUS: COMPLEX"}
+        ollama_tools = []
+        for func in self.tools:
+            func_name = func.__name__
+            description = func.__doc__ or ""
+            
+            parameters = {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+            
+            if func_name in tool_schema_map and tool_schema_map[func_name]:
+                js_schema = tool_schema_map[func_name].model_json_schema()
+                parameters["properties"] = js_schema.get("properties", {})
+                if "required" in js_schema:
+                    parameters["required"] = js_schema["required"]
+                    
+            ollama_tools.append({
+                "type": "function",
+                "function": {
+                    "name": func_name,
+                    "description": description,
+                    "parameters": parameters
+                }
+            })
+        return ollama_tools
 
     async def chat(self, user_prompt: str, chat_history: list = None):
-        """Executes an agentic multi-turn chat loop as an async generator."""
+        """Executes an agentic multi-turn chat loop via native Ollama tool calling."""
         if chat_history is None:
             chat_history = []
             
+        loop_count = 0
+        MAX_ITERATIONS = 5
         total_prompt_tokens = 0
         total_candidate_tokens = 0
-        models_used_chain = ["gemma4:e4b (Local Router)"]
-            
-        route_result = ""
-        async for chunk in self._route_intent(user_prompt):
-            if chunk["type"] == "debug":
-                yield json.dumps(chunk) + "\n"
-                await asyncio.sleep(0.01)
-            elif chunk["type"] == "result":
-                route_result = chunk["content"]
-                
-        route_result_upper = route_result.upper()
-        active_tools = self.tools
+        models_used_chain = ["VladimirGav/gemma4-26b-16GB-VRAM (Local Orchestrator)"]
         
-        if "STATUS: COMPLEX" in route_result_upper:
-            selected_model = self.pro_model
-            models_used_chain.append("Gemini 3 Flash (Semantic Filter)")
-            models_used_chain.append("Gemini 3.1 Pro (Execution)")
-            
-            # Phase 2: Tool-filtering payload generation
-            yield json.dumps({"type": "status", "message": "Applying semantic filtering via Flash..."}) + "\n"
-            await asyncio.sleep(0.01)
-            required_tool_names, p_tokens, c_tokens = await self._get_required_tools_via_flash(user_prompt)
-            total_prompt_tokens += p_tokens
-            total_candidate_tokens += c_tokens
-            
-            active_tools = [t for t in self.tools if t.__name__ in required_tool_names]
-            if not active_tools:
-                logger.warning("Semantic filter returned 0 matching tools. Falling back to full list.")
-                active_tools = self.tools
-
-        elif "STATUS: FLASH" in route_result_upper:
-            selected_model = self.flash_model
-            models_used_chain.append("Gemini 3 Flash (Fallback)")
-            active_tools = self.atomic_tools
-        else:
-            try:
-                # Sanitize markdown just in case before loading
-                clean_json_str = route_result.strip()
-                clean_json_str = re.sub(r'^```json\s*', '', clean_json_str, flags=re.MULTILINE)
-                clean_json_str = re.sub(r'^```\s*', '', clean_json_str, flags=re.MULTILINE).strip()
-                
-                parsed = json.loads(clean_json_str)
-                tool_name = parsed.get("tool")
-                payload = parsed.get("payload", {})
-                if tool_name in ["set_tempo", "start_playback", "stop_playback"] and hasattr(self, tool_name):
-                    yield json.dumps({"type": "status", "message": "Local Model executing fast path..."}) + "\n"
-                    await asyncio.sleep(0.01)
-                    
-                    method = getattr(self, tool_name)
-                    payload.pop("dummy", None)
-                    res = await asyncio.to_thread(method, **payload)
-                    
-                    yield json.dumps({
-                        "type": "final",
-                        "data": {
-                            "response": f"Executed local fast path: {tool_name}\nResult: {res}",
-                            "model_used": "\n".join(models_used_chain),
-                            "input_tokens": total_prompt_tokens,
-                            "output_tokens": total_candidate_tokens
-                        }
-                    }) + "\n"
-                    return
-                else:
-                    yield json.dumps({"type": "warning", "message": f"Local model referenced an unknown tool: {tool_name}. Relying on Gemni Flash."}) + "\n"
-                    selected_model = self.flash_model
-                    models_used_chain.append("Gemini 3 Flash (Fallback)")
-                    active_tools = self.atomic_tools
-            except json.JSONDecodeError:
-                yield json.dumps({"type": "warning", "message": f"Failed to parse fast path JSON from local model. Falling back to Cloud."}) + "\n"
-                logger.warning(f"Failed to parse fast path JSON from local model. Output was: {route_result.strip()}")
-                selected_model = self.flash_model
-                models_used_chain.append("Gemini 3 Flash (Fallback)")
-                active_tools = self.atomic_tools
-            except Exception as e:
-                yield json.dumps({"type": "warning", "message": f"Local fast path execution failed ({e}). Falling back to Cloud."}) + "\n"
-                logger.warning(f"Error executing local fast path: {e}")
-                selected_model = self.flash_model
-                models_used_chain.append("Gemini 3 Flash (Fallback)")
-                active_tools = self.atomic_tools
+        messages = [{"role": "system", "content": self.system_instruction}]
         
-        config = types.GenerateContentConfig(
-            system_instruction=self.system_instruction,
-            tools=active_tools,
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
-        )
-        
-        contents = []
         for msg in chat_history:
-            role = msg.get("role", "user")
-            text = msg.get("content", "")
+            role = "assistant" if msg.get("role", "").lower() in ["assistant", "ai", "model"] else "user"
+            messages.append({"role": role, "content": msg.get("content", "")})
             
-            # Map UI roles to genai roles
-            if role.lower() in ["assistant", "ai"]:
-                role = "model"
-            elif role.lower() != "model":
-                role = "user"
-                
-            contents.append(
-                types.Content(role=role, parts=[types.Part.from_text(text=text)])
-            )
-            
-        # Append the current prompt
-        contents.append(
-             types.Content(role="user", parts=[types.Part.from_text(text=user_prompt)])
-        )
+        messages.append({"role": "user", "content": user_prompt})
+        
+        tools_payload = await self._generate_ollama_tools()
         
         yield json.dumps({"type": "status", "message": "Agent thinking..."}) + "\n"
         await asyncio.sleep(0.01)
         
-        response = await self.client.aio.models.generate_content(
-            model=selected_model,
-            contents=contents,
-            config=config
-        )
-        
-        if hasattr(response, "usage_metadata") and response.usage_metadata:
-            total_prompt_tokens += getattr(response.usage_metadata, "prompt_token_count", 0) or 0
-            total_candidate_tokens += getattr(response.usage_metadata, "candidates_token_count", 0) or 0
-            
-        while response.function_calls:
-            contents.append(response.candidates[0].content)
-            tool_parts = []
-            
-            for fc in response.function_calls:
-                func_name = fc.name
-                args = fc.args if fc.args else {}
+        while True:
+            loop_count += 1
+            if loop_count > MAX_ITERATIONS:
+                yield json.dumps({
+                    "type": "final",
+                    "data": {
+                        "response": "Execution halted to protect memory (too many iterations).",
+                        "model_used": "\n".join(models_used_chain),
+                        "input_tokens": total_prompt_tokens,
+                        "output_tokens": total_candidate_tokens
+                    }
+                }) + "\n"
+                break
                 
-                yield json.dumps({"type": "status", "message": f"Agent calling: {func_name}..."}) + "\n"
+            payload = {
+                "model": "VladimirGav/gemma4-26b-16GB-VRAM",
+                "messages": messages,
+                "tools": tools_payload,
+                "stream": False,
+                "options": {
+                    "num_ctx": 4096,
+                    "temperature": 0.0
+                },
+                "keep_alive": -1
+            }
+            
+            with open("ollama_debug_log.txt", "a", encoding="utf-8") as log_file:
+                log_file.write(f"\n{'='*50}\nRAW PAYLOAD SENT TO OLLAMA:\n{json.dumps(payload, indent=2)}\n{'='*50}\n")
+
+            try:
+                async with httpx.AsyncClient(timeout=300.0) as client:
+                    res = await client.post("http://127.0.0.1:11434/api/chat", json=payload)
+                    res.raise_for_status()
+                    data = res.json()
+                    
+                    with open("ollama_debug_log.txt", "a", encoding="utf-8") as log_file:
+                        log_file.write(f"\n{'*'*50}\nRAW RESPONSE RECEIVED FROM OLLAMA:\n{json.dumps(data.get('message', {}), indent=2)}\n{'*'*50}\n")
+            except Exception as e:
+                import traceback
+                tb_str = traceback.format_exc()
+                
+                print("\n" + "!"*50)
+                print("BACKEND CRASH TRACE:")
+                print(tb_str)
+                print("!"*50 + "\n")
+
+                yield json.dumps({"type": "debug", "content": f"OLLAMA_ERROR:\n{tb_str}"}) + "\n"
+                yield json.dumps({
+                    "type": "final",
+                    "data": {
+                        "response": f"System error communicating with Ollama: {e}",
+                        "model_used": "\n".join(models_used_chain),
+                        "input_tokens": total_prompt_tokens,
+                        "output_tokens": total_candidate_tokens
+                    }
+                }) + "\n"
+                break
+                
+            response_message = data.get("message", {})
+            
+            total_prompt_tokens += data.get("prompt_eval_count", 0)
+            total_candidate_tokens += data.get("eval_count", 0)
+            
+            messages.append(response_message)
+            
+            tool_calls = response_message.get("tool_calls")
+            if tool_calls:
+                yield json.dumps({"type": "status", "message": "Executing tools..."}) + "\n"
                 await asyncio.sleep(0.01)
                 
-                tool_result = None
-                if hasattr(self, func_name):
-                    method = getattr(self, func_name)
-                    try:
-                        if asyncio.iscoroutinefunction(method):
-                            res = await method(**args)
-                        else:
-                            res = await asyncio.to_thread(method, **args)
-                        tool_result = {"result": res}
-                    except TypeError as e:
-                        if "positional argument" in str(e) or "missing" in str(e).lower():
-                            tool_result = {"error": f"Missing required parameter. {str(e)}. You must use the appropriate 'get' tools (e.g., get_session_info, get_device_parameters) on the hierarchy first to find the correct index."}
-                        else:
+                for tc in tool_calls:
+                    func_name = tc.get("function", {}).get("name")
+                    args = tc.get("function", {}).get("arguments", {})
+                    
+                    yield json.dumps({"type": "status", "message": f"Agent calling: {func_name}..."}) + "\n"
+                    await asyncio.sleep(0.01)
+                    
+                    tool_result = None
+                    is_cloud_expert = (func_name == "consult_cloud_expert")
+                    
+                    if hasattr(self, func_name):
+                        method = getattr(self, func_name)
+                        try:
+                            if asyncio.iscoroutinefunction(method):
+                                res = await method(**args)
+                            else:
+                                res = await asyncio.to_thread(method, **args)
+                                
+                            # --- CLEAN DIRTY STRINGIFIED DICTS ---
+                            if isinstance(res, str) and res.strip().startswith("{") and "'" in res:
+                                try:
+                                    res = ast.literal_eval(res)
+                                except Exception:
+                                    pass
+                            # -------------------------------------
+                                    
+                            tool_result = {"result": res}
+                        except TypeError as e:
+                            if "positional argument" in str(e) or "missing" in str(e).lower():
+                                tool_result = {"error": f"Missing required parameter. {str(e)}."}
+                            else:
+                                tool_result = {"error": str(e)}
+                        except Exception as e:
                             tool_result = {"error": str(e)}
-                    except Exception as e:
-                        tool_result = {"error": str(e)}
-                else:
-                    tool_result = {"error": f"Unknown tool: {func_name}"}
+                    else:
+                        tool_result = {"error": f"Unknown tool: {func_name}"}
+                        
+                    # Aggregate Cloud Telemetry
+                    if getattr(self, "_cloud_consult_telemetry", {}).get("used"):
+                        total_prompt_tokens += self._cloud_consult_telemetry.get("p_tokens", 0)
+                        total_candidate_tokens += self._cloud_consult_telemetry.get("c_tokens", 0)
+                        if "Gemini 3.1 Pro (Cloud Expert Consultation)" not in models_used_chain:
+                            models_used_chain.append("Gemini 3.1 Pro (Cloud Expert Consultation)")
+                        self._cloud_consult_telemetry = {"p_tokens": 0, "c_tokens": 0, "used": False}
+                        
+                    # --- THE STRUCTURAL BYPASS ---
+                    if is_cloud_expert:
+                        # Extract the string result from the tool
+                        cloud_text = tool_result.get("result", "No advice returned.") if isinstance(tool_result, dict) else str(tool_result)
+                        
+                        # Yield directly to UI, skipping the local model entirely
+                        yield json.dumps({
+                            "type": "final",
+                            "data": {
+                                "response": str(cloud_text),
+                                "model_used": "\n".join(models_used_chain),
+                                "input_tokens": total_prompt_tokens,
+                                "output_tokens": total_candidate_tokens
+                            }
+                        }) + "\n"
+                        
+                        # Hard stop the generator. This physically kills the while loop.
+                        return 
+                    # -----------------------------
+                    else:
+                        result_str = json.dumps(tool_result, default=str)
+                        messages.append({
+                            "role": "tool",
+                            "name": func_name,
+                            "content": result_str
+                        })
+                        
+                yield json.dumps({"type": "status", "message": "Agent analyzing tool results..."}) + "\n"
+                await asyncio.sleep(0.01)
+            else:
+                final_text = response_message.get("content", "")
+                if not final_text:
+                    final_text = "Tasks executed successfully."
                     
-                if getattr(self, "_sub_agent_telemetry", {}).get("used"):
-                    total_prompt_tokens += self._sub_agent_telemetry.get("p_tokens", 0)
-                    total_candidate_tokens += self._sub_agent_telemetry.get("c_tokens", 0)
-                    if "Gemini 3.1 Pro (Sub-Agent)" not in models_used_chain:
-                        models_used_chain.append("Gemini 3.1 Pro (Sub-Agent)")
-                    self._sub_agent_telemetry = {"p_tokens": 0, "c_tokens": 0, "used": False}
-                    
-                tool_parts.append(types.Part.from_function_response(name=func_name, response=tool_result))
-                
-            contents.append(types.Content(role="user", parts=tool_parts))
-            
-            yield json.dumps({"type": "status", "message": "Agent analyzing tool results..."}) + "\n"
-            await asyncio.sleep(0.01)
-            
-            response = await self.client.aio.models.generate_content(
-                model=selected_model,
-                contents=contents,
-                config=config
-            )
-            
-            if hasattr(response, "usage_metadata") and response.usage_metadata:
-                total_prompt_tokens += getattr(response.usage_metadata, "prompt_token_count", 0) or 0
-                total_candidate_tokens += getattr(response.usage_metadata, "candidates_token_count", 0) or 0
-                
-        final_text = response.text if response.text else "Tasks executed successfully."
-                
-        yield json.dumps({
-            "type": "final",
-            "data": {
-                "response": final_text,
-                "model_used": "\n".join(models_used_chain),
-                "input_tokens": total_prompt_tokens,
-                "output_tokens": total_candidate_tokens
-            }
-        }) + "\n"
-        await asyncio.sleep(0.01)
+                yield json.dumps({
+                    "type": "final",
+                    "data": {
+                        "response": final_text,
+                        "model_used": "\n".join(models_used_chain),
+                        "input_tokens": total_prompt_tokens,
+                        "output_tokens": total_candidate_tokens
+                    }
+                }) + "\n"
+                break

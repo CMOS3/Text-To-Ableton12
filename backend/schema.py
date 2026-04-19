@@ -90,15 +90,20 @@ class SetDeviceParameterByNameRequest(BaseModel):
     parameter_name: str
     value: float
 
-class DesignSoundRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
-    creative_description: str = Field(..., description="A vivid description of the desired sound (e.g., 'warm vintage pad').")
+class SetTrackVolumeByNameRequest(BaseModel):
+    track_name: str
+    gain_db: float
 
-class ParameterChange(BaseModel):
-    device_index: int
-    parameter_name: str
-    value: float
+class LoadDeviceToTrackByNameRequest(BaseModel):
+    track_name: str
+    device_name: str
 
-class SubAgentSoundDesignResponse(BaseModel):
-    changes: List[ParameterChange]
+class GenerateNamedMidiPatternRequest(BaseModel):
+    track_name: str
+    clip_name: str
+    clip_length_bars: float = Field(..., description="Length of the clip in bars. It will be multiplied by 4.")
+    notes_array: List[NoteSchema]
+
+class ConsultCloudExpertRequest(BaseModel):
+    query: str = Field(..., description="A clear, semantic query or question for the Ableton or sound design cloud expert.")
 

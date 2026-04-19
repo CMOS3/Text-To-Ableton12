@@ -11,11 +11,13 @@ This directory contains the Python-based backend for the Text-to-Ableton project
 
 ## Technical Details
 - **Port**: Binds to `127.0.0.1:8000`.
-- **Hybrid AI Execution Chain**:
-    1. **Local Interception (Ollama)**: Pings `http://127.0.0.1:11434` with `gemma4:e4b` to handle transport fast-paths.
-    2. **Semantic Filtering (Cloud Flash)**: Uses Gemini 3 Flash to reduce the toolset to only the strictly necessary schemas.
-    3. **Agentic Reasoning (Cloud Pro)**: Executes complex musical logic using Gemini 3.1 Pro via an async loop.
-- **Async Execution**: Employs `asyncio.to_thread` for tool calls to prevent blocking the main event loop.
+- **Local Orchestration (Ollama)**: Employs an iterative loop using `gemma4-26b` to autonomously execute Ableton tools.
+- **Iterative Execution Chain**:
+    1. **Tool Evaluation**: Model evaluates the prompt and history against valid JSON schemas.
+    2. **Execution Loop**: Executes tools (max 5 iterations) and appends results to history.
+    3. **Cloud Expert Bypass**: If `consult_cloud_expert` is called, the loop halts and returns expert textual advice from Gemini 3.1 Pro.
+- **Async Execution**: Employs `asyncio.to_thread` for socket communication to prevent blocking the main event loop.
+
 - **Centralized Proxy Logic**: Uses a unified `_execute_proxy_request` helper for data extraction and error handling.
 
 ## Primary Files
