@@ -6,7 +6,8 @@ globs: ["backend/gemini_client.py"]
 
 # Gemini API Routing Rule
 
-- **Intent Routing:** The system uses an intent router to select the appropriate Gemini model based on user intent.
-- **Endpoints:**
-  - `models/gemini-3.1-flash-lite-preview`: Used for simple, direct, single-step commands (e.g., 'play', 'stop', 'create a track'). This model acts as the intent classifier and handles fast, deterministic actions.
-  - `models/gemini-3.1-pro-preview-customtools`: Used for complex reasoning, multi-step actions, and ambiguous requests (e.g., 'make a techno beat'). It provides structured, reliable tool calling capabilities necessary for advanced Ableton logic.
+- **Hybrid AI Execution Chain:** The system orchestrates multiple models to balance speed, cost, and creativity:
+  1. **Local Interception (Ollama - gemma4:e4b):** Zero-latency interception for atomic transport commands (play, stop, tempo).
+  2. **Semantic Tool Filtering (Cloud Flash - gemini-3.1-flash-lite-preview):** Analyzes complex prompts to strictly filter the exposed tool schemas, preventing context bloat for the Pro model.
+  3. **High-Level Reasoning (Cloud Pro - gemini-3.1-pro-preview-customtools):** Handles deep musical logic, multi-step orchestration, and creative sound design.
+  4. **Sub-Agent Execution:** Specialized tasks (e.g., `design_sound`) use nested Pro model calls for autonomous native parameter manipulation.

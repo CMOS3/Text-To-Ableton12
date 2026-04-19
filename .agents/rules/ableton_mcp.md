@@ -12,3 +12,6 @@ globs: ["backend/**/*", "remote_script/**/*"]
 - **Remote Script Deployment:** Modifications or deployment of the Ableton Remote Script must explicitly note that it must reside in:
   `D:\Sync\00 PC Sharing\Ableton\User Library\Remote Scripts`
 - **Boilerplate Requirement:** Every Remote Script must inherit from `_Framework.ControlSurface.ControlSurface` and MUST include the `create_instance(c_instance)` function as the entry point.
+- **Technical Constraints:**
+    - **0-Based Indexing:** ALWAYS use 0-based integers for track, clip-slot, and device indices (e.g., Track 1 = 0).
+    - **STRICT Beat-Based Timing:** All musical time values (start_time, duration, length) MUST be expressed in **Beats** (floats), never Bars. In 4/4 time, 1.0 = 1 Beat, 4.0 = 1 Bar.
