@@ -4,7 +4,6 @@ import json
 import logging
 import asyncio
 import re
-import httpx
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -31,21 +30,7 @@ class GeminiAbletonClient:
         
         self.client = genai.Client(api_key=api_key)
         
-        self.system_instruction = (
-            "You are a local Ableton session orchestrator with access to a full suite of Ableton Live tools. "
-            "You can control transport, tracks, clips, and the browser. "
-            "You must use 0-based indexing for tracks and devices. "
-            "For `add_notes_to_clip`, make sure to pass a structured list of properties. "
-            "When asked to create a clip or generate notes, you MUST call `get_song_scale` first to establish the `root_note` and `scale_name`. Use this as your musical foundation. "
-            "CRITICAL RULE: You MUST prioritize Compound Tools (like get_session_mix_status) over atomic tools to gather bulk data. "
-            "Do not iterate through individual tracks to check states if a single bulk tool exists. "
-            "CRITICAL TIME RULE: Ableton length and time values are strictly in BEATS, not bars! "
-            "If the user asks for a 4-bar loop in 4/4 time, you MUST set length to 16.0. 1 Bar = 4.0 Beats. "
-            "CRITICAL: If you call `consult_cloud_expert`, DO NOT attempt to execute the sound design steps it returns. Simply synthesize the text and present the guide to the user, then stop."
-        )
-        
         self.pro_model = "models/gemini-3.1-pro-preview-customtools"
-        self.flash_model = "models/gemini-3.1-flash-lite-preview"
         
         # Tools to expose to the LLM
         self.tools = [
@@ -77,11 +62,8 @@ class GeminiAbletonClient:
             self.get_device_parameters,
             self.set_device_parameter,
             self.set_track_volume_by_name,
-            self.load_device_to_track_by_name,
-            self.generate_named_midi_pattern,
             self.get_session_mix_status,
-            self.inject_midi_to_new_clip,
-            self.consult_cloud_expert
+            self.inject_midi_to_new_clip
         ]
         
         self.atomic_tools = [
@@ -90,7 +72,24 @@ class GeminiAbletonClient:
             self.stop_playback
         ]
         
-        self._cloud_consult_telemetry = {"p_tokens": 0, "c_tokens": 0, "used": False}
+        self.system_instruction = (
+            "You are an Ableton Live Compiler and expert Sound Designer.\n"
+            "You have access to a suite of Ableton proxy tools to control the session.\n"
+            "You MUST output exactly ONE valid JSON array containing a sequential script of actions.\n"
+            "Example format:\n"
+            "[\n"
+            "   {\"tool\": \"create_midi_track\", \"args\": {\"track_name\": \"Drums\"}},\n"
+            "   {\"tool\": \"ui_text_response\", \"args\": {\"text\": \"I have created your Drums track.\"}}\n"
+            "]\n"
+            "CRITICAL TO KEEP IN MIND: Ableton length and time values are strictly in BEATS, not bars! "
+            "If the user asks for a 4-bar loop in 4/4 time, you MUST set length to 16.0. 1 Bar = 4.0 Beats. "
+            "CRITICAL: If you create a new track, you must calculate its new `track_index` for subsequent tools. The new index is ALWAYS equal to the current total number of tracks in the session (e.g., if the provided session state shows 4 existing tracks [indexes 0,1,2,3], the newly created track will be index 4).\n"
+            "CRITICAL: DO NOT HALLUCINATE TOOL NAMES. You must ONLY use the exact tool names provided in the minified JSON schemas below. Do not invent tools like 'load_device_to_track_by_name'. If a tool requires a `track_index`, you MUST use the integer index.\n"
+            "If the user asks for advice, sound design guidance, or plain text communication, you MUST use the synthetic tool `ui_text_response` and provide the text in its `text` argument.\n"
+            "DO NOT wrap your JSON in markdown code blocks. NO backticks. Output valid JSON array only.\n"
+            "Here are the available target tools mapped as minified JSON:\n"
+            + json.dumps(self._generate_minified_schemas(), separators=(',', ':'))
+        )
 
     # --- Core Toolset Implementations ---
 
@@ -394,40 +393,7 @@ class GeminiAbletonClient:
         except Exception as e:
             return str(e)
 
-    def load_device_to_track_by_name(self, track_name: str, device_name: str) -> str:
-        """[COMPOUND TOOL - PREFERRED] Loads a device onto a track, both specified by name."""
-        try:
-            track_index = self._get_track_index_by_name(track_name)
-            if track_index == -1:
-                return f"Error: Track '{track_name}' not found."
-            return self.load_instrument_or_effect(track_index, device_name)
-        except Exception as e:
-            return str(e)
 
-    def generate_named_midi_pattern(self, track_name: str, clip_name: str, clip_length_bars: float, notes_array: list[dict]) -> str:
-        """[COMPOUND TOOL - PREFERRED] Creates a clip, names it, and populates it with MIDI notes in one step. Notes are routed through add_notes_to_clip for Scale-Aware snapping."""
-        try:
-            track_index = self._get_track_index_by_name(track_name)
-            if track_index == -1:
-                return f"Error: Track '{track_name}' not found."
-            
-            session = self._execute_proxy_request("get_session_info")
-            tracks = session.get("tracks", [])
-            if not tracks:
-                return "Error retrieving session info properly, or no tracks."
-                
-            clip_slots = tracks[track_index].get("clip_slots", [])
-            open_slot = next((i for i, slot in enumerate(clip_slots) if not slot.get("has_clip")), -1)
-            
-            if open_slot == -1:
-                return "Error: No open clip slots found on this track."
-                
-            self.create_clip(track_index, open_slot, clip_length_bars * 4.0)
-            self.set_clip_name(track_index, open_slot, clip_name)
-            # Snapping is delegated to add_notes_to_clip
-            return self.add_notes_to_clip(track_index, open_slot, notes_array)
-        except Exception as e:
-            return str(e)
 
     def get_session_mix_status(self) -> str:
         """[COMPOUND TOOL - PREFERRED] Retrieves a summary of volume/gain status for all tracks in the session in one go."""
@@ -452,40 +418,29 @@ class GeminiAbletonClient:
         except Exception as e:
             return str(e)
 
-    async def consult_cloud_expert(self, query: str) -> str:
-        """[COMPOUND TOOL - PREFERRED] Consults an advanced cloud AI expert for advice on Ableton Live, music production, or sound design. Use this when you are unsure how to achieve a sound or use a feature. Do not use this tool for requesting parameter changes; this expert provides text advice only."""
-        print(f"DEBUG: consult_cloud_expert triggered with query='{query}'")
-        try:
-            sys_instruct = (
-                "You are an expert Ableton Live and sound design consultant. Provide clear, concise, "
-                "step-by-step advice to help the user achieve their musical goals. Avoid formatting "
-                "with markdown code blocks for JSON, just return plain text readable advice."
-            )
-            
-            config = types.GenerateContentConfig(
-                system_instruction=sys_instruct,
-                temperature=0.7,
-                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
-            )
-            
-            response = await self.client.aio.models.generate_content(
-                model=self.pro_model,
-                contents=query,
-                config=config
-            )
-            
-            if response.usage_metadata:
-                p_toks = getattr(response.usage_metadata, "prompt_token_count", 0)
-                c_toks = getattr(response.usage_metadata, "candidates_token_count", 0)
-                self._cloud_consult_telemetry = {"p_tokens": p_toks, "c_tokens": c_toks, "used": True}
-                
-            return response.text if response.text else "The expert did not return any advice."
-        except Exception as e:
-            return f"Error querying cloud expert: {e}"
-
     # --- Chat Engine ---
 
-    async def _generate_ollama_tools(self) -> list[dict]:
+    def _flatten_schema(self, node, defs: dict):
+        """Recursively flattens JSON schemas by resolving $ref pointers and stripping $defs."""
+        if isinstance(node, list):
+            return [self._flatten_schema(item, defs) for item in node]
+        elif isinstance(node, dict):
+            new_node = {}
+            for k, v in node.items():
+                if k == "$ref" and isinstance(v, str):
+                    ref_key = v.split("/")[-1]
+                    if ref_key in defs:
+                        resolved = self._flatten_schema(defs[ref_key], defs)
+                        new_node.update(resolved)
+                elif k == "$defs":
+                    continue
+                else:
+                    new_node[k] = self._flatten_schema(v, defs)
+            return new_node
+        else:
+            return node
+
+    def _generate_minified_schemas(self) -> list:
         tool_schema_map = {
             "test_ableton_connection": None,
             "get_song_scale": None,
@@ -515,214 +470,190 @@ class GeminiAbletonClient:
             "get_device_parameters": schema.DeviceIndexRequest,
             "set_device_parameter": schema.SetDeviceParameterByNameRequest,
             "set_track_volume_by_name": schema.SetTrackVolumeByNameRequest,
-            "load_device_to_track_by_name": schema.LoadDeviceToTrackByNameRequest,
-            "generate_named_midi_pattern": schema.GenerateNamedMidiPatternRequest,
             "get_session_mix_status": None,
-            "inject_midi_to_new_clip": schema.InjectMidiRequest,
-            "consult_cloud_expert": schema.ConsultCloudExpertRequest
+            "inject_midi_to_new_clip": schema.InjectMidiRequest
         }
         
-        ollama_tools = []
+        tool_list = []
         for func in self.tools:
             func_name = func.__name__
             description = func.__doc__ or ""
             
-            parameters = {
-                "type": "object",
-                "properties": {},
-                "required": []
+            tool_def = {
+                "name": func_name,
+                "description": description,
+                "args": {}
             }
             
             if func_name in tool_schema_map and tool_schema_map[func_name]:
                 js_schema = tool_schema_map[func_name].model_json_schema()
-                parameters["properties"] = js_schema.get("properties", {})
-                if "required" in js_schema:
-                    parameters["required"] = js_schema["required"]
+                defs = js_schema.get("$defs", {})
+                flattened = self._flatten_schema(js_schema, defs)
+                
+                tool_def["args"] = flattened.get("properties", {})
+                if "required" in flattened:
+                    tool_def["required"] = flattened["required"]
                     
-            ollama_tools.append({
-                "type": "function",
-                "function": {
-                    "name": func_name,
-                    "description": description,
-                    "parameters": parameters
+            tool_list.append(tool_def)
+            
+        tool_list.append({
+            "name": "ui_text_response",
+            "description": "Used to return text, advice, or sound design tips directly to the user.",
+            "args": {
+                "text": {
+                    "type": "string",
+                    "description": "The textual response or advice to show the user."
                 }
-            })
-        return ollama_tools
+            },
+            "required": ["text"]
+        })
+            
+        return tool_list
 
     async def chat(self, user_prompt: str, chat_history: list = None):
-        """Executes an agentic multi-turn chat loop via native Ollama tool calling."""
+        """Executes a Single-Shot Compiler agent to fulfill the prompt."""
         if chat_history is None:
             chat_history = []
             
-        loop_count = 0
-        MAX_ITERATIONS = 5
         total_prompt_tokens = 0
         total_candidate_tokens = 0
-        models_used_chain = ["VladimirGav/gemma4-26b-16GB-VRAM (Local Orchestrator)"]
+        models_used_chain = ["Gemini 3.1 Pro (Single-Shot Compiler)"]
         
-        messages = [{"role": "system", "content": self.system_instruction}]
-        
+        contents = []
         for msg in chat_history:
-            role = "assistant" if msg.get("role", "").lower() in ["assistant", "ai", "model"] else "user"
-            messages.append({"role": role, "content": msg.get("content", "")})
+            role = "model" if msg.get("role", "").lower() in ["assistant", "ai", "model"] else "user"
+            content_text = msg.get("content", "")
+            if content_text:
+                contents.append(types.Content(role=role, parts=[types.Part.from_text(text=content_text)]))
             
-        messages.append({"role": "user", "content": user_prompt})
-        
-        tools_payload = await self._generate_ollama_tools()
-        
-        yield json.dumps({"type": "status", "message": "Agent thinking..."}) + "\n"
+        yield json.dumps({"type": "status", "message": "Pre-fetching session state locally..."}) + "\n"
         await asyncio.sleep(0.01)
         
-        while True:
-            loop_count += 1
-            if loop_count > MAX_ITERATIONS:
-                yield json.dumps({
-                    "type": "final",
-                    "data": {
-                        "response": "Execution halted to protect memory (too many iterations).",
-                        "model_used": "\n".join(models_used_chain),
-                        "input_tokens": total_prompt_tokens,
-                        "output_tokens": total_candidate_tokens
-                    }
-                }) + "\n"
-                break
-                
-            payload = {
-                "model": "VladimirGav/gemma4-26b-16GB-VRAM",
-                "messages": messages,
-                "tools": tools_payload,
-                "stream": False,
-                "options": {
-                    "num_ctx": 4096,
-                    "temperature": 0.0
-                },
-                "keep_alive": -1
-            }
-
-            try:
-                async with httpx.AsyncClient(timeout=300.0) as client:
-                    res = await client.post("http://127.0.0.1:11434/api/chat", json=payload)
-                    res.raise_for_status()
-                    data = res.json()
-            except Exception as e:
-                import traceback
-                tb_str = traceback.format_exc()
-                
-                print("\n" + "!"*50)
-                print("BACKEND CRASH TRACE:")
-                print(tb_str)
-                print("!"*50 + "\n")
-
-                yield json.dumps({"type": "debug", "content": f"OLLAMA_ERROR:\n{tb_str}"}) + "\n"
-                yield json.dumps({
-                    "type": "final",
-                    "data": {
-                        "response": f"System error communicating with Ollama: {e}",
-                        "model_used": "\n".join(models_used_chain),
-                        "input_tokens": total_prompt_tokens,
-                        "output_tokens": total_candidate_tokens
-                    }
-                }) + "\n"
-                break
-                
-            response_message = data.get("message", {})
+        try:
+            session_state = await asyncio.to_thread(self.get_session_info)
+        except Exception as e:
+            session_state = f"Failed to pre-fetch session: {e}"
             
-            total_prompt_tokens += data.get("prompt_eval_count", 0)
-            total_candidate_tokens += data.get("eval_count", 0)
+        augmented_prompt = f"LOCAL SESSION STATE:\n{session_state}\n\nUSER PROMPT:\n{user_prompt}"
+        contents.append(types.Content(role="user", parts=[types.Part.from_text(text=augmented_prompt)]))
+        
+        config = types.GenerateContentConfig(
+            system_instruction=self.system_instruction,
+            temperature=0.0,
+            response_mime_type="application/json",
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
+        )
+        
+        yield json.dumps({"type": "status", "message": "Agent compiling script..."}) + "\n"
+        await asyncio.sleep(0.01)
+        
+        try:
+            response = await self.client.aio.models.generate_content(
+                model=self.pro_model,
+                contents=contents,
+                config=config
+            )
+        except Exception as e:
+            import traceback
+            tb_str = traceback.format_exc()
+            yield json.dumps({"type": "debug", "content": f"GEMINI_API_ERROR:\n{tb_str}"}) + "\n"
+            yield json.dumps({
+                "type": "final",
+                "data": {
+                    "response": f"System error communicating with Gemini API: {e}",
+                    "model_used": "\n".join(models_used_chain),
+                    "input_tokens": total_prompt_tokens,
+                    "output_tokens": total_candidate_tokens
+                }
+            }) + "\n"
+            return
             
-            messages.append(response_message)
+        if response.usage_metadata:
+            total_prompt_tokens += getattr(response.usage_metadata, "prompt_token_count", 0)
+            total_candidate_tokens += getattr(response.usage_metadata, "candidates_token_count", 0)
             
-            tool_calls = response_message.get("tool_calls")
-            if tool_calls:
-                yield json.dumps({"type": "status", "message": "Executing tools..."}) + "\n"
-                await asyncio.sleep(0.01)
+        if not response.text:
+            yield json.dumps({
+                "type": "final",
+                "data": {
+                    "response": "Error: Empty response from model.",
+                    "model_used": "\n".join(models_used_chain),
+                    "input_tokens": total_prompt_tokens,
+                    "output_tokens": total_candidate_tokens
+                }
+            }) + "\n"
+            return
+            
+        print("\n--- RAW LLM PAYLOAD ---")
+        print(response.text)
+            
+        try:
+            script_actions = json.loads(response.text)
+            if not isinstance(script_actions, list):
+                script_actions = [script_actions]
+        except json.JSONDecodeError as e:
+            yield json.dumps({
+                "type": "final",
+                "data": {
+                    "response": f"Error decoding model JSON output: {e}\nRaw output: {response.text}",
+                    "model_used": "\n".join(models_used_chain),
+                    "input_tokens": total_prompt_tokens,
+                    "output_tokens": total_candidate_tokens
+                }
+            }) + "\n"
+            return
+            
+        yield json.dumps({"type": "status", "message": f"Executing {len(script_actions)} actions locally..."}) + "\n"
+        await asyncio.sleep(0.01)
+        
+        responses_accumulated = []
+        for i, action in enumerate(script_actions):
+            tool_name = action.get("tool")
+            args = action.get("args", {})
+            
+            if not tool_name:
+                continue
                 
-                for tc in tool_calls:
-                    func_name = tc.get("function", {}).get("name")
-                    args = tc.get("function", {}).get("arguments", {})
+            yield json.dumps({"type": "status", "message": f"Executing {i+1}/{len(script_actions)}: {tool_name}..."}) + "\n"
+            await asyncio.sleep(0.01)
+            
+            if tool_name == "ui_text_response":
+                text_content = args.get("text", "")
+                responses_accumulated.append(text_content)
+                continue
+                
+            if hasattr(self, tool_name):
+                method = getattr(self, tool_name)
+                try:
+                    if asyncio.iscoroutinefunction(method):
+                        res = await method(**args)
+                    else:
+                        res = await asyncio.to_thread(method, **args)
                     
-                    yield json.dumps({"type": "status", "message": f"Agent calling: {func_name}..."}) + "\n"
-                    await asyncio.sleep(0.01)
-                    
-                    tool_result = None
-                    is_cloud_expert = (func_name == "consult_cloud_expert")
-                    
-                    if hasattr(self, func_name):
-                        method = getattr(self, func_name)
+                    if isinstance(res, str) and res.strip().startswith("{") and "'" in res:
                         try:
-                            if asyncio.iscoroutinefunction(method):
-                                res = await method(**args)
-                            else:
-                                res = await asyncio.to_thread(method, **args)
-                                
-                            # --- CLEAN DIRTY STRINGIFIED DICTS ---
-                            if isinstance(res, str) and res.strip().startswith("{") and "'" in res:
-                                try:
-                                    res = ast.literal_eval(res)
-                                except Exception:
-                                    pass
-                            # -------------------------------------
-                                    
-                            tool_result = {"result": res}
-                        except TypeError as e:
-                            if "positional argument" in str(e) or "missing" in str(e).lower():
-                                tool_result = {"error": f"Missing required parameter. {str(e)}."}
-                            else:
-                                tool_result = {"error": str(e)}
-                        except Exception as e:
-                            tool_result = {"error": str(e)}
-                    else:
-                        tool_result = {"error": f"Unknown tool: {func_name}"}
-                        
-                    # Aggregate Cloud Telemetry
-                    if getattr(self, "_cloud_consult_telemetry", {}).get("used"):
-                        total_prompt_tokens += self._cloud_consult_telemetry.get("p_tokens", 0)
-                        total_candidate_tokens += self._cloud_consult_telemetry.get("c_tokens", 0)
-                        if "Gemini 3.1 Pro (Cloud Expert Consultation)" not in models_used_chain:
-                            models_used_chain.append("Gemini 3.1 Pro (Cloud Expert Consultation)")
-                        self._cloud_consult_telemetry = {"p_tokens": 0, "c_tokens": 0, "used": False}
-                        
-                    # --- THE STRUCTURAL BYPASS ---
-                    if is_cloud_expert:
-                        # Extract the string result from the tool
-                        cloud_text = tool_result.get("result", "No advice returned.") if isinstance(tool_result, dict) else str(tool_result)
-                        
-                        # Yield directly to UI, skipping the local model entirely
-                        yield json.dumps({
-                            "type": "final",
-                            "data": {
-                                "response": str(cloud_text),
-                                "model_used": "\n".join(models_used_chain),
-                                "input_tokens": total_prompt_tokens,
-                                "output_tokens": total_candidate_tokens
-                            }
-                        }) + "\n"
-                        
-                        # Hard stop the generator. This physically kills the while loop.
-                        return 
-                    # -----------------------------
-                    else:
-                        result_str = json.dumps(tool_result, default=str)
-                        messages.append({
-                            "role": "tool",
-                            "name": func_name,
-                            "content": result_str
-                        })
-                        
-                yield json.dumps({"type": "status", "message": "Agent analyzing tool results..."}) + "\n"
-                await asyncio.sleep(0.01)
-            else:
-                final_text = response_message.get("content", "")
-                if not final_text:
-                    final_text = "Tasks executed successfully."
+                            res = ast.literal_eval(res)
+                        except Exception:
+                            pass
                     
-                yield json.dumps({
-                    "type": "final",
-                    "data": {
-                        "response": final_text,
-                        "model_used": "\n".join(models_used_chain),
-                        "input_tokens": total_prompt_tokens,
-                        "output_tokens": total_candidate_tokens
-                    }
-                }) + "\n"
-                break
+                    await asyncio.sleep(0.5)
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    yield json.dumps({"type": "status", "message": f"Error in {tool_name}: {e}"}) + "\n"
+            else:
+                error_msg = f"Hallucinated Tool Error: The LLM attempted to call a non-existent tool '{tool_name}'."
+                print(f"\n[ERROR] {error_msg}")
+                yield json.dumps({"type": "status", "message": error_msg}) + "\n"
+                
+        final_text = "\n\n".join(responses_accumulated) if responses_accumulated else "Tasks executed successfully."
+        
+        yield json.dumps({
+            "type": "final",
+            "data": {
+                "response": final_text,
+                "model_used": "\n".join(models_used_chain),
+                "input_tokens": total_prompt_tokens,
+                "output_tokens": total_candidate_tokens
+            }
+        }) + "\n"

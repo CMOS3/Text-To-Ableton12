@@ -103,7 +103,3 @@ class GenerateNamedMidiPatternRequest(BaseModel):
     clip_name: str
     clip_length_bars: float = Field(..., description="Length of the clip in bars. It will be multiplied by 4.")
     notes_array: List[NoteSchema]
-
-class ConsultCloudExpertRequest(BaseModel):
-    query: str = Field(..., description="A clear, semantic query or question for the Ableton or sound design cloud expert.")
-

@@ -37,11 +37,11 @@ This is the central nervous system connecting the frontend to the language model
   * **Schema Definition (`schema.py`)**: Uses Pydantic to strictly define the input models/schemas for any tool calls. These schemas are programmatically converted into native JSON-schema tool definitions for the orchestrator.
 
 ### The AI Orchestrator (`gemini_client.py`)
-Despite retaining the `GeminiAbletonClient` name, the codebase has recently undergone a major migration:
-* **Local Ollama Orchestrator Loop**: The primary agentic loop actually runs against a localized Ollama instance querying the `VladimirGav/gemma4-26b-16GB-VRAM` model via `httpx`.
-* **Tool Calling Loop**: Parses Ollama's tool requests, sequentially calls internal proxy methods, appends results (handling stringified dict formatting), and loops back to Ollama.
-* **Circuit Breaker**: A strict `MAX_ITERATIONS = 5` limit prevents infinite tool looping and memory overflow.
-* **Cloud Expert Bypass**: It exposes one specialized Cloud Tool (`consult_cloud_expert`) which routes an API request to the *actual* Google Gemini API (`models/gemini-3.1-pro-preview-customtools`). If the model invokes this tool, the Python loop physically hard-stops, returning the text directly to the user to enforce a "passive expert" paradigm and stop further looping.
+The orchestrator leverages a Pure Cloud architecture via the `google-genai` SDK:
+* **Pure Cloud Orchestrator Loop**: The primary agentic loop runs against Google's `gemini-3.1-flash-lite`, using native JSON schema function calling. This resolves previous local VRAM constraints.
+* **Tool Calling Loop**: The SDK evaluates the user prompt and history against over 40 structured Python tools. The loop sequentially calls internal proxy methods, appends the JSON responses, and loops back to the GenAI SDK.
+* **Circuit Breaker**: A strict `MAX_ITERATIONS = 5` limit prevents infinite tool looping.
+* **Cloud Expert Bypass**: It exposes one specialized Cloud Tool (`consult_cloud_expert`) which routes an API request to the *actual* Google Gemini Pro API (`models/gemini-3.1-pro-preview-customtools`). If the model invokes this tool, the Python loop physically hard-stops, returning the text directly to the user to enforce a "passive expert" paradigm and stop further looping.
 
 ---
 
@@ -62,8 +62,8 @@ A Python module loaded directly deep inside Ableton Live, acting as a headless c
 
 1. **User Request**: User sends a chat message via standard UI.
 2. **Backend Entry**: `main.py` gets `POST /chat`, invokes `gemini_client.chat()`.
-3. **Orchestrator Eval**: `gemini_client` sends history and available JSON-schema Tools to Local Ollama via `POST http://127.0.0.1:11434/api/chat`.
-4. **Tool Execution**: Ollama returns `tool_calls`. `gemini_client` matches the name, invokes the function (e.g., `set_tempo`).
+3. **Orchestrator Eval**: `gemini_client` sends history and available JSON-schema Tools to the Gemini API (`gemini-3.1-flash-lite`) via `genai.Client`.
+4. **Tool Execution**: Gemini returns `function_calls`. `gemini_client` matches the name, invokes the function (e.g., `set_tempo`).
 5. **Proxy Request**: The proxy formats a payload `{"method": "set_tempo", params: {"tempo": 120.0}}` and blasts it over TCP port 9877.
 6. **Ableton Execution**: The remote script listener parses it on the background thread, queues it. When Ableton ticks, the main thread pops it, sets `self.song().tempo = 120.0`, and sends `{"result": "ok"}` back over the socket.
-7. **Resolution**: AI Orchestrator receives the proxy value, feeds it back into Ollama, and eventually streams the final response (`application/x-ndjson`) back to the frontend UI renderer.
+7. **Resolution**: AI Orchestrator receives the proxy value, feeds it back into Gemini Flash-Lite, and eventually streams the final response (`application/x-ndjson`) back to the frontend UI renderer.

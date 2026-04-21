@@ -11,7 +11,7 @@ This directory contains the Python-based backend for the Text-to-Ableton project
 
 ## Technical Details
 - **Port**: Binds to `127.0.0.1:8000`.
-- **Local Orchestration (Ollama)**: Employs an iterative loop using `gemma4-26b` to autonomously execute Ableton tools.
+- **Pure Cloud Orchestration**: Employs an iterative loop using `gemini-3.1-flash-lite` to autonomously execute Ableton tools via the google-genai SDK.
 - **Iterative Execution Chain**:
     1. **Tool Evaluation**: Model evaluates the prompt and history against valid JSON schemas.
     2. **Execution Loop**: Executes tools (max 5 iterations) and appends results to history.

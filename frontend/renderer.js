@@ -291,10 +291,7 @@ async function handleSendMessage() {
                     thinkingContent.textContent = chunk.message;
                 }
             } else if (chunk.type === 'debug') {
-                console.log('%c[OLLAMA DEBUG] \n' + chunk.content, 'color: #00FF00; font-family: monospace; background: #111; padding: 4px;');
-                if (chunk.content && chunk.content.includes("RAW_OLLAMA") || chunk.content.includes("TRACEBACK")) {
-                    addModelUsed("gemma4:e4b (Local Router)");
-                }
+                console.log('%c[DEBUG] \n' + chunk.content, 'color: #00FF00; font-family: monospace; background: #111; padding: 4px;');
             } else if (chunk.type === 'warning') {
                 const warningDiv = document.createElement('div');
                 warningDiv.style.color = '#ffb74d';

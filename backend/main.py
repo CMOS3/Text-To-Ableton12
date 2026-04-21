@@ -11,10 +11,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import uvicorn
+import sys
+import os
 
-from .gemini_client import GeminiAbletonClient
-from . import schema
-from .mcp_proxy import proxy
+# Ensure the root directory is in the python path to allow direct execution
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from backend.gemini_client import GeminiAbletonClient
+from backend import schema
+from backend.mcp_proxy import proxy
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -187,4 +192,4 @@ def set_device_parameter_by_name(req: schema.SetDeviceParameterByNameRequest):
         return {"status": "error", "message": str(e)}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("backend.main:app", host="127.0.0.1", port=8000, reload=True)

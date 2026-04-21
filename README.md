@@ -4,9 +4,9 @@ A powerful desktop application for controlling Ableton Live using Gemini AI and 
 
 ## 🏗️ Architecture
 
-- **Local-First Orchestration**: The primary agentic loop runs locally via **Ollama** (`gemma4-26b-16GB-VRAM`).
-    - **Native Tool Calling**: The local model autonomously selects and executes tools in an iterative loop (max 5 iterations).
-    - **Zero Latency**: Core session control is handled entirely within the user's private network.
+- **Pure Cloud Orchestration**: The primary agentic loop runs entirely via Google's `gemini-3.1-flash-lite`.
+    - **Native Tool Calling**: The model autonomously selects and executes tools in an iterative loop (max 5 iterations).
+    - **Zero Local Overhead**: Frees up all local VRAM by pushing routing to the cloud.
 - **Cloud Expert Bypass**: A specialized tool (`consult_cloud_expert`) provides a textual bridge to **Gemini 3.1 Pro**. This expert is used for complex music theory advice and sound design guidance without further tool looping.
 - **Backend**: Python (FastAPI) - Manages the iterative tool loop, model telemetry, and the JSON-RPC proxy.
 - **Frontend**: Electron (Node.js) - Real-time NDJSON status streaming showing the orchestrator's thoughts.
@@ -28,7 +28,6 @@ This will automatically activate the virtual environment, start the FastAPI serv
 - **Python 3.10+** (with a `.venv` in the root)
 - **Node.js & npm**
 - **Ableton Live 11/12**
-- **Ollama** (Optional, for local routing)
 
 ### 2. Ableton Configuration
 **Automatic Deployment (Windows):** Run the `remote_script/deploy.ps1` PowerShell script to automatically copy the Remote Script to your Ableton User Library.
@@ -46,13 +45,12 @@ GEMINI_API_KEY=your_api_key_here
 
 ### 4. Component Details
 - **Backend**: Runs on `http://127.0.0.1:8000`. 
-- **Frontend**: Electron app located in `frontend/`. 
-- **Ollama**: Ensures `gemma4:e4b` is pulled locally for fast-path transport commands.
+- **Frontend**: Electron app located in `frontend/`.
 
 
 ## ✨ Advanced Features
 
-- **Local Orchestrator**: High-performance local tool calling for private, zero-cost DAW control.
+- **Cloud Orchestrator**: High-performance tool calling powered by Gemini 3.1 Flash-Lite, preventing context dilution.
 - **Cloud Production Expert**: Direct access to Google’s most powerful model for musical creative consulting.
 - **Iterative Reasoning**: A stateful loop that allows the orchestrator to check state, make a change, and verify results autonomously.
 - **STRICT Beat-Based Timing**: Orchestral-grade precision where all MIDI lengths and start times are handled in beats (e.g., 4 bars = 16.0 beats in 4/4).
