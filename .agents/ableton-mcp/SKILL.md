@@ -30,17 +30,16 @@ The integration now actively supports and exposes the following full suite of ca
 
 ## Compound Tools (Highest Priority)
 **CRITICAL RULE:** You MUST prioritize Compound Tools over atomic tools.
-- `consult_cloud_expert`: [CLOUD BYPASS] Consults an advanced cloud AI expert for advice on Ableton Live, music production, or sound design. Use this when you are unsure how to achieve a sound or use a feature. This expert provides text advice only and stops the local loop.
 - `get_session_mix_status`: Summary of volume/gain for all tracks.
 - `set_track_volume_by_name`: Vol control by name.
 - `load_device_to_track_by_name`: Load devices on named tracks.
-- `generate_named_midi_pattern`: One-step clip creation and population.
+- `inject_midi_to_new_clip`: One-step clip creation and population.
 
-## Intelligent Routing & Context (Local-First)
-- **Local Orchestrator (Ollama):** The system primarily uses `gemma4-26b` for the main agentic loop. It has native access to all Ableton tools.
-- **Iterative Tool Loop:** The local model can check the state of the session, execute a command, and then re-evaluate the result in up to 5 consecutive iterations.
-- **Cloud Expert Bypass:** For high-level creative reasoning or complex synthesis guides, the model uses `consult_cloud_expert` which invokes Gemini 3 Pro.
-- **Tone & Style:** The local model maintain absolute session control.
+## Intelligent Routing & Context (Pure Cloud Single-Shot Compiler)
+- **Cloud Orchestrator:** The system uses `gemini-3.1-pro-preview-customtools` via the `google-genai` SDK as the primary agent.
+- **Global Context Pre-fetching:** Before generation, the backend locally fetches the full `session_info` (including tempo, scale, root note, and tracks) and injects it into the prompt.
+- **Single-Shot Compiler:** The model evaluates the state and user prompt, outputting exactly ONE JSON array containing a sequential script of actions.
+- **Sequential Execution:** The Python backend iteratively executes the JSON script with built-in async delays to prevent Ableton race conditions.
 
 
 ## Implementation Logic

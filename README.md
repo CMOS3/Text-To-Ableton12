@@ -4,13 +4,12 @@ A powerful desktop application for controlling Ableton Live using Gemini AI and 
 
 ## 🏗️ Architecture
 
-- **Pure Cloud Orchestration**: The primary agentic loop runs entirely via Google's `gemini-3.1-flash-lite`.
-    - **Native Tool Calling**: The model autonomously selects and executes tools in an iterative loop (max 5 iterations).
+- **Single-Shot Compiler**: The primary orchestrator runs via Google's `gemini-3.1-pro-preview-customtools` using a pure cloud architecture.
+    - **Strict JSON Compilation**: Native tool calling is disabled. Instead, the model acts as a compiler, taking the full Ableton session state and outputting exactly ONE sequential JSON array of actions.
     - **Zero Local Overhead**: Frees up all local VRAM by pushing routing to the cloud.
-- **Cloud Expert Bypass**: A specialized tool (`consult_cloud_expert`) provides a textual bridge to **Gemini 3.1 Pro**. This expert is used for complex music theory advice and sound design guidance without further tool looping.
-- **Backend**: Python (FastAPI) - Manages the iterative tool loop, model telemetry, and the JSON-RPC proxy.
-- **Frontend**: Electron (Node.js) - Real-time NDJSON status streaming showing the orchestrator's thoughts.
-- **Ableton Integration**: Custom Python Remote Script - Stable TCP-to-LOM bridge on 127.0.0.1:9877.
+- **Backend**: Python (FastAPI) - Pre-fetches local session state, handles the single-shot prompt compilation, and sequentially executes the tool calls over the JSON-RPC proxy with async delays to mitigate race conditions.
+- **Frontend**: Electron (Node.js) - Real-time NDJSON status streaming showing the orchestrator's compilation and execution steps.
+- **Ableton Integration**: Custom Python Remote Script - Stable TCP-to-LOM bridge on 127.0.0.1:9877, providing global session awareness (Tempo, Scale, Root Note).
 
 
 ## 🚀 Quick Start (Windows)
@@ -50,12 +49,12 @@ GEMINI_API_KEY=your_api_key_here
 
 ## ✨ Advanced Features
 
-- **Cloud Orchestrator**: High-performance tool calling powered by Gemini 3.1 Flash-Lite, preventing context dilution.
-- **Cloud Production Expert**: Direct access to Google’s most powerful model for musical creative consulting.
-- **Iterative Reasoning**: A stateful loop that allows the orchestrator to check state, make a change, and verify results autonomously.
+- **Single-Shot Cloud Compiler**: High-performance orchestration powered by Gemini 3.1 Pro, enabling robust multi-step actions without infinite looping.
+- **Global Project Awareness**: Automatically fetches session tempo, scale, root note, and track details *before* generation, giving the AI complete context.
+- **Sequential Execution Engine**: The backend locally parses the compiled JSON script and safely executes it against Ableton with built-in race-condition protections.
 - **STRICT Beat-Based Timing**: Orchestral-grade precision where all MIDI lengths and start times are handled in beats (e.g., 4 bars = 16.0 beats in 4/4).
-- **Compound Tools (Optimized)**: High-priority macros (`get_session_mix_status`, `generate_named_midi_pattern`) that parse volume, panning, and track states in bulk.
-- **NDJSON Streaming**: Real-time feedback window showing granular agent status (Thinking -> Executing -> Analyzing).
+- **Compound Tools (Optimized)**: High-priority macros (`get_session_mix_status`, `inject_midi_to_new_clip`) that parse track states and inject data in bulk.
+- **NDJSON Streaming**: Real-time feedback window showing granular agent status (Compiling -> Executing -> Finished).
 - **Anthracite UI**: Premium dark theme inspired by Ableton Live 12 with glassmorphic elements.
 
 

@@ -6,7 +6,7 @@ globs: ["backend/gemini_client.py"]
 
 # Model Routing Rule
 
-- **Primary Orchestrator (Single-Shot Compiler):** The system uses **gemini-3.1-pro-preview** via the `google-genai` SDK as the primary agentic loop.
+- **Primary Orchestrator (Single-Shot Compiler):** The system uses **gemini-3.1-pro-preview-customtools** via the `google-genai` SDK as the primary agentic loop.
 - **Workflow:**
   - The model receives a pre-fetched `session_info` combined with the user prompt.
   - The model prompt is injected dynamically with minified JSON schemas representing all available proxy tools.

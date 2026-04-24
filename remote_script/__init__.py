@@ -223,6 +223,8 @@ class GeminiRemoteScript(ControlSurface):
             info = {
                 "tempo": self.song().tempo,
                 "is_playing": self.song().is_playing,
+                "root_note": getattr(self.song(), "root_note", -1),
+                "scale_name": getattr(self.song(), "scale_name", "Unknown"),
                 "tracks": tracks_info
             }
             self._send_response(client, info)
