@@ -163,16 +163,16 @@ def rename_clip(req: schema.SetClipNameRequest):
         return {"status": "error", "message": str(e)}
 
 @app.post("/api/clip/stop")
-def stop_clip(req: schema.StopClipRequest):
+def stop_clip(req: dict):
     try:
-        return proxy.send_command("stop_clip", req.model_dump())
+        return proxy.send_command("stop_clip", req)
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
 @app.post("/api/clip/notes")
-def get_notes_from_clip(req: schema.ClipActionRequest):
+def get_notes_from_clip(req: dict):
     try:
-        return proxy.request_state("get_notes_from_clip", req.model_dump())
+        return proxy.request_state("get_notes_from_clip", req)
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
@@ -184,16 +184,16 @@ def delete_notes_from_clip(req: schema.DeleteNotesRequest):
         return {"status": "error", "message": str(e)}
 
 @app.delete("/api/track")
-def delete_track(req: schema.TrackIndexRequest):
+def delete_track(req: dict):
     try:
-        return proxy.send_command("delete_track", req.model_dump())
+        return proxy.send_command("delete_track", req)
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
 @app.delete("/api/clip")
-def delete_clip(req: schema.ClipActionRequest):
+def delete_clip(req: dict):
     try:
-        return proxy.send_command("delete_clip", req.model_dump())
+        return proxy.send_command("delete_clip", req)
     except Exception as e:
         return {"status": "error", "message": str(e)}
 

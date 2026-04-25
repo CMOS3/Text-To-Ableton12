@@ -40,26 +40,18 @@ class GeminiAbletonClient:
             self.get_song_scale,
             self.get_session_info,
             self.set_tempo,
-            self.start_playback,
-            self.stop_playback,
             self.get_track_info,
             self.create_midi_track,
             self.set_track_name,
-            self.select_track,
-            self.arm_track,
             self.create_clip,
             self.set_clip_name,
             self.add_notes_to_clip,
-            self.fire_clip,
-            self.stop_clip,
             self.get_browser_tree,
             self.get_browser_items_at_path,
             self.load_instrument_or_effect,
             self.load_drum_kit,
             self.get_notes_from_clip,
             self.delete_notes_from_clip,
-            self.delete_track,
-            self.delete_clip,
             self.get_track_devices,
             self.get_device_parameters,
             self.set_device_parameter,
@@ -70,9 +62,7 @@ class GeminiAbletonClient:
         ]
         
         self.atomic_tools = [
-            self.set_tempo,
-            self.start_playback,
-            self.stop_playback
+            self.set_tempo
         ]
         
         self.system_instruction = (
@@ -148,7 +138,11 @@ class GeminiAbletonClient:
 
     def get_track_info(self, track_index: int) -> str:
         """Gets detailed info about a specific track by its integer index (0-indexed)."""
-        return str(self._execute_proxy_request("get_track_info", **{"track_index": track_index}))
+        try:
+            req = schema.GetTrackInfoRequest(track_index=track_index)
+            return str(self._execute_proxy_request("get_track_info", **req.model_dump()))
+        except ValidationError as e:
+            return str(e)
 
     def create_midi_track(self, track_name: str) -> str:
         """Creates a new MIDI track in Ableton Live."""
@@ -172,11 +166,7 @@ class GeminiAbletonClient:
 
     def arm_track(self, track_name: str, arm: bool = True) -> str:
         """Arms or disarms a track for recording by name."""
-        try:
-            req = schema.TrackArmRequest(track_name=track_name, arm=arm)
-            return str(self._execute_proxy_request("arm_track", **req.model_dump()))
-        except ValidationError as e:
-            return str(e)
+        return str(self._execute_proxy_request("arm_track", **{"track_name": track_name, "arm": arm}))
 
     def create_clip(self, track_index: int, clip_slot_index: int, length: float) -> str:
         """Creates a new MIDI clip in a specific track and clip slot."""
@@ -226,19 +216,11 @@ class GeminiAbletonClient:
 
     def fire_clip(self, track_index: int, clip_slot_index: int) -> str:
         """Fires (plays) a specific clip."""
-        try:
-            req = schema.ClipActionRequest(track_index=track_index, clip_slot_index=clip_slot_index)
-            return str(self._execute_proxy_request("fire_clip", **req.model_dump()))
-        except ValidationError as e:
-            return str(e)
+        return str(self._execute_proxy_request("fire_clip", **{"track_index": track_index, "clip_slot_index": clip_slot_index}))
 
     def stop_clip(self, track_index: int, clip_slot_index: int) -> str:
         """Stops playback of a specific clip."""
-        try:
-            req = schema.ClipActionRequest(track_index=track_index, clip_slot_index=clip_slot_index)
-            return str(self._execute_proxy_request("stop_clip", **req.model_dump()))
-        except ValidationError as e:
-            return str(e)
+        return str(self._execute_proxy_request("stop_clip", **{"track_index": track_index, "clip_slot_index": clip_slot_index}))
 
     def get_browser_tree(self) -> str:
         """Retrieves the root level tree of the Ableton Live browser."""
@@ -301,7 +283,7 @@ class GeminiAbletonClient:
     def get_notes_from_clip(self, track_index: int, clip_slot_index: int) -> str:
         """Retrieves an array of all notes in a specific clip."""
         try:
-            req = schema.ClipActionRequest(track_index=track_index, clip_slot_index=clip_slot_index)
+            req = schema.GetNotesFromClipRequest(track_index=track_index, clip_slot_index=clip_slot_index)
             return str(self._execute_proxy_request("get_notes_from_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
@@ -317,24 +299,16 @@ class GeminiAbletonClient:
 
     def delete_track(self, track_index: int) -> str:
         """Deletes a track by its integer index."""
-        try:
-            req = schema.TrackIndexRequest(track_index=track_index)
-            return str(self._execute_proxy_request("delete_track", **req.model_dump()))
-        except ValidationError as e:
-            return str(e)
+        return str(self._execute_proxy_request("delete_track", **{"track_index": track_index}))
 
     def delete_clip(self, track_index: int, clip_slot_index: int) -> str:
         """Deletes a clip from a specific track and slot index."""
-        try:
-            req = schema.ClipActionRequest(track_index=track_index, clip_slot_index=clip_slot_index)
-            return str(self._execute_proxy_request("delete_clip", **req.model_dump()))
-        except ValidationError as e:
-            return str(e)
+        return str(self._execute_proxy_request("delete_clip", **{"track_index": track_index, "clip_slot_index": clip_slot_index}))
 
     def get_track_devices(self, track_index: int) -> str:
         """Gets all devices loaded on a specific track. Args: track_index (int): The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc."""
         try:
-            req = schema.TrackDevicesRequest(track_index=track_index)
+            req = schema.GetTrackDevicesRequest(track_index=track_index)
             return str(self._execute_proxy_request("get_track_devices", **req.model_dump()))
         except ValidationError as e:
             return str(e)
@@ -517,27 +491,19 @@ class GeminiAbletonClient:
             "get_song_scale": None,
             "get_session_info": None,
             "set_tempo": schema.TempoRequest,
-            "start_playback": None,
-            "stop_playback": None,
-            "get_track_info": schema.TrackIndexRequest,
+            "get_track_info": schema.GetTrackInfoRequest,
             "create_midi_track": schema.TrackNameRequest,
             "set_track_name": schema.TrackIndexNameRequest,
-            "select_track": schema.TrackNameRequest,
-            "arm_track": schema.TrackArmRequest,
             "create_clip": schema.CreateClipRequest,
             "set_clip_name": schema.SetClipNameRequest,
             "add_notes_to_clip": schema.AddNotesRequest,
-            "fire_clip": schema.ClipActionRequest,
-            "stop_clip": schema.ClipActionRequest,
             "get_browser_tree": None,
             "get_browser_items_at_path": schema.BrowserItemsRequest,
             "load_instrument_or_effect": schema.LoadDeviceRequest,
             "load_drum_kit": schema.LoadDrumKitRequest,
-            "get_notes_from_clip": schema.ClipActionRequest,
+            "get_notes_from_clip": schema.GetNotesFromClipRequest,
             "delete_notes_from_clip": schema.DeleteNotesRequest,
-            "delete_track": schema.TrackIndexRequest,
-            "delete_clip": schema.ClipActionRequest,
-            "get_track_devices": schema.TrackDevicesRequest,
+            "get_track_devices": schema.GetTrackDevicesRequest,
             "get_device_parameters": schema.DeviceIndexRequest,
             "set_device_parameter": schema.SetDeviceParameterByNameRequest,
             "set_track_volume_by_name": schema.SetTrackVolumeByNameRequest,
