@@ -65,7 +65,8 @@ class GeminiAbletonClient:
             self.set_device_parameter,
             self.set_track_volume_by_name,
             self.get_session_mix_status,
-            self.inject_midi_to_new_clip
+            self.inject_midi_to_new_clip,
+            self.sound_design
         ]
         
         self.atomic_tools = [
@@ -423,6 +424,70 @@ class GeminiAbletonClient:
             return "\n".join(status_lines) if status_lines else "No tracks found."
         except Exception as e:
             return str(e)
+    async def sound_design(self, track_name: str, device_name: str, tweaks: dict) -> str:
+        """
+        Adjusts basic macro parameters for specific Ableton devices to achieve a sound design goal. 
+        STRICT RULE: You may ONLY use this tool for the parameters listed in the Safe Menu below. 
+        CRITICAL: The 'tweaks' dictionary must use these EXACT parameter names as keys. Do not use synonyms.
+        CRITICAL: ALL values MUST be normalized floats between 0.0 and 1.0 (e.g., 0.5 is 50%, 0.8 is 80%). Do not send absolute values like 300Hz or 1.2s.
+        
+        Safe Menu (Use these exact keys):
+        - Auto Filter: Frequency, Resonance
+        - Echo: Feedback, Dry Wet
+        - Reverb / Hybrid Reverb: Decay Time, Dry/Wet
+        - Operator: Filter Freq, Tone
+        - Wavetable: Filter 1 Freq, Filter 1 Res
+        """
+        import ast
+        import asyncio
+        
+        try:
+            session_str = self.get_session_info()
+            session_data = ast.literal_eval(session_str) if isinstance(session_str, str) else session_str
+            tracks = session_data.get("tracks", []) if isinstance(session_data, dict) else []
+            
+            track_index = -1
+            for i, trk in enumerate(tracks):
+                if track_name.lower() in str(trk.get("name", "")).lower():
+                    track_index = i
+                    break
+                    
+            if track_index == -1:
+                return f"Error: Track matching '{track_name}' not found."
+                
+            devices_str = self.get_track_devices(track_index)
+            devices_data = ast.literal_eval(devices_str) if isinstance(devices_str, str) else devices_str
+            
+            devices = []
+            if isinstance(devices_data, dict):
+                devices = devices_data.get("devices", [])
+            elif isinstance(devices_data, list):
+                devices = devices_data
+                
+            device_index = -1
+            for i, dev in enumerate(devices):
+                if device_name.lower() in str(dev.get("name", "")).lower():
+                    device_index = i
+                    break
+                    
+            if device_index == -1:
+                return f"Error: Device matching '{device_name}' not found on track {track_index}."
+                
+            success_keys = []
+            for key, value in tweaks.items():
+                payload = {
+                    "track_index": track_index,
+                    "device_index": device_index,
+                    "parameter_name": key,
+                    "value": float(value)
+                }
+                await asyncio.to_thread(self._execute_proxy_request, "set_device_parameter", **payload)
+                success_keys.append(key)
+                
+            return f"Successfully targeted parameters: {', '.join(success_keys)}"
+            
+        except Exception as e:
+            return f"Error executing sound_design: {str(e)}"
 
     # --- Chat Engine ---
 
@@ -477,7 +542,8 @@ class GeminiAbletonClient:
             "set_device_parameter": schema.SetDeviceParameterByNameRequest,
             "set_track_volume_by_name": schema.SetTrackVolumeByNameRequest,
             "get_session_mix_status": None,
-            "inject_midi_to_new_clip": schema.InjectMidiRequest
+            "inject_midi_to_new_clip": schema.InjectMidiRequest,
+            "sound_design": schema.SoundDesignRequest
         }
         
         tool_list = []
@@ -663,6 +729,10 @@ class GeminiAbletonClient:
                         res = await method(**args)
                     else:
                         res = await asyncio.to_thread(method, **args)
+                        
+                    if tool_name == "get_device_parameters":
+                        with open("parameter_dump.txt", "w") as f:
+                            f.write(str(res))
                     
                     if isinstance(res, str) and res.strip().startswith("{") and "'" in res:
                         try:

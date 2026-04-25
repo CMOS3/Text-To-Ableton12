@@ -107,3 +107,8 @@ class GenerateNamedMidiPatternRequest(BaseModel):
     clip_name: str
     clip_length_bars: float = Field(..., description="Length of the clip in bars. It will be multiplied by 4.")
     notes_array: List[NoteSchema]
+
+class SoundDesignRequest(BaseModel):
+    track_name: str
+    device_name: str
+    tweaks: dict
