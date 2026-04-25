@@ -54,9 +54,17 @@ async def chat_endpoint(req: schema.ChatRequest):
     if not gemini_client:
         raise HTTPException(status_code=500, detail="Gemini Client not configured. Check API key.")
     
-    return StreamingResponse(gemini_client.chat(req.prompt, req.chat_history), media_type="application/x-ndjson")
+    return StreamingResponse(gemini_client.chat(req.prompt, req.chat_history, req.require_approval), media_type="application/x-ndjson")
 
 # --- Direct API Endpoints for UI Tester ---
+
+@app.post("/api/action-response")
+async def action_response(req: schema.ApprovalRequest):
+    if gemini_client:
+        gemini_client.is_approved = req.approved
+        gemini_client.approval_event.set()
+        return {"status": "success"}
+    return {"status": "error", "message": "Gemini client not initialized"}
 
 @app.get("/api/ping")
 def ping():
@@ -69,6 +77,18 @@ def ping():
 def get_session():
     try:
         return proxy.request_state("get_session_info")
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.get("/api/session-context")
+def get_session_context():
+    try:
+        response = proxy.request_state("get_session_info")
+        if response.get("status") == "success":
+            info = response.get("data", {}).get("result", {})
+            return {"status": "success", "data": info}
+        else:
+            return response
     except Exception as e:
         return {"status": "error", "message": str(e)}
 

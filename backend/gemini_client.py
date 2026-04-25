@@ -31,6 +31,8 @@ class GeminiAbletonClient:
         self.client = genai.Client(api_key=api_key)
         
         self.pro_model = "models/gemini-3.1-pro-preview-customtools"
+        self.approval_event = asyncio.Event()
+        self.is_approved = False
         
         # Tools to expose to the LLM
         self.tools = [
@@ -73,7 +75,11 @@ class GeminiAbletonClient:
         ]
         
         self.system_instruction = (
-            "You are an Ableton Live Compiler and expert Sound Designer.\n"
+            "ROLE & TONE: You are a senior Ableton Live technical consultant and mixing engineer. Speak professionally, clinically, and concisely. "
+            "You will be provided with a 'Genre/Style' context. Use this genre strictly for your musical decisions (chords, device selection, sound design). "
+            "DO NOT adopt the genre as a conversational persona or use slang.\n\n"
+            "FORMATTING: Your text responses must ALWAYS be cleanly formatted using Markdown. Use bold headers, bulleted lists, and line breaks to organize your execution summaries.\n\n"
+            "MISSING CAPABILITIES: If a prompt asks you to perform an action you lack the tools for, execute the steps you CAN perform, and then clearly list the remaining manual steps the user must perform in a bulleted 'Manual Actions Required' section.\n\n"
             "You have access to a suite of Ableton proxy tools to control the session.\n"
             "You MUST output exactly ONE valid JSON array containing a sequential script of actions.\n"
             "Example format:\n"
@@ -85,7 +91,7 @@ class GeminiAbletonClient:
             "If the user asks for a 4-bar loop in 4/4 time, you MUST set length to 16.0. 1 Bar = 4.0 Beats. "
             "CRITICAL: If you create a new track, you must calculate its new `track_index` for subsequent tools. The new index is ALWAYS equal to the current total number of tracks in the session (e.g., if the provided session state shows 4 existing tracks [indexes 0,1,2,3], the newly created track will be index 4).\n"
             "CRITICAL: DO NOT HALLUCINATE TOOL NAMES. You must ONLY use the exact tool names provided in the minified JSON schemas below. Do not invent tools like 'load_device_to_track_by_name'. If a tool requires a `track_index`, you MUST use the integer index.\n"
-            "If the user asks for advice, sound design guidance, or plain text communication, you MUST use the synthetic tool `ui_text_response` and provide the text in its `text` argument.\n"
+            "If the user asks for advice, sound design guidance, or plain text communication, you MUST use the synthetic tool `ui_text_response` and provide the text in its `text` argument. Use Markdown within this text.\n"
             "DO NOT wrap your JSON in markdown code blocks. NO backticks. Output valid JSON array only.\n"
             "Here are the available target tools mapped as minified JSON:\n"
             + json.dumps(self._generate_minified_schemas(), separators=(',', ':'))
@@ -510,8 +516,11 @@ class GeminiAbletonClient:
             
         return tool_list
 
-    async def chat(self, user_prompt: str, chat_history: list = None):
+    async def chat(self, user_prompt: str, chat_history: list = None, require_approval: bool = True):
         """Executes a Single-Shot Compiler agent to fulfill the prompt."""
+        self.approval_event.clear()
+        self.is_approved = False
+        
         if chat_history is None:
             chat_history = []
             
@@ -587,8 +596,17 @@ class GeminiAbletonClient:
         print("\n--- RAW LLM PAYLOAD ---")
         print(response.text)
             
+        raw_text = response.text.strip()
+        start_idx = raw_text.find('[')
+        end_idx = raw_text.rfind(']')
+        
+        if start_idx != -1 and end_idx != -1 and end_idx >= start_idx:
+            clean_text = raw_text[start_idx:end_idx + 1]
+        else:
+            clean_text = raw_text
+            
         try:
-            script_actions = json.loads(response.text)
+            script_actions = json.loads(clean_text)
             if not isinstance(script_actions, list):
                 script_actions = [script_actions]
         except json.JSONDecodeError as e:
@@ -602,6 +620,22 @@ class GeminiAbletonClient:
                 }
             }) + "\n"
             return
+            
+        if require_approval:
+            yield json.dumps({"type": "approval_required", "actions": script_actions}) + "\n"
+            await self.approval_event.wait()
+            
+            if not getattr(self, "is_approved", False):
+                yield json.dumps({
+                    "type": "final",
+                    "data": {
+                        "response": "Execution cancelled by user.",
+                        "model_used": "\n".join(models_used_chain),
+                        "input_tokens": total_prompt_tokens,
+                        "output_tokens": total_candidate_tokens
+                    }
+                }) + "\n"
+                return
             
         yield json.dumps({"type": "status", "message": f"Executing {len(script_actions)} actions locally..."}) + "\n"
         await asyncio.sleep(0.01)

@@ -50,12 +50,14 @@ GEMINI_API_KEY=your_api_key_here
 ## ✨ Advanced Features
 
 - **Single-Shot Cloud Compiler**: High-performance orchestration powered by Gemini 3.1 Pro, enabling robust multi-step actions without infinite looping.
+- **Action Preview (Dry-Run Mode)**: An optional interception gate that pauses the execution loop, presents the user with a compiled script of actions (collapsible Ableton 12-styled card), and waits for explicit approval before altering the Live set.
 - **Global Project Awareness**: Automatically fetches session tempo, scale, root note, and track details *before* generation, giving the AI complete context.
 - **Sequential Execution Engine**: The backend locally parses the compiled JSON script and safely executes it against Ableton with built-in race-condition protections.
+- **Session Inspector UI**: Real-time display of BPM, Key, and Track count within the desktop interface.
+- **Anthracite UI & UX Polish**: Premium dark theme inspired by Ableton Live 12, featuring an auto-expanding multiline chat input, a backend log drawer, and full Markdown-parsed chat responses.
 - **STRICT Beat-Based Timing**: Orchestral-grade precision where all MIDI lengths and start times are handled in beats (e.g., 4 bars = 16.0 beats in 4/4).
 - **Compound Tools (Optimized)**: High-priority macros (`get_session_mix_status`, `inject_midi_to_new_clip`) that parse track states and inject data in bulk.
 - **NDJSON Streaming**: Real-time feedback window showing granular agent status (Compiling -> Executing -> Finished).
-- **Anthracite UI**: Premium dark theme inspired by Ableton Live 12 with glassmorphic elements.
 
 
 ---

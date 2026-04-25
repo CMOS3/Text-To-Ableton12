@@ -14,6 +14,10 @@ class NoteSchema(BaseModel):
 class ChatRequest(BaseModel):
     prompt: str
     chat_history: Optional[List[dict]] = Field(default_factory=list)
+    require_approval: bool = True
+
+class ApprovalRequest(BaseModel):
+    approved: bool
 
 class TrackNameRequest(BaseModel):
     track_name: str

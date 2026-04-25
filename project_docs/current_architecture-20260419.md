@@ -1,4 +1,5 @@
 # AbletonMCP with Gemini API - Current Architecture
+> **NOTE:** This document is outdated. Please refer to `current_architecture-20260424.md` for the single-shot compiler architecture.
 
 Based on the actual codebase, here is the detailed architecture of the system as it currently functions. 
 

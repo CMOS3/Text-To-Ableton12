@@ -12,5 +12,6 @@ globs: ["backend/gemini_client.py"]
   - The model prompt is injected dynamically with minified JSON schemas representing all available proxy tools.
   - The model makes exactly **ONE** API request. `tools=declarations` is NOT used natively.
   - The model's response runs with `response_mime_type="application/json"` and forcibly returns a JSON array: `[{"tool": "name", "args": {...}}]`.
+  - **Action Preview (Dry-Run)**: The system can intercept the generated array, pause execution via `asyncio.Event`, and wait for user approval via the frontend.
 - **Text & Advice Generation:**
   - Standard text outputs or answers are rendered through the synthetic tool `ui_text_response` within the JSON array workflow, bypassing the need for separate advice tools.

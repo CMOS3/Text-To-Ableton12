@@ -1,10 +1,36 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const { spawn, execSync } = require('child_process');
+
+let backendProcess = null;
+
+function startBackend(mainWindow) {
+    const pythonExe = path.join(__dirname, '..', '.venv', 'Scripts', 'python.exe');
+    backendProcess = spawn(pythonExe, ['-m', 'uvicorn', 'backend.main:app', '--reload', '--port', '8000'], {
+        cwd: path.join(__dirname, '..')
+    });
+
+    backendProcess.stdout.on('data', (data) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('backend-log', { type: 'info', message: data.toString() });
+        }
+    });
+
+    backendProcess.stderr.on('data', (data) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('backend-log', { type: 'error', message: data.toString() });
+        }
+    });
+
+    backendProcess.on('close', (code) => {
+        console.log(`Backend process exited with code ${code}`);
+    });
+}
 
 function createWindow() {
     const win = new BrowserWindow({
-        width: 1000,
-        height: 700,
+        width: 1200,
+        height: 800,
         backgroundColor: '#1a1a1a', // Match Ableton's dark theme
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
@@ -17,11 +43,18 @@ function createWindow() {
 
     win.loadFile('index.html');
     
+    startBackend(win);
+    
     // Open DevTools during development if needed
     // win.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
+    ipcMain.on('restart-app', () => {
+        app.relaunch({ args: process.argv.slice(1) });
+        app.quit();
+    });
+
     createWindow();
 
     app.on('activate', () => {
@@ -34,5 +67,15 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
+    }
+});
+
+app.on('will-quit', () => {
+    if (backendProcess) {
+        try {
+            execSync(`taskkill /pid ${backendProcess.pid} /T /F`);
+        } catch (error) {
+            console.error('Failed to kill backend process:', error.message);
+        }
     }
 });

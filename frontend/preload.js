@@ -28,12 +28,12 @@ contextBridge.exposeInMainWorld('api', {
      * @param {string} baseUrl - The base URL of the FastAPI backend.
      * @returns {Promise<Object>} The AI's response.
      */
-    sendChatMessage: async (prompt, baseUrl, chatHistory = [], onChunk) => {
+    sendChatMessage: async (prompt, baseUrl, chatHistory = [], requireApproval = true, onChunk) => {
         try {
             const response = await fetch(`${baseUrl}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt, chat_history: chatHistory }),
+                body: JSON.stringify({ prompt, chat_history: chatHistory, require_approval: requireApproval }),
             });
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -78,5 +78,14 @@ contextBridge.exposeInMainWorld('api', {
             console.error('Failed to send chat message:', error);
             throw error;
         }
-    }
+    },
+    /**
+     * Listens for backend logs.
+     * @param {function} callback - The callback to handle the log data.
+     */
+    onBackendLog: (callback) => ipcRenderer.on('backend-log', (_event, data) => callback(data)),
+    /**
+     * Sends a request to restart the application.
+     */
+    restartApp: () => ipcRenderer.send('restart-app')
 });

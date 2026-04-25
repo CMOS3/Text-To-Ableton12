@@ -39,6 +39,7 @@ The integration now actively supports and exposes the following full suite of ca
 - **Cloud Orchestrator:** The system uses `gemini-3.1-pro-preview-customtools` via the `google-genai` SDK as the primary agent.
 - **Global Context Pre-fetching:** Before generation, the backend locally fetches the full `session_info` (including tempo, scale, root note, and tracks) and injects it into the prompt.
 - **Single-Shot Compiler:** The model evaluates the state and user prompt, outputting exactly ONE JSON array containing a sequential script of actions.
+- **Action Preview (Dry-Run):** The generated script can optionally be intercepted and presented to the user via the frontend (using an `approval_required` stream chunk) before making any destructive changes.
 - **Sequential Execution:** The Python backend iteratively executes the JSON script with built-in async delays to prevent Ableton race conditions.
 
 

@@ -17,11 +17,17 @@ The system bridges a Large Language Model orchestrator with Ableton Live, allowi
 An Electron-based web application providing a chat-like interface.
 
 * **Tech Stack**: Vanilla HTML/JS/CSS wrapper in Electron (`index.html`, `renderer.js`, `main.js`, `preload.js`).
+* **Key Features**:
+  * **Anthracite Theme**: Ableton 12 inspired glassmorphic dark theme.
+  * **Session Inspector**: Real-time display of Ableton BPM, Key, and Track count.
+  * **Backend Log Drawer**: Integrated viewer for Python backend logs.
+  * **Markdown Chat**: Responses parsed and rendered as Markdown with `marked.js`.
 * **Responsibilities**:
-  * Captures user input and displays AI responses.
+  * Captures user input (via auto-expanding multiline textarea) and displays AI responses.
   * Streams LLM responses chunk-by-chunk using NDJSON (`application/x-ndjson`).
-  * Manages settings like Backend URL, Macro definitions, and model cost/token tracking.
+  * Manages settings like Backend URL, Action Preview toggle, and model cost/token tracking.
   * Connects to the backend via HTTP (`POST http://127.0.0.1:8000/chat`).
+  * Intercepts `approval_required` chunks to render a collapsible confirmation card, letting the user manually approve or cancel the pending action script.
 
 ---
 
@@ -41,7 +47,8 @@ The orchestrator leverages a **Pure Cloud Single-Shot Compiler** architecture vi
 * **Single-Shot Compiler Pattern**: Instead of a multi-turn tool-calling loop, the system now runs a single-shot generation against `models/gemini-3.1-pro-preview-customtools`. 
 * **Global Context Pre-fetching**: Before calling the LLM, the backend makes a local call to `get_session_info` (which includes track states, tempo, and scale info) to gather the full project state. This local state is appended directly to the user's prompt.
 * **Strict JSON Array Output**: The Google SDK's native function calling is explicitly disabled (`automatic_function_calling=disable`). Instead, the system prompt contains minified JSON schemas for over 30 available tools, and the LLM is instructed to output exactly ONE valid JSON array representing a sequential script of actions.
-* **Sequential Local Execution**: After generating the JSON array, the backend parses it and iterates over the actions. It sequentially calls internal proxy methods corresponding to the tools, implementing intentional async delays (`asyncio.sleep(0.5)`) between calls to mitigate race conditions in the Ableton queue.
+* **Action Preview (Dry-Run Interception)**: If enabled, the generated JSON script pauses execution. The backend yields an `approval_required` NDJSON chunk to the frontend and `await`s a global `asyncio.Event`. The frontend presents a collapsible `.approval-card` and calls `POST /api/action-response` to set the event based on user input.
+* **Sequential Local Execution**: After generating the JSON array (and receiving user approval, if required), the backend parses it and iterates over the actions. It sequentially calls internal proxy methods corresponding to the tools, implementing intentional async delays (`asyncio.sleep(0.5)`) between calls to mitigate race conditions in the Ableton queue.
 
 ---
 
@@ -65,6 +72,7 @@ A Python module loaded directly deep inside Ableton Live, acting as a headless c
 3. **State Pre-fetch**: The orchestrator pauses to fetch the current Ableton state (`get_session_info`).
 4. **LLM Generation**: The system sends the prompt, history, injected session state, and minified tool schemas to `gemini-3.1-pro-preview-customtools`.
 5. **Script Compilation**: The LLM generates a single JSON array of tool actions (e.g., `[{"tool": "create_midi_track", "args": {"track_name": "Drums"}}, ...]`).
-6. **Sequential Execution**: The orchestrator loops over the JSON array. For each action, it formats a payload `{"method": "create_midi_track", "params": {"track_name": "Drums"}}` and sends it over TCP port 9877.
-7. **Ableton Execution**: The remote script listener receives the command on the background thread, queues it. When Ableton ticks, the main thread executes it (`self.song().create_midi_track(-1)`) and sends an acknowledgment back over the socket.
-8. **Resolution**: The backend delays briefly to prevent race conditions, executes the next tool in the JSON array, and ultimately streams the final execution results back to the frontend UI renderer via NDJSON.
+6. **Action Interception (Optional)**: If Action Preview is active, the backend yields an `approval_required` NDJSON stream and halts. The frontend renders a collapsible `.approval-card` with a list of the parsed actions. The user approves or cancels.
+7. **Sequential Execution**: The orchestrator loops over the JSON array. For each action, it formats a payload `{"method": "create_midi_track", "params": {"track_name": "Drums"}}` and sends it over TCP port 9877.
+8. **Ableton Execution**: The remote script listener receives the command on the background thread, queues it. When Ableton ticks, the main thread executes it (`self.song().create_midi_track(-1)`) and sends an acknowledgment back over the socket.
+9. **Resolution**: The backend delays briefly to prevent race conditions, executes the next tool in the JSON array, and ultimately streams the final execution results back to the frontend UI renderer via NDJSON.

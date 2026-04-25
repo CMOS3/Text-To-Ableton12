@@ -9,18 +9,27 @@ const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const backendUrlInput = document.getElementById('backend-url-input');
 const genreInput = document.getElementById('genre-input');
-const macroNameInput = document.getElementById('macro-name-input');
-const macroPromptInput = document.getElementById('macro-prompt-input');
-const addMacroBtn = document.getElementById('add-macro-btn');
-const macroList = document.getElementById('macro-list');
-const quickLaunchBar = document.getElementById('quick-launch-bar');
+const optimizerShortcutInput = document.getElementById('optimizer-shortcut-input');
 const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsCancelBtn = document.getElementById('settings-cancel-btn');
+const restartAppBtn = document.getElementById('restart-app-btn');
+
+// Session Inspector DOM
+const sessionInspector = document.getElementById('session-inspector');
+const inspectorBpm = document.getElementById('inspector-bpm');
+const inspectorKey = document.getElementById('inspector-key');
+const inspectorTracks = document.getElementById('inspector-tracks');
+const refreshSessionBtn = document.getElementById('refresh-session-btn');
 
 // State
 let backendUrl = localStorage.getItem('backendUrl') || 'http://127.0.0.1:8000';
 let currentGenre = localStorage.getItem('currentGenre') || '';
-let savedMacros = JSON.parse(localStorage.getItem('savedMacros') || '[]');
+let optimizerShortcut = localStorage.getItem('optimizerShortcut') || 'Ctrl+E';
+let requireApproval = localStorage.getItem('requireApproval') !== 'false'; // default true
+const requireApprovalToggle = document.getElementById('require-approval-toggle');
+if (requireApprovalToggle) {
+    requireApprovalToggle.checked = requireApproval;
+}
 let chatHistoryArray = [];
 let costFlash = 0.0;
 let costPro = 0.0;
@@ -41,22 +50,6 @@ historyProM.textContent = `Pro: $${historyProCost.toFixed(4)}`;
 historyFlashM.textContent = `Flash: $${historyFlashCost.toFixed(4)}`;
 historyProM.textContent = `Pro: $${historyProCost.toFixed(4)}`;
 
-const modelsList = document.getElementById('models-list');
-let currentPromptModels = new Set();
-
-function clearModelsUsed() {
-    currentPromptModels.clear();
-    if (modelsList) modelsList.innerHTML = '';
-}
-
-function addModelUsed(modelName) {
-    if (!modelName || currentPromptModels.has(modelName)) return;
-    currentPromptModels.add(modelName);
-    const el = document.createElement('div');
-    el.textContent = modelName;
-    if (modelsList) modelsList.appendChild(el);
-}
-
 resetHistoryBtn.addEventListener('click', () => {
     historyFlashCost = 0.0;
     historyProCost = 0.0;
@@ -66,83 +59,7 @@ resetHistoryBtn.addEventListener('click', () => {
     historyProM.textContent = `Pro: $0.0000`;
 });
 
-/**
- * Basic Markdown Parser using Regex.
- * @param {string} text - Raw markdown text.
- * @returns {string} - Parsed HTML.
- */
-function parseMarkdown(text) {
-    // 1. Escape HTML to prevent XSS
-    let html = text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-    // 2. Multiline Code Blocks (```code```)
-    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-
-    // 3. Bold (**text**)
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-    // 4. Italic (*text*)
-    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-    // 5. Line Breaks (\n)
-    // We only replace \n with <br> if it's NOT inside a <pre> block
-    const parts = html.split(/(<pre>[\s\S]*?<\/pre>)/g);
-    html = parts.map(part => {
-        if (part.startsWith('<pre>')) return part;
-        return part.replace(/\n/g, '<br>');
-    }).join('');
-
-    return html;
-}
-
-/**
- * Renders the macro list in the settings modal and the quick actions bar.
- */
-function renderMacros() {
-    // 1. Render Settings Modal List
-    macroList.innerHTML = '';
-    savedMacros.forEach((macro, index) => {
-        const item = document.createElement('div');
-        item.className = 'macro-item';
-        item.innerHTML = `
-            <div class="macro-info">
-                <span class="macro-name">${macro.name}</span>
-                <span class="macro-payload">${macro.prompt}</span>
-            </div>
-            <button class="delete-macro-btn" data-index="${index}">Delete</button>
-        `;
-        macroList.appendChild(item);
-    });
-
-    // 2. Render Main UI Quick Actions
-    quickLaunchBar.innerHTML = '';
-    savedMacros.forEach((macro) => {
-        const btn = document.createElement('button');
-        btn.className = 'macro-btn';
-        btn.textContent = macro.name;
-        btn.title = macro.prompt;
-        btn.addEventListener('click', () => {
-            chatInput.value = macro.prompt;
-            handleSendMessage();
-        });
-        quickLaunchBar.appendChild(btn);
-    });
-
-    // 3. Add Delete Listeners
-    document.querySelectorAll('.delete-macro-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const index = parseInt(e.target.dataset.index);
-            savedMacros.splice(index, 1);
-            localStorage.setItem('savedMacros', JSON.stringify(savedMacros));
-            renderMacros();
-        });
-    });
-}
+// Removed custom parseMarkdown, using marked.parse instead
 
 /**
  * Appends a message to the chat history.
@@ -157,7 +74,7 @@ function appendMessage(sender, text) {
     bubbleDiv.className = 'bubble';
     
     if (sender === 'ai') {
-        bubbleDiv.innerHTML = parseMarkdown(text);
+        bubbleDiv.innerHTML = marked.parse(text);
     } else {
         bubbleDiv.textContent = text; // User input stays escaped
     }
@@ -187,7 +104,6 @@ clearBtn.addEventListener('click', () => {
 settingsBtn.addEventListener('click', () => {
     backendUrlInput.value = backendUrl;
     genreInput.value = currentGenre;
-    renderMacros();
     settingsModal.classList.remove('hidden');
 });
 
@@ -199,28 +115,27 @@ settingsSaveBtn.addEventListener('click', () => {
     const newUrl = backendUrlInput.value.trim();
     const newGenre = genreInput.value.trim();
     
+    if (requireApprovalToggle) {
+        requireApproval = requireApprovalToggle.checked;
+        localStorage.setItem('requireApproval', requireApproval.toString());
+    }
+    
     backendUrl = newUrl || 'http://127.0.0.1:8000';
     currentGenre = newGenre || '';
     
     localStorage.setItem('backendUrl', backendUrl);
     localStorage.setItem('currentGenre', currentGenre);
-    
     settingsModal.classList.add('hidden');
     checkConnection();
 });
 
-addMacroBtn.addEventListener('click', () => {
-    const name = macroNameInput.value.trim();
-    const prompt = macroPromptInput.value.trim();
-    
-    if (name && prompt) {
-        savedMacros.push({ name, prompt });
-        localStorage.setItem('savedMacros', JSON.stringify(savedMacros));
-        macroNameInput.value = '';
-        macroPromptInput.value = '';
-        renderMacros();
-    }
-});
+if (restartAppBtn) {
+    restartAppBtn.addEventListener('click', () => {
+        if (window.api && window.api.restartApp) {
+            window.api.restartApp();
+        }
+    });
+}
 
 // Close modal when clicking outside the card
 settingsModal.addEventListener('click', (e) => {
@@ -229,20 +144,29 @@ settingsModal.addEventListener('click', (e) => {
     }
 });
 
-/**
- * Shows the "Thinking..." indicator.
- * @returns {HTMLElement} The loading element
- */
 function showThinking() {
     const thinkingDiv = document.createElement('div');
     thinkingDiv.className = 'message ai';
     thinkingDiv.id = 'thinking-indicator';
     
-    const thinkingContent = document.createElement('div');
-    thinkingContent.className = 'bubble thinking';
-    thinkingContent.textContent = 'Thinking';
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.className = 'bubble';
     
-    thinkingDiv.appendChild(thinkingContent);
+    const details = document.createElement('details');
+    details.className = 'status-container';
+    details.open = true;
+    
+    const summary = document.createElement('summary');
+    summary.textContent = 'Execution Trace...';
+    
+    const statusContent = document.createElement('div');
+    statusContent.className = 'status-content';
+    
+    details.appendChild(summary);
+    details.appendChild(statusContent);
+    bubbleDiv.appendChild(details);
+    
+    thinkingDiv.appendChild(bubbleDiv);
     chatHistory.appendChild(thinkingDiv);
     chatHistory.scrollTop = chatHistory.scrollHeight;
     
@@ -273,22 +197,36 @@ async function handleSendMessage() {
     
     // 2. Clear and disable input
     chatInput.value = '';
+    chatInput.style.height = 'auto';
+    chatInput.style.overflowY = 'hidden';
     chatInput.disabled = true;
     sendBtn.disabled = true;
     
-    // Clear models used list for the new prompt
-    clearModelsUsed();
-
     // 3. Show thinking indicator
     showThinking();
 
+    // Inject Visual Anchor into Log Drawer
+    if (logContent) {
+        const anchor = document.createElement('div');
+        anchor.className = 'log-entry system';
+        anchor.style.fontWeight = 'bold';
+        anchor.style.color = 'var(--accent-color)';
+        anchor.textContent = `\n--- [PROMPT SENT: ${new Date().toLocaleTimeString()}] ---`;
+        logContent.appendChild(anchor);
+        logContent.scrollTop = logContent.scrollHeight;
+    }
+
     try {
         // 4. Call API with configured backendUrl and stream callback
-        const data = await window.api.sendChatMessage(text, backendUrl, chatHistoryArray, (chunk) => {
+        const data = await window.api.sendChatMessage(text, backendUrl, chatHistoryArray, requireApproval, (chunk) => {
             if (chunk.type === 'status') {
-                const thinkingContent = document.querySelector('#thinking-indicator .thinking');
-                if (thinkingContent) {
-                    thinkingContent.textContent = chunk.message;
+                const statusContent = document.querySelector('#thinking-indicator .status-content');
+                if (statusContent) {
+                    const entry = document.createElement('div');
+                    entry.className = 'status-update';
+                    entry.textContent = chunk.message;
+                    statusContent.appendChild(entry);
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
                 }
             } else if (chunk.type === 'debug') {
                 console.log('%c[DEBUG] \n' + chunk.content, 'color: #00FF00; font-family: monospace; background: #111; padding: 4px;');
@@ -302,17 +240,101 @@ async function handleSendMessage() {
                 warningDiv.textContent = `⚠️ Warning: ${chunk.message}`;
                 chatHistory.appendChild(warningDiv);
                 chatHistory.scrollTop = chatHistory.scrollHeight;
+            } else if (chunk.type === 'approval_required') {
+                const indicator = document.getElementById('thinking-indicator');
+                if (indicator) {
+                    const bubble = indicator.querySelector('.bubble');
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'approval-card';
+                    
+                    let actionsHtml = '<h4>Pending Actions:</h4><ul>';
+                    chunk.actions.forEach(action => {
+                        actionsHtml += `<li><span class="tool-name">${action.tool}</span><br><span class="tool-args">${JSON.stringify(action.args)}</span></li>`;
+                    });
+                    actionsHtml += '</ul>';
+                    
+                    cardDiv.innerHTML = actionsHtml;
+                    
+                    const btnContainer = document.createElement('div');
+                    btnContainer.className = 'actions';
+                    
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'secondary-btn';
+                    cancelBtn.textContent = 'Cancel';
+                    
+                    const approveBtn = document.createElement('button');
+                    approveBtn.className = 'primary-btn';
+                    approveBtn.textContent = 'Approve';
+                    
+                    btnContainer.appendChild(cancelBtn);
+                    btnContainer.appendChild(approveBtn);
+                    cardDiv.appendChild(btnContainer);
+                    
+                    bubble.appendChild(cardDiv);
+                    
+                    const respond = async (approved) => {
+                        cancelBtn.disabled = true;
+                        approveBtn.disabled = true;
+                        try {
+                            await fetch(`${backendUrl}/api/action-response`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ approved })
+                            });
+                            
+                            cardDiv.className = 'approval-card collapsed';
+                            cardDiv.style = ''; // Reset any inline styles
+                            
+                            const details = document.createElement('details');
+                            details.className = 'approval-details';
+                            
+                            const summary = document.createElement('summary');
+                            if (approved) {
+                                summary.innerHTML = '<span style="color: var(--success-color);">✓ Actions Approved</span>';
+                            } else {
+                                summary.innerHTML = '<span style="color: var(--text-secondary);">✗ Actions Canceled</span>';
+                            }
+                            
+                            const listDiv = document.createElement('div');
+                            listDiv.className = 'approval-list-content';
+                            listDiv.innerHTML = actionsHtml;
+                            
+                            details.appendChild(summary);
+                            details.appendChild(listDiv);
+                            
+                            cardDiv.innerHTML = '';
+                            cardDiv.appendChild(details);
+                        } catch (e) {
+                            console.error('Failed to send approval:', e);
+                        }
+                    };
+                    
+                    cancelBtn.addEventListener('click', () => respond(false));
+                    approveBtn.addEventListener('click', () => respond(true));
+                    
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                }
             }
         });
         
         // 5. Success
-        removeThinking();
-        const messageDiv = appendMessage('ai', data.response || "I couldn't process that request.");
-        
-        if (data.model_used) {
-            addModelUsed(data.model_used);
+        const indicator = document.getElementById('thinking-indicator');
+        if (indicator) {
+            indicator.removeAttribute('id');
+            const details = indicator.querySelector('.status-container');
+            if (details) {
+                details.removeAttribute('open');
+            }
+            
+            const finalContent = document.createElement('div');
+            finalContent.className = 'final-content';
+            finalContent.innerHTML = marked.parse(data.response || "I couldn't process that request.");
+            indicator.querySelector('.bubble').appendChild(finalContent);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        } else {
+            appendMessage('ai', data.response || "I couldn't process that request.");
         }
-
+        
         chatHistoryArray.push({ role: "assistant", content: data.response || "" });
         
         // Calculate cost
@@ -356,14 +378,58 @@ async function handleSendMessage() {
 
 function updateStatus(isOnline) {
     if (isOnline) {
-        statusIndicator.textContent = 'Online';
-        statusIndicator.classList.remove('offline');
-        statusIndicator.classList.add('online');
+        statusIndicator.innerHTML = '<span class="status-dot" style="background-color: var(--accent-color);"></span> Ready (Gemini 3.1 Pro)';
+        statusIndicator.className = 'status-ready';
+        fetchSessionContext();
     } else {
-        statusIndicator.textContent = 'Offline';
-        statusIndicator.classList.remove('online');
-        statusIndicator.classList.add('offline');
+        statusIndicator.innerHTML = '<span class="status-dot" style="background-color: var(--error-color);"></span> Disconnected';
+        statusIndicator.className = 'status-offline';
     }
+}
+
+async function fetchSessionContext() {
+    try {
+        const response = await fetch(`${backendUrl}/api/session-context`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const result = await response.json();
+        
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
+        
+        const data = result.data || result;
+        
+        const bpm = data.tempo ? Math.round(data.tempo) : '--';
+        
+        const noteNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        let key = '--';
+        if (data.root_note !== undefined && data.root_note >= 0 && data.root_note <= 11 && data.scale_name) {
+            key = `${noteNames[data.root_note]} ${data.scale_name}`;
+        } else if (data.scale_name && data.scale_name !== "Unknown") {
+            key = data.scale_name;
+        }
+        
+        let tracksCount = '--';
+        if (data.tracks) {
+            tracksCount = Array.isArray(data.tracks) ? data.tracks.length : data.tracks;
+        }
+
+        inspectorBpm.textContent = `BPM: ${bpm}`;
+        inspectorKey.textContent = `Key: ${key}`;
+        inspectorTracks.textContent = `Tracks: ${tracksCount}`;
+        
+        sessionInspector.classList.remove('hidden');
+    } catch (error) {
+        console.warn("Failed to fetch session context:", error);
+        inspectorBpm.textContent = `BPM: --`;
+        inspectorKey.textContent = `Key: --`;
+        inspectorTracks.textContent = `Tracks: --`;
+    }
+}
+
+if (refreshSessionBtn) {
+    refreshSessionBtn.addEventListener('click', fetchSessionContext);
 }
 
 async function checkConnection() {
@@ -378,15 +444,73 @@ async function checkConnection() {
 // Event Listeners
 sendBtn.addEventListener('click', handleSendMessage);
 
-chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
+chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
         handleSendMessage();
     }
 });
 
+chatInput.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+    if (this.scrollHeight > 200) {
+        this.style.overflowY = 'auto';
+    } else {
+        this.style.overflowY = 'hidden';
+    }
+});
+
+chatInput.addEventListener('paste', function(e) {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    const start = this.selectionStart;
+    const end = this.selectionEnd;
+    const value = this.value;
+    this.value = value.substring(0, start) + text + value.substring(end);
+    this.selectionStart = this.selectionEnd = start + text.length;
+    this.dispatchEvent(new Event('input'));
+});
+
+// Log Viewer DOM & Logic
+const logDrawer = document.getElementById('log-drawer');
+const logContent = document.getElementById('log-content');
+const toggleLogsBtn = document.getElementById('toggle-logs-btn');
+
+if (toggleLogsBtn) {
+    toggleLogsBtn.addEventListener('click', () => {
+        logDrawer.classList.toggle('hidden');
+        if (logDrawer.classList.contains('hidden')) {
+            toggleLogsBtn.textContent = 'Show Logs';
+        } else {
+            toggleLogsBtn.textContent = 'Hide Logs';
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+    });
+}
+
+if (window.api && window.api.onBackendLog) {
+    window.api.onBackendLog((data) => {
+        const logLine = document.createElement('div');
+        logLine.className = `log-entry ${data.type || 'info'}`;
+        // Strip terminal color codes
+        let cleanMsg = typeof data === 'string' ? data : data.message;
+        cleanMsg = cleanMsg.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+        
+        logLine.textContent = cleanMsg;
+        const logsOutput = document.getElementById('log-content');
+        if (logsOutput) {
+            logsOutput.appendChild(logLine);
+            if (logsOutput.childNodes.length > 500) {
+                logsOutput.removeChild(logsOutput.firstChild);
+            }
+            logsOutput.scrollTop = logsOutput.scrollHeight;
+        }
+    });
+}
+
 // INITIALIZATION
 window.addEventListener('DOMContentLoaded', () => {
-    renderMacros();
     checkConnection();
     chatInput.focus();
 });

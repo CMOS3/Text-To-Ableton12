@@ -6,16 +6,17 @@ This directory contains the Python-based backend for the Text-to-Ableton project
 - **FastAPI Server**: Provides a REST API for the frontend and AI clients.
 - **Gemini AI Client**: Integrates with Google's Generative AI (`google-genai`) to interpret musical intent and call tools.
 - **MCP Proxy**: Orchestrates the communication between the AI and the Ableton Remote Script via JSON-RPC over TCP.
-- **Sound Design Sub-Agent**: Leverages specialized model instructions to autonomously design native Ableton instrument and effect chains.
+- **Sound Design Compiler**: Leverages specialized model instructions to autonomously design native Ableton instrument and effect chains.
 
 
 ## Technical Details
 - **Port**: Binds to `127.0.0.1:8000`.
-- **Pure Cloud Orchestration**: Employs an iterative loop using `gemini-3.1-flash-lite` to autonomously execute Ableton tools via the google-genai SDK.
-- **Iterative Execution Chain**:
-    1. **Tool Evaluation**: Model evaluates the prompt and history against valid JSON schemas.
-    2. **Execution Loop**: Executes tools (max 5 iterations) and appends results to history.
-    3. **Cloud Expert Bypass**: If `consult_cloud_expert` is called, the loop halts and returns expert textual advice from Gemini 3.1 Pro.
+- **Pure Cloud Orchestration**: Employs a Single-Shot Compiler architecture using `gemini-3.1-pro-preview-customtools` via the google-genai SDK.
+- **Single-Shot Execution Chain**:
+    1. **Pre-fetching**: Retrieves global project context (tempo, scale, tracks) locally.
+    2. **Compilation**: The model evaluates the prompt against minified JSON schemas and outputs a single JSON array of actions.
+    3. **Action Preview (Dry-Run)**: The backend optionally intercepts execution, passing the plan to the frontend for user approval.
+    4. **Sequential Execution**: Parses the array and executes tools sequentially with `asyncio.sleep` to prevent Ableton race conditions.
 - **Async Execution**: Employs `asyncio.to_thread` for socket communication to prevent blocking the main event loop.
 
 - **Centralized Proxy Logic**: Uses a unified `_execute_proxy_request` helper for data extraction and error handling.
