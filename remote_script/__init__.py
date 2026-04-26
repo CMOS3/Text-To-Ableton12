@@ -211,21 +211,77 @@ class GeminiRemoteScript(ControlSurface):
                     pan = track.mixer_device.panning.value
                 except Exception:
                     pass
+                
+                track_type = "midi" if getattr(track, "has_midi_input", False) else "audio"
+                devices = [str(d.name) for d in getattr(track, "devices", [])]
+                
+                clips = {}
+                try:
+                    for j, slot in enumerate(track.clip_slots):
+                        if slot.has_clip and getattr(slot, "clip", None):
+                            clips[str(j)] = str(slot.clip.name)
+                except Exception:
+                    pass
                     
                 tracks_info.append({
                     "index": i, 
                     "name": track.name, 
-                    "is_armed": track.arm if track.can_be_armed else False,
+                    "type": track_type,
                     "volume": vol,
-                    "panning": pan
+                    "panning": pan,
+                    "devices": devices,
+                    "clips": clips
                 })
+                
+            returns_info = []
+            for i, track in enumerate(self.song().return_tracks):
+                vol = "UNKNOWN"
+                pan = "UNKNOWN"
+                try:
+                    vol = track.mixer_device.volume.value
+                    pan = track.mixer_device.panning.value
+                except Exception:
+                    pass
+                    
+                devices = [str(d.name) for d in getattr(track, "devices", [])]
+                
+                returns_info.append({
+                    "index": i,
+                    "name": track.name,
+                    "volume": vol,
+                    "panning": pan,
+                    "devices": devices
+                })
+                
+            master_info = {}
+            try:
+                master = self.song().master_track
+                vol = "UNKNOWN"
+                pan = "UNKNOWN"
+                try:
+                    vol = master.mixer_device.volume.value
+                    pan = master.mixer_device.panning.value
+                except Exception:
+                    pass
+                    
+                devices = [str(d.name) for d in getattr(master, "devices", [])]
+                
+                master_info = {
+                    "volume": vol,
+                    "panning": pan,
+                    "devices": devices
+                }
+            except Exception:
+                pass
             
             info = {
                 "tempo": self.song().tempo,
                 "is_playing": self.song().is_playing,
                 "root_note": getattr(self.song(), "root_note", -1),
                 "scale_name": getattr(self.song(), "scale_name", "Unknown"),
-                "tracks": tracks_info
+                "tracks": tracks_info,
+                "returns": returns_info,
+                "master": master_info
             }
             self._send_response(client, info)
         except Exception as e:
