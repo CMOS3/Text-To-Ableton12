@@ -43,6 +43,7 @@ class GeminiAbletonClient:
             self.load_instrument_or_effect,
             self.get_notes_from_clip,
             self.set_track_volume_by_name,
+            self.mix_track,
             self.inject_midi_to_new_clip,
             self.sound_design
         ]
@@ -358,7 +359,19 @@ class GeminiAbletonClient:
         except Exception as e:
             return str(e)
 
-
+    def mix_track(self, track_index: int, volume: float = None, panning: float = None, mute: bool = None) -> str:
+        """[COMPOUND TOOL - PREFERRED] Sets mixer properties (volume, panning, mute) for a track."""
+        try:
+            params = {"track_index": track_index}
+            if volume is not None:
+                params["volume"] = volume
+            if panning is not None:
+                params["panning"] = panning
+            if mute is not None:
+                params["mute"] = mute
+            return str(self._execute_proxy_request("set_track_mixer", **params))
+        except Exception as e:
+            return str(e)
 
     def get_session_mix_status(self) -> str:
         """[COMPOUND TOOL - PREFERRED] Retrieves a summary of volume/gain status for all tracks in the session in one go."""
@@ -478,6 +491,7 @@ class GeminiAbletonClient:
             "load_instrument_or_effect": schema.LoadDeviceRequest,
             "get_notes_from_clip": schema.GetNotesFromClipRequest,
             "set_track_volume_by_name": schema.SetTrackVolumeByNameRequest,
+            "mix_track": schema.MixTrackRequest,
             "inject_midi_to_new_clip": schema.InjectMidiRequest,
             "sound_design": schema.SoundDesignRequest
         }

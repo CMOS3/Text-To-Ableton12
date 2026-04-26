@@ -90,6 +90,12 @@ class SetTrackVolumeByNameRequest(BaseModel):
     track_name: str
     gain_db: float
 
+class MixTrackRequest(BaseModel):
+    track_index: int = Field(..., description="The 0-based index of the target track (or return track).")
+    volume: Optional[float] = Field(None, description="Volume level from 0.0 to 1.0 (where ~0.85 is 0dB). Matches the volume shown in the session state.")
+    panning: Optional[float] = Field(None, description="Panning from -1.0 (Left) to 1.0 (Right).")
+    mute: Optional[bool] = Field(None, description="Set to true to mute the track, false to unmute.")
+
 class SoundDesignRequest(BaseModel):
     track_name: str
     device_name: str

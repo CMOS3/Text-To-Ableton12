@@ -6,6 +6,7 @@ This directory contains the custom Ableton Live Remote Script that enables exter
 - **TCP Listener**: Binds to `127.0.0.1:9877` inside Ableton's process.
 - **JSON-RPC Server**: Interprets incoming commands and executes them using the Ableton Live Python API.
 - **Thread Safety**: Uses a task queue and the `update_display` callback to ensure all Ableton API calls happen on the main thread.
+- **Fuzzy-Matching Parameter Logic**: Employs a three-tier matching system (exact, substring, synonym) to resolve parameter names robustly and prevent LLM hallucinations.
 
 ## Installation
 **Automatic Deployment (Windows):** Run the `deploy.ps1` PowerShell script in this directory to automatically deploy the files.
