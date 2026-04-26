@@ -36,34 +36,18 @@ class GeminiAbletonClient:
         
         # Tools to expose to the LLM
         self.tools = [
-            self.test_ableton_connection,
-            self.get_song_scale,
             self.get_session_info,
-            self.set_tempo,
-            self.get_track_info,
             self.create_midi_track,
             self.set_track_name,
-            self.create_clip,
             self.set_clip_name,
-            self.add_notes_to_clip,
-            self.get_browser_tree,
-            self.get_browser_items_at_path,
             self.load_instrument_or_effect,
-            self.load_drum_kit,
             self.get_notes_from_clip,
-            self.delete_notes_from_clip,
-            self.get_track_devices,
-            self.get_device_parameters,
-            self.set_device_parameter,
             self.set_track_volume_by_name,
-            self.get_session_mix_status,
             self.inject_midi_to_new_clip,
             self.sound_design
         ]
         
-        self.atomic_tools = [
-            self.set_tempo
-        ]
+        self.atomic_tools = []
         
         self.system_instruction = (
             "ROLE & TONE: You are a senior Ableton Live technical consultant and mixing engineer. Speak professionally, clinically, and concisely. "
@@ -487,27 +471,13 @@ class GeminiAbletonClient:
 
     def _generate_minified_schemas(self) -> list:
         tool_schema_map = {
-            "test_ableton_connection": None,
-            "get_song_scale": None,
             "get_session_info": None,
-            "set_tempo": schema.TempoRequest,
-            "get_track_info": schema.GetTrackInfoRequest,
             "create_midi_track": schema.TrackNameRequest,
             "set_track_name": schema.TrackIndexNameRequest,
-            "create_clip": schema.CreateClipRequest,
             "set_clip_name": schema.SetClipNameRequest,
-            "add_notes_to_clip": schema.AddNotesRequest,
-            "get_browser_tree": None,
-            "get_browser_items_at_path": schema.BrowserItemsRequest,
             "load_instrument_or_effect": schema.LoadDeviceRequest,
-            "load_drum_kit": schema.LoadDrumKitRequest,
             "get_notes_from_clip": schema.GetNotesFromClipRequest,
-            "delete_notes_from_clip": schema.DeleteNotesRequest,
-            "get_track_devices": schema.GetTrackDevicesRequest,
-            "get_device_parameters": schema.DeviceIndexRequest,
-            "set_device_parameter": schema.SetDeviceParameterByNameRequest,
             "set_track_volume_by_name": schema.SetTrackVolumeByNameRequest,
-            "get_session_mix_status": None,
             "inject_midi_to_new_clip": schema.InjectMidiRequest,
             "sound_design": schema.SoundDesignRequest
         }
@@ -561,9 +531,20 @@ class GeminiAbletonClient:
         models_used_chain = ["Gemini 3.1 Pro (Single-Shot Compiler)"]
         
         contents = []
-        for msg in chat_history:
+        final_user_text = user_prompt
+        history_len = len(chat_history)
+        
+        for i, msg in enumerate(chat_history):
             role = "model" if msg.get("role", "").lower() in ["assistant", "ai", "model"] else "user"
             content_text = msg.get("content", "")
+            
+            # Prevent double injection: if the last message is from the user,
+            # we merge it into the final augmented prompt instead of appending it as a separate turn.
+            if i == history_len - 1 and role == "user":
+                if content_text:
+                    final_user_text = content_text
+                continue
+                
             if content_text:
                 contents.append(types.Content(role=role, parts=[types.Part.from_text(text=content_text)]))
             
@@ -575,7 +556,7 @@ class GeminiAbletonClient:
         except Exception as e:
             session_state = f"Failed to pre-fetch session: {e}"
             
-        augmented_prompt = f"LOCAL SESSION STATE:\n{session_state}\n\nUSER PROMPT:\n{user_prompt}"
+        augmented_prompt = f"LOCAL SESSION STATE:\n{session_state}\n\nUSER PROMPT:\n{final_user_text}"
         contents.append(types.Content(role="user", parts=[types.Part.from_text(text=augmented_prompt)]))
         
         config = types.GenerateContentConfig(
@@ -630,12 +611,38 @@ class GeminiAbletonClient:
             
         raw_text = response.text.strip()
         start_idx = raw_text.find('[')
-        end_idx = raw_text.rfind(']')
         
-        if start_idx != -1 and end_idx != -1 and end_idx >= start_idx:
-            clean_text = raw_text[start_idx:end_idx + 1]
-        else:
-            clean_text = raw_text
+        clean_text = raw_text
+        if start_idx != -1:
+            # Safely find the matching closing bracket by parsing characters
+            in_string = False
+            escape = False
+            depth = 0
+            end_idx = -1
+            
+            for i in range(start_idx, len(raw_text)):
+                char = raw_text[i]
+                if escape:
+                    escape = False
+                elif char == '\\':
+                    escape = True
+                elif char == '"':
+                    in_string = not in_string
+                elif not in_string:
+                    if char == '[':
+                        depth += 1
+                    elif char == ']':
+                        depth -= 1
+                        if depth == 0:
+                            end_idx = i
+                            break
+                            
+            if end_idx != -1:
+                clean_text = raw_text[start_idx:end_idx + 1]
+            else:
+                fallback_end = raw_text.rfind(']')
+                if fallback_end >= start_idx:
+                    clean_text = raw_text[start_idx:fallback_end + 1]
             
         try:
             script_actions = json.loads(clean_text)
