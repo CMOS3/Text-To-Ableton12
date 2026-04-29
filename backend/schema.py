@@ -105,5 +105,15 @@ class SoundDesignRequest(BaseModel):
     device_name: str
     tweaks: List[TweakSchema] = Field(..., description="List of parameter tweaks to apply.")
 
+class SupervisorSoundDesign(BaseModel):
+    track_name: str
+    device_name: str
+    intent: str = Field(..., description="The sound design goal, e.g. 'Make it a dark reese bass'")
+
+class SupervisorInjectMidi(BaseModel):
+    track_index: int
+    length: float
+    intent: str = Field(..., description="The musical goal, e.g. 'A 4-to-the-floor kick drum pattern'")
+
 class FetchResourceRequest(BaseModel):
     uri: str = Field(..., description="The MCP resource URI to fetch, e.g., 'ableton://tracks/1/state'")

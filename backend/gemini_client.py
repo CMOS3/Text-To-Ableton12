@@ -61,7 +61,7 @@ class WorkerAgent:
                 error_msg = str(e)
                 prompt += f"\n\nERROR ON PREVIOUS ATTEMPT:\nThe parser threw this error:\n{error_msg}\n\nPlease analyze the error and output a corrected JSON payload that strictly matches the schema."
 
-class GeminiAbletonClient:
+class SupervisorAgent:
     def __init__(self):
         api_key = os.getenv("GEMINI_API_KEY")
         print(f"DEBUG: GEMINI_API_KEY found: {bool(api_key)}")
@@ -73,6 +73,7 @@ class GeminiAbletonClient:
             )
         
         self.client = genai.Client(api_key=api_key)
+        self.worker = WorkerAgent(api_key=api_key)
         
         self.pro_model = "models/gemini-3.1-pro-preview-customtools"
         self.approval_event = asyncio.Event()
@@ -80,12 +81,11 @@ class GeminiAbletonClient:
         
         # Tools to expose to the LLM
         self.tools = [
-            self.get_session_info,
+            self.fetch_resource,
             self.create_midi_track,
             self.set_track_name,
             self.set_clip_name,
             self.load_instrument_or_effect,
-            self.get_notes_from_clip,
             self.set_track_volume_by_name,
             self.mix_track,
             self.inject_midi_to_new_clip,
@@ -134,6 +134,14 @@ class GeminiAbletonClient:
             
         return data
 
+
+    def fetch_resource(self, uri: str) -> str:
+        """Fetches a specific DAW resource (like track state, session, clips) for Just-In-Time context."""
+        try:
+            req = schema.FetchResourceRequest(uri=uri)
+            return str(self._execute_proxy_request("fetch_resource", **req.model_dump()))
+        except ValidationError as e:
+            return str(e)
 
     def test_ableton_connection(self) -> str:
         """Attempts to send a JSON 'ping' message to the Ableton Server."""
@@ -263,35 +271,20 @@ class GeminiAbletonClient:
         except ValidationError as e:
             return str(e)
 
-    def inject_midi_to_new_clip(self, track_index: int, length: float, notes: list[schema.NoteSchema]) -> str:
-        """Finds the first empty clip slot on the track, creates a clip of the specified length, and injects the semantic notes."""
+    async def inject_midi_to_new_clip(self, track_index: int, length: float, intent: str) -> str:
+        """Finds the first empty clip slot on the track, creates a clip of the specified length, and delegates to the Worker to generate semantic notes based on the intent."""
         try:
-            processed_notes = []
-            for n in notes:
-                if hasattr(n, "model_dump"):
-                    note_dict = n.model_dump()
-                elif isinstance(n, dict):
-                    note_dict = n.copy()
-                else:
-                    note_dict = getattr(n, "__dict__", {}).copy()
-                    
-                pitch_name = note_dict.get("pitch_name")
-                if not pitch_name:
-                    return "Error: Missing 'pitch_name' in note payload. You must provide semantic pitch names."
-                
-                try:
-                    midi_val = self._pitch_name_to_midi(pitch_name)
-                except ValueError as ve:
-                    return f"Error with pitch '{pitch_name}': {ve}"
-                    
-                note_dict["pitch"] = midi_val
-                processed_notes.append(note_dict)
-
-            valid_notes = [schema.NoteSchema(**n) for n in processed_notes]
-            req = schema.InjectMidiRequest(track_index=track_index, length=length, notes=valid_notes)
-            return str(self._execute_proxy_request("inject_midi_to_new_clip", **req.model_dump()))
+            # Delegate complex note generation to WorkerAgent
+            task_desc = f"Generate MIDI notes for track index {track_index} based on this musical intent: {intent}. Length of clip is {length} beats."
+            context = f"Intent: {intent}"
+            
+            # Use Worker to get valid schema
+            schema_res = await self.worker.execute_task(task_desc, context, schema.InjectMidiRequest)
+            
+            # Send the proxy request
+            return str(self._execute_proxy_request("inject_midi_to_new_clip", **schema_res.model_dump()))
         except Exception as e:
-            return f"Error injecting midi: {e}"
+            return f"Error injecting midi via worker: {e}"
 
     def load_instrument_or_effect(self, track_index: int, browser_path: str) -> str:
         """Loads a device (instrument or effect) onto a track from the browser."""
@@ -439,70 +432,44 @@ class GeminiAbletonClient:
             return "\n".join(status_lines) if status_lines else "No tracks found."
         except Exception as e:
             return str(e)
-    async def sound_design(self, track_name: str, device_name: str, tweaks: dict) -> str:
+    async def sound_design(self, track_name: str, device_name: str, intent: str) -> str:
         """
-        Adjusts basic macro parameters for specific Ableton devices to achieve a sound design goal. 
-        STRICT RULE: You may ONLY use this tool for the parameters listed in the Safe Menu below. 
-        CRITICAL: The 'tweaks' dictionary must use these EXACT parameter names as keys. Do not use synonyms.
-        CRITICAL: ALL values MUST be normalized floats between 0.0 and 1.0 (e.g., 0.5 is 50%, 0.8 is 80%). Do not send absolute values like 300Hz or 1.2s.
-        
-        Safe Menu (Use these exact keys):
-        - Auto Filter: Frequency, Resonance
-        - Echo: Feedback, Dry Wet
-        - Reverb / Hybrid Reverb: Decay Time, Dry/Wet
-        - Operator: Filter Freq, Tone
-        - Wavetable: Filter 1 Freq, Filter 1 Res
+        Adjusts basic macro parameters for specific Ableton devices to achieve a sound design goal.
+        Delegates the exact parameter mapping to the WorkerAgent based on the intent.
         """
         import ast
         import asyncio
         
         try:
-            session_str = self.get_session_info()
-            session_data = ast.literal_eval(session_str) if isinstance(session_str, str) else session_str
-            tracks = session_data.get("tracks", []) if isinstance(session_data, dict) else []
-            
-            track_index = -1
-            for i, trk in enumerate(tracks):
-                if track_name.lower() in str(trk.get("name", "")).lower():
-                    track_index = i
-                    break
-                    
+            # First, fetch JIT context for the specific track to give the Worker accurate parameter boundaries
+            # In a full HMAS, the Supervisor might have already fetched this, but we'll fetch devices here to be safe.
+            track_index = self._get_track_index_by_name(track_name)
             if track_index == -1:
                 return f"Error: Track matching '{track_name}' not found."
                 
             devices_str = self.get_track_devices(track_index)
-            devices_data = ast.literal_eval(devices_str) if isinstance(devices_str, str) else devices_str
             
-            devices = []
-            if isinstance(devices_data, dict):
-                devices = devices_data.get("devices", [])
-            elif isinstance(devices_data, list):
-                devices = devices_data
-                
-            device_index = -1
-            for i, dev in enumerate(devices):
-                if device_name.lower() in str(dev.get("name", "")).lower():
-                    device_index = i
-                    break
-                    
-            if device_index == -1:
-                return f"Error: Device matching '{device_name}' not found on track {track_index}."
-                
+            task_desc = f"Determine precise Ableton parameter tweaks for device '{device_name}' on track '{track_name}' to achieve this sound design intent: {intent}."
+            context = f"Available Devices on Track: {devices_str}\n\nStrict Rules: Only tweak 'Filter Freq', 'Resonance', 'Decay Time', 'Dry/Wet', 'Tone'. Values must be normalized floats (0.0 to 1.0)."
+            
+            # Delegate to Worker
+            schema_res = await self.worker.execute_task(task_desc, context, schema.SoundDesignRequest)
+            
             success_keys = []
-            for key, value in tweaks.items():
+            for tweak in schema_res.tweaks:
                 payload = {
                     "track_index": track_index,
-                    "device_index": device_index,
-                    "parameter_name": key,
-                    "value": float(value)
+                    "device_index": 0, # Assuming first device for simplicity, worker could target this too
+                    "parameter_name": tweak.parameter_name,
+                    "value": tweak.value
                 }
                 await asyncio.to_thread(self._execute_proxy_request, "set_device_parameter", **payload)
-                success_keys.append(key)
+                success_keys.append(tweak.parameter_name)
                 
-            return f"Successfully targeted parameters: {', '.join(success_keys)}"
+            return f"Successfully targeted parameters via WorkerAgent: {', '.join(success_keys)}"
             
         except Exception as e:
-            return f"Error executing sound_design: {str(e)}"
+            return f"Error executing sound_design via worker: {str(e)}"
 
     # --- Chat Engine ---
 
@@ -528,16 +495,15 @@ class GeminiAbletonClient:
 
     def _generate_minified_schemas(self) -> list:
         tool_schema_map = {
-            "get_session_info": None,
+            "fetch_resource": schema.FetchResourceRequest,
             "create_midi_track": schema.TrackNameRequest,
             "set_track_name": schema.TrackIndexNameRequest,
             "set_clip_name": schema.SetClipNameRequest,
             "load_instrument_or_effect": schema.LoadDeviceRequest,
-            "get_notes_from_clip": schema.GetNotesFromClipRequest,
             "set_track_volume_by_name": schema.SetTrackVolumeByNameRequest,
             "mix_track": schema.MixTrackRequest,
-            "inject_midi_to_new_clip": schema.InjectMidiRequest,
-            "sound_design": schema.SoundDesignRequest
+            "inject_midi_to_new_clip": schema.SupervisorInjectMidi,
+            "sound_design": schema.SupervisorSoundDesign
         }
         
         tool_list = []
@@ -610,11 +576,11 @@ class GeminiAbletonClient:
         await asyncio.sleep(0.01)
         
         try:
-            session_state = await asyncio.to_thread(self.get_session_info)
+            session_state = await asyncio.to_thread(self.fetch_resource, "ableton://session/state")
         except Exception as e:
             session_state = f"Failed to pre-fetch session: {e}"
             
-        augmented_prompt = f"LOCAL SESSION STATE:\n{session_state}\n\nUSER PROMPT:\n{final_user_text}"
+        augmented_prompt = f"LOCAL SESSION STATE:\n{session_state}\n\nUSER PROMPT:\n{final_user_text}\n\nNOTE: If you need more track details to execute the intent, output ONLY `fetch_resource` actions first. The system will run them and return the results so you can decide the final actions."
         contents.append(types.Content(role="user", parts=[types.Part.from_text(text=augmented_prompt)]))
         
         config = types.GenerateContentConfig(
@@ -624,100 +590,129 @@ class GeminiAbletonClient:
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
         )
         
-        yield json.dumps({"type": "status", "message": "Agent compiling script..."}) + "\n"
+        yield json.dumps({"type": "status", "message": "Supervisor analyzing..."}) + "\n"
         await asyncio.sleep(0.01)
         
-        try:
-            response = await self.client.aio.models.generate_content(
-                model=self.pro_model,
-                contents=contents,
-                config=config
-            )
-        except Exception as e:
-            import traceback
-            tb_str = traceback.format_exc()
-            yield json.dumps({"type": "debug", "content": f"GEMINI_API_ERROR:\n{tb_str}"}) + "\n"
-            yield json.dumps({
-                "type": "final",
-                "data": {
-                    "response": f"System error communicating with Gemini API: {e}",
-                    "model_used": "\n".join(models_used_chain),
-                    "input_tokens": total_prompt_tokens,
-                    "output_tokens": total_candidate_tokens
-                }
-            }) + "\n"
-            return
-            
-        if response.usage_metadata:
-            total_prompt_tokens += getattr(response.usage_metadata, "prompt_token_count", 0)
-            total_candidate_tokens += getattr(response.usage_metadata, "candidates_token_count", 0)
-            
-        if not response.text:
-            yield json.dumps({
-                "type": "final",
-                "data": {
-                    "response": "Error: Empty response from model.",
-                    "model_used": "\n".join(models_used_chain),
-                    "input_tokens": total_prompt_tokens,
-                    "output_tokens": total_candidate_tokens
-                }
-            }) + "\n"
-            return
-            
-        print("\n--- RAW LLM PAYLOAD ---")
-        print(response.text)
-            
-        raw_text = response.text.strip()
-        start_idx = raw_text.find('[')
+        turn_count = 0
+        max_turns = 4
         
-        clean_text = raw_text
-        if start_idx != -1:
-            # Safely find the matching closing bracket by parsing characters
-            in_string = False
-            escape = False
-            depth = 0
-            end_idx = -1
+        while turn_count < max_turns:
+            turn_count += 1
+            try:
+                response = await self.client.aio.models.generate_content(
+                    model=self.pro_model,
+                    contents=contents,
+                    config=config
+                )
+            except Exception as e:
+                import traceback
+                tb_str = traceback.format_exc()
+                yield json.dumps({"type": "debug", "content": f"GEMINI_API_ERROR:\n{tb_str}"}) + "\n"
+                yield json.dumps({
+                    "type": "final",
+                    "data": {
+                        "response": f"System error communicating with Gemini API: {e}",
+                        "model_used": "\n".join(models_used_chain),
+                        "input_tokens": total_prompt_tokens,
+                        "output_tokens": total_candidate_tokens
+                    }
+                }) + "\n"
+                return
             
-            for i in range(start_idx, len(raw_text)):
-                char = raw_text[i]
-                if escape:
-                    escape = False
-                elif char == '\\':
-                    escape = True
-                elif char == '"':
-                    in_string = not in_string
-                elif not in_string:
-                    if char == '[':
-                        depth += 1
-                    elif char == ']':
-                        depth -= 1
-                        if depth == 0:
-                            end_idx = i
-                            break
+            if response.usage_metadata:
+                total_prompt_tokens += getattr(response.usage_metadata, "prompt_token_count", 0)
+                total_candidate_tokens += getattr(response.usage_metadata, "candidates_token_count", 0)
+            
+            if not response.text:
+                yield json.dumps({
+                    "type": "final",
+                    "data": {
+                        "response": "Error: Empty response from model.",
+                        "model_used": "\n".join(models_used_chain),
+                        "input_tokens": total_prompt_tokens,
+                        "output_tokens": total_candidate_tokens
+                    }
+                }) + "\n"
+                return
+            
+            print("\n--- RAW LLM PAYLOAD ---")
+            print(response.text)
+            
+            raw_text = response.text.strip()
+            start_idx = raw_text.find('[')
+        
+            clean_text = raw_text
+            if start_idx != -1:
+                # Safely find the matching closing bracket by parsing characters
+                in_string = False
+                escape = False
+                depth = 0
+                end_idx = -1
+            
+                for i in range(start_idx, len(raw_text)):
+                    char = raw_text[i]
+                    if escape:
+                        escape = False
+                    elif char == '\\':
+                        escape = True
+                    elif char == '"':
+                        in_string = not in_string
+                    elif not in_string:
+                        if char == '[':
+                            depth += 1
+                        elif char == ']':
+                            depth -= 1
+                            if depth == 0:
+                                end_idx = i
+                                break
                             
-            if end_idx != -1:
-                clean_text = raw_text[start_idx:end_idx + 1]
-            else:
-                fallback_end = raw_text.rfind(']')
-                if fallback_end >= start_idx:
-                    clean_text = raw_text[start_idx:fallback_end + 1]
+                if end_idx != -1:
+                    clean_text = raw_text[start_idx:end_idx + 1]
+                else:
+                    fallback_end = raw_text.rfind(']')
+                    if fallback_end >= start_idx:
+                        clean_text = raw_text[start_idx:fallback_end + 1]
             
-        try:
-            script_actions = json.loads(clean_text)
-            if not isinstance(script_actions, list):
-                script_actions = [script_actions]
-        except json.JSONDecodeError as e:
-            yield json.dumps({
-                "type": "final",
-                "data": {
-                    "response": f"Error decoding model JSON output: {e}\nRaw output: {response.text}",
-                    "model_used": "\n".join(models_used_chain),
-                    "input_tokens": total_prompt_tokens,
-                    "output_tokens": total_candidate_tokens
-                }
-            }) + "\n"
-            return
+                try:
+                    script_actions = json.loads(clean_text)
+                    if not isinstance(script_actions, list):
+                        script_actions = [script_actions]
+                except json.JSONDecodeError as e:
+                    yield json.dumps({
+                        "type": "final",
+                        "data": {
+                            "response": f"Error decoding model JSON output: {e}\nRaw output: {response.text}",
+                            "model_used": "\n".join(models_used_chain),
+                            "input_tokens": total_prompt_tokens,
+                            "output_tokens": total_candidate_tokens
+                        }
+                    }) + "\n"
+                    return
+                
+                # ReAct Loop Check: Are there only fetch actions?
+                has_mutations = any(a.get("tool") not in ["fetch_resource", "ui_text_response"] for a in script_actions)
+                has_fetches = any(a.get("tool") == "fetch_resource" for a in script_actions)
             
+                if not has_mutations and has_fetches:
+                    fetch_results = []
+                    for action in script_actions:
+                        if action.get("tool") == "fetch_resource":
+                            uri = action.get("args", {}).get("uri", "")
+                            if uri:
+                                yield json.dumps({"type": "status", "message": f"Supervisor fetching {uri}..."}) + "\n"
+                                res = await asyncio.to_thread(self.fetch_resource, uri)
+                                fetch_results.append(f"Result for {uri}:\n{res}")
+                            
+                    # Append the model's action and the tool results to the history
+                    contents.append(response.candidates[0].content)
+                    contents.append(types.Content(role="user", parts=[types.Part.from_text(text="\n\n".join(fetch_results))]))
+                    continue # Loop again to get the next action from the model
+                
+                # If we reach here, there are mutations or no fetches, so we break the ReAct loop
+                break
+            
+            # End of ReAct loop
+        
         if require_approval:
             yield json.dumps({"type": "approval_required", "actions": script_actions}) + "\n"
             await self.approval_event.wait()

@@ -17,7 +17,7 @@ import os
 # Ensure the root directory is in the python path to allow direct execution
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.gemini_client import GeminiAbletonClient
+from backend.gemini_client import SupervisorAgent
 from backend import schema
 from backend.mcp_proxy import proxy
 
@@ -37,7 +37,7 @@ app.add_middleware(
 
 # Initialize single client instance
 try:
-    gemini_client = GeminiAbletonClient()
+    gemini_client = SupervisorAgent()
 except Exception as e:
     logger.error(f"Failed to initialize Gemini Client: {e}")
     gemini_client = None
