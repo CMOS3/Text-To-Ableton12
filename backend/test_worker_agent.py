@@ -3,8 +3,8 @@ import os
 import asyncio
 from pydantic import BaseModel, Field
 
-sys.path.append('d:/Sync/Dev/AbletonMCP_with_Gemini_API/backend')
-from gemini_client import WorkerAgent
+sys.path.append('d:/Sync/Dev/AbletonMCP_with_Gemini_API')
+from backend.gemini_client import WorkerAgent
 
 # Define a strict schema for testing
 class DummyClipFormatting(BaseModel):
