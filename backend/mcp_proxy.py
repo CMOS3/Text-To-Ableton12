@@ -91,6 +91,10 @@ class MCPProxy:
 
     def ping(self) -> dict:
         return self.send_command("ping")
+
+    def fetch_resource(self, uri: str) -> dict:
+        """Fetches a resource via MCP using the URI and returns data with ETag."""
+        return self.request_state("fetch_resource", {"uri": uri})
             
     def _reset_connection(self):
         if self.sock:

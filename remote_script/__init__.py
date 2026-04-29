@@ -5,6 +5,7 @@ import json
 import queue
 import Live
 import re
+import hashlib
 
 class GeminiRemoteScript(ControlSurface):
     def __init__(self, c_instance):
@@ -160,6 +161,8 @@ class GeminiRemoteScript(ControlSurface):
             self.execute_safely(self._do_load_device, (params, client))
         elif method == "load_drum_kit":
             self.execute_safely(self._do_load_drum_kit, (params, client))
+        elif method == "fetch_resource":
+            self.execute_safely(self._do_fetch_resource, (params, client))
             
         # --- Advanced Editing & Parameters ---
         elif method == "get_notes_from_clip":
@@ -201,6 +204,77 @@ class GeminiRemoteScript(ControlSurface):
 
     def _do_ping(self, client):
         self._send_response(client, "pong")
+
+    def _generate_etag(self, data_str):
+        return hashlib.md5(data_str.encode('utf-8')).hexdigest()[:8]
+
+    def _to_toon(self, obj):
+        """Basic TOON (Token-Oriented Object Notation) compression"""
+        if isinstance(obj, dict):
+            return "{" + ",".join(f"{k}:{self._to_toon(v)}" for k, v in obj.items()) + "}"
+        elif isinstance(obj, list) or isinstance(obj, tuple):
+            return "[" + ",".join(self._to_toon(v) for v in obj) + "]"
+        elif isinstance(obj, str):
+            if re.match(r'^[a-zA-Z0-9_]+$', obj): return obj
+            escaped = obj.replace('"', '\\"')
+            return f'"{escaped}"'
+        elif isinstance(obj, bool):
+            return "T" if obj else "F"
+        elif obj is None:
+            return "N"
+        else:
+            if isinstance(obj, float):
+                return f"{obj:.3f}".rstrip('0').rstrip('.')
+            return str(obj)
+
+    def _do_fetch_resource(self, args):
+        params, client = args
+        try:
+            uri = params.get("uri", "")
+            data = {}
+            
+            if uri.startswith("ableton://session/state"):
+                tracks = [{"i": i, "n": t.name} for i, t in enumerate(self.song().tracks)]
+                data = {"bpm": self.song().tempo, "trk": tracks}
+            elif uri.startswith("ableton://tracks/"):
+                parts = uri.split("/")
+                if len(parts) >= 5 and parts[4] == "state":
+                    t_idx = int(parts[3])
+                    if t_idx < len(self.song().tracks):
+                        t = self.song().tracks[t_idx]
+                        vol, pan = 0, 0
+                        try:
+                            vol = t.mixer_device.volume.value
+                            pan = t.mixer_device.panning.value
+                        except: pass
+                        data = {"i": t_idx, "n": t.name, "v": vol, "p": pan}
+                elif len(parts) >= 5 and parts[4] == "clips":
+                    t_idx = int(parts[3])
+                    if t_idx < len(self.song().tracks):
+                        t = self.song().tracks[t_idx]
+                        clips = [{"s": j, "n": slot.clip.name} for j, slot in enumerate(t.clip_slots) if slot.has_clip and slot.clip]
+                        data = clips
+                elif len(parts) >= 5 and parts[4] == "devices":
+                    t_idx = int(parts[3])
+                    if t_idx < len(self.song().tracks):
+                        t = self.song().tracks[t_idx]
+                        devs = []
+                        for j, d in enumerate(t.devices):
+                            params = [{"n": p.name, "v": p.value} for p in d.parameters]
+                            devs.append({"i": j, "n": d.name, "p": params})
+                        data = devs
+            
+            toon_str = self._to_toon(data)
+            etag = self._generate_etag(toon_str)
+            
+            self._send_response(client, {
+                "uri": uri,
+                "data": toon_str,
+                "etag": etag
+            })
+        except Exception as e:
+            self.log_message(f"Fetch resource err: {str(e)}")
+            self._send_error(client, f"Fetch resource err: {str(e)}")
 
     def _do_get_session_info(self, client):
         try:
