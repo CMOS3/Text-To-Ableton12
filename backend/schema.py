@@ -96,7 +96,14 @@ class MixTrackRequest(BaseModel):
     panning: Optional[float] = Field(None, description="Panning from -1.0 (Left) to 1.0 (Right).")
     mute: Optional[bool] = Field(None, description="Set to true to mute the track, false to unmute.")
 
+class TweakSchema(BaseModel):
+    parameter_name: str = Field(..., description="Name of the parameter to tweak.")
+    value: float = Field(..., description="New value for the parameter (0.0 to 1.0).")
+
 class SoundDesignRequest(BaseModel):
     track_name: str
     device_name: str
-    tweaks: dict
+    tweaks: List[TweakSchema] = Field(..., description="List of parameter tweaks to apply.")
+
+class FetchResourceRequest(BaseModel):
+    uri: str = Field(..., description="The MCP resource URI to fetch, e.g., 'ableton://tracks/1/state'")
