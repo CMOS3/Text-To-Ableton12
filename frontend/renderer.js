@@ -338,24 +338,52 @@ async function handleSendMessage() {
         chatHistoryArray.push({ role: "assistant", content: data.response || "" });
         
         // Calculate cost
-        let stepCost = 0.0;
-        if (data.model_used && data.input_tokens !== undefined && data.output_tokens !== undefined) {
+        if (data.pro_input_tokens !== undefined && data.pro_output_tokens !== undefined) {
+            const proIn = data.pro_input_tokens;
+            const proOut = data.pro_output_tokens;
+            if (proIn > 0 || proOut > 0) {
+                const stepCostPro = (proIn / 1000000) * 2.00 + (proOut / 1000000) * 12.00;
+                costPro += stepCostPro;
+                proTokens += (proIn + proOut);
+                costProM.textContent = `Pro: $${costPro.toFixed(4)} (${proTokens} tk)`;
+                
+                historyProCost += stepCostPro;
+                localStorage.setItem('historyProCost', historyProCost.toString());
+                historyProM.textContent = `Pro: $${historyProCost.toFixed(4)}`;
+            }
+        }
+        
+        if (data.flash_input_tokens !== undefined && data.flash_output_tokens !== undefined) {
+            const flashIn = data.flash_input_tokens;
+            const flashOut = data.flash_output_tokens;
+            if (flashIn > 0 || flashOut > 0) {
+                const stepCostFlash = (flashIn / 1000000) * 0.25 + (flashOut / 1000000) * 1.50;
+                costFlash += stepCostFlash;
+                flashTokens += (flashIn + flashOut);
+                costFlashM.textContent = `Flash: $${costFlash.toFixed(4)} (${flashTokens} tk)`;
+                
+                historyFlashCost += stepCostFlash;
+                localStorage.setItem('historyFlashCost', historyFlashCost.toString());
+                historyFlashM.textContent = `Flash: $${historyFlashCost.toFixed(4)}`;
+            }
+        }
+        
+        // Backwards compatibility for old payload structure
+        if (data.model_used && data.input_tokens !== undefined && data.output_tokens !== undefined && data.pro_input_tokens === undefined) {
             const totalTokens = data.input_tokens + data.output_tokens;
             if (data.model_used.toUpperCase().includes('PRO')) {
-                stepCost = (data.input_tokens / 1000000) * 2.00 + (data.output_tokens / 1000000) * 12.00;
+                let stepCost = (data.input_tokens / 1000000) * 2.00 + (data.output_tokens / 1000000) * 12.00;
                 costPro += stepCost;
                 proTokens += totalTokens;
                 costProM.textContent = `Pro: $${costPro.toFixed(4)} (${proTokens} tk)`;
-                
                 historyProCost += stepCost;
                 localStorage.setItem('historyProCost', historyProCost.toString());
                 historyProM.textContent = `Pro: $${historyProCost.toFixed(4)}`;
             } else if (data.model_used.toUpperCase().includes('FLASH')) {
-                stepCost = (data.input_tokens / 1000000) * 0.25 + (data.output_tokens / 1000000) * 1.50;
+                let stepCost = (data.input_tokens / 1000000) * 0.25 + (data.output_tokens / 1000000) * 1.50;
                 costFlash += stepCost;
                 flashTokens += totalTokens;
                 costFlashM.textContent = `Flash: $${costFlash.toFixed(4)} (${flashTokens} tk)`;
-                
                 historyFlashCost += stepCost;
                 localStorage.setItem('historyFlashCost', historyFlashCost.toString());
                 historyFlashM.textContent = `Flash: $${historyFlashCost.toFixed(4)}`;

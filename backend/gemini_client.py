@@ -24,6 +24,8 @@ class WorkerAgent:
                 raise ValueError("GEMINI_API_KEY not found in environment.")
         self.client = genai.Client(api_key=api_key)
         self.model = "models/gemini-3.1-flash-lite-preview"
+        self.prompt_tokens = 0
+        self.candidate_tokens = 0
 
     async def execute_task(self, task_description: str, context_data: str, response_schema: type, max_retries: int = 2):
         """
@@ -45,6 +47,10 @@ class WorkerAgent:
                     contents=[types.Content(role="user", parts=[types.Part.from_text(text=prompt)])],
                     config=config
                 )
+                
+                if response.usage_metadata:
+                    self.prompt_tokens += getattr(response.usage_metadata, "prompt_token_count", 0)
+                    self.candidate_tokens += getattr(response.usage_metadata, "candidates_token_count", 0)
                 
                 if not response.text:
                     raise ValueError("Empty response from model.")
@@ -546,6 +552,8 @@ class SupervisorAgent:
         """Executes a Single-Shot Compiler agent to fulfill the prompt."""
         self.approval_event.clear()
         self.is_approved = False
+        self.worker.prompt_tokens = 0
+        self.worker.candidate_tokens = 0
         
         if chat_history is None:
             chat_history = []
@@ -782,8 +790,10 @@ class SupervisorAgent:
             "type": "final",
             "data": {
                 "response": final_text,
-                "model_used": "\n".join(models_used_chain),
-                "input_tokens": total_prompt_tokens,
-                "output_tokens": total_candidate_tokens
+                "model_used": "PRO_AND_FLASH",
+                "pro_input_tokens": total_prompt_tokens,
+                "pro_output_tokens": total_candidate_tokens,
+                "flash_input_tokens": self.worker.prompt_tokens,
+                "flash_output_tokens": self.worker.candidate_tokens
             }
         }) + "\n"
