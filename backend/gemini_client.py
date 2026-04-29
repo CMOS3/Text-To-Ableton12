@@ -16,6 +16,50 @@ logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
+class WorkerAgent:
+    def __init__(self, api_key: str = None):
+        if not api_key:
+            api_key = os.getenv("GEMINI_API_KEY")
+            if not api_key:
+                raise ValueError("GEMINI_API_KEY not found in environment.")
+        self.client = genai.Client(api_key=api_key)
+        self.model = "models/gemini-3.1-flash-lite-preview"
+
+    async def execute_task(self, task_description: str, context_data: str, response_schema: type, max_retries: int = 2):
+        """
+        Executes a localized task using Flash-Lite, enforcing Structured Outputs and 
+        utilizing a self-correction loop for validation errors.
+        """
+        prompt = f"TASK:\n{task_description}\n\nCONTEXT:\n{context_data}\n\nIMPORTANT: You must output ONLY a valid JSON object matching the requested schema. No markdown wrapping."
+        
+        config = types.GenerateContentConfig(
+            temperature=0.0,
+            response_mime_type="application/json",
+            response_schema=response_schema
+        )
+        
+        for attempt in range(max_retries + 1):
+            try:
+                response = await self.client.aio.models.generate_content(
+                    model=self.model,
+                    contents=[types.Content(role="user", parts=[types.Part.from_text(text=prompt)])],
+                    config=config
+                )
+                
+                if not response.text:
+                    raise ValueError("Empty response from model.")
+                    
+                data = json.loads(response.text)
+                validated_obj = response_schema(**data)
+                return validated_obj
+                
+            except (json.JSONDecodeError, ValidationError, ValueError) as e:
+                if attempt == max_retries:
+                    raise Exception(f"WorkerAgent failed to produce valid JSON after {max_retries} retries. Error: {str(e)}")
+                
+                # JSON Patch Refinement: Feed the exact error back to the model
+                error_msg = str(e)
+                prompt += f"\n\nERROR ON PREVIOUS ATTEMPT:\nThe parser threw this error:\n{error_msg}\n\nPlease analyze the error and output a corrected JSON payload that strictly matches the schema."
 
 class GeminiAbletonClient:
     def __init__(self):
