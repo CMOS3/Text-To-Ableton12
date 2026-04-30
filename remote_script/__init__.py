@@ -67,6 +67,8 @@ class GeminiRemoteScript(ControlSurface):
 
     def _send_response(self, client, data):
         try:
+            if isinstance(data, (dict, list, tuple)):
+                data = self._to_toon(data)
             response = json.dumps({"result": data}) + "\n"
             client.sendall(response.encode('utf-8'))
         except Exception as e:
@@ -263,14 +265,9 @@ class GeminiRemoteScript(ControlSurface):
                             params = [{"n": p.name, "v": p.value} for p in d.parameters]
                             devs.append({"i": j, "n": d.name, "p": params})
                         data = devs
-            
-            toon_str = self._to_toon(data)
-            etag = self._generate_etag(toon_str)
-            
             self._send_response(client, {
                 "uri": uri,
-                "data": toon_str,
-                "etag": etag
+                "data": data
             })
         except Exception as e:
             self.log_message(f"Fetch resource err: {str(e)}")
