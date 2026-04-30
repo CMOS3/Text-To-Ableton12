@@ -277,18 +277,64 @@ class SupervisorAgent:
         except ValidationError as e:
             return str(e)
 
+    def _pitch_name_to_midi(self, pitch_name: str) -> int:
+        """Converts a pitch name (e.g., 'C1', 'F#2', 'Bb-1') to a MIDI note number (0-127)."""
+        import re
+        if not pitch_name:
+            raise ValueError("Empty pitch name")
+            
+        match = re.match(r"^([a-gA-G])([#b])?(-?[0-9]+)$", pitch_name.strip())
+        if not match:
+            raise ValueError(f"Invalid pitch name format: {pitch_name}")
+            
+        note_str, accidental, octave_str = match.groups()
+        octave = int(octave_str)
+        
+        note_map = {'c': 0, 'd': 2, 'e': 4, 'f': 5, 'g': 7, 'a': 9, 'b': 11}
+        base_pitch = note_map[note_str.lower()]
+        
+        if accidental == '#':
+            base_pitch += 1
+        elif accidental == 'b':
+            base_pitch -= 1
+            
+        midi_note = (octave + 2) * 12 + base_pitch
+        
+        if midi_note < 0 or midi_note > 127:
+            raise ValueError(f"MIDI note out of range (0-127) for {pitch_name}: {midi_note}")
+            
+        return midi_note
+
     async def inject_midi_to_new_clip(self, track_index: int, length: float, intent: str) -> str:
         """Finds the first empty clip slot on the track, creates a clip of the specified length, and delegates to the Worker to generate semantic notes based on the intent."""
         try:
             # Delegate complex note generation to WorkerAgent
-            task_desc = f"Generate MIDI notes for track index {track_index} based on this musical intent: {intent}. Length of clip is {length} beats."
+            task_desc = f"Generate MIDI notes for track index {track_index} based on this musical intent: {intent}. Length of clip is {length} beats. Use valid semantic pitch_name (e.g. 'C1', 'F#2') for each note."
             context = f"Intent: {intent}"
             
             # Use Worker to get valid schema
-            schema_res = await self.worker.execute_task(task_desc, context, schema.InjectMidiRequest)
+            schema_res = await self.worker.execute_task(task_desc, context, schema.WorkerInjectMidiRequest)
+            
+            processed_notes = []
+            for n in schema_res.notes:
+                try:
+                    midi_val = self._pitch_name_to_midi(n.pitch_name)
+                    processed_notes.append(schema.NoteSchema(
+                        pitch=midi_val,
+                        start_time=n.start_time,
+                        duration=n.duration,
+                        velocity=n.velocity
+                    ))
+                except Exception as ve:
+                    print(f"Skipping invalid note {n.pitch_name}: {ve}")
+                    
+            if not processed_notes:
+                return "WorkerAgent failed to generate any valid MIDI notes."
+                
+            req = schema.InjectMidiRequest(track_index=track_index, length=length, notes=processed_notes)
             
             # Send the proxy request
-            return str(self._execute_proxy_request("inject_midi_to_new_clip", **schema_res.model_dump()))
+            return str(self._execute_proxy_request("inject_midi_to_new_clip", **req.model_dump()))
         except Exception as e:
             return f"Error injecting midi via worker: {e}"
 
@@ -470,9 +516,9 @@ class SupervisorAgent:
                     "value": tweak.value
                 }
                 await asyncio.to_thread(self._execute_proxy_request, "set_device_parameter", **payload)
-                success_keys.append(tweak.parameter_name)
+                success_keys.append(f"{tweak.parameter_name} ({tweak.value})")
                 
-            return f"Successfully targeted parameters via WorkerAgent: {', '.join(success_keys)}"
+            return f"Successfully targeted parameters via WorkerAgent:\n" + "\n".join(f"- {s}" for s in success_keys)
             
         except Exception as e:
             return f"Error executing sound_design via worker: {str(e)}"
@@ -773,6 +819,9 @@ class SupervisorAgent:
                             res = ast.literal_eval(res)
                         except Exception:
                             pass
+                            
+                    if tool_name in ["sound_design", "inject_midi_to_new_clip"]:
+                        yield json.dumps({"type": "status", "message": f"Worker Result:\n{res}"}) + "\n"
                     
                     await asyncio.sleep(0.5)
                 except Exception as e:

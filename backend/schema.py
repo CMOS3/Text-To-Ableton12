@@ -54,6 +54,15 @@ class InjectMidiRequest(BaseModel):
     length: float = Field(4.0, description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.")
     notes: List[NoteSchema]
 
+class WorkerNoteSchema(BaseModel):
+    pitch_name: str = Field(..., description="Semantic note pitch (e.g., 'C1', 'F#2')")
+    start_time: float = Field(..., description="Start time in beats")
+    duration: float = Field(..., description="Duration in beats")
+    velocity: int = Field(..., description="Velocity (1-127)")
+
+class WorkerInjectMidiRequest(BaseModel):
+    notes: List[WorkerNoteSchema] = Field(..., description="List of notes to inject")
+
 class BrowserItemsRequest(BaseModel):
     path: str = Field(..., description="Path to a folder in the browser, e.g. 'Packs/Lost and Found'.")
 
