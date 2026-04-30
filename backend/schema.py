@@ -52,16 +52,13 @@ class GetNotesFromClipRequest(BaseModel):
 class InjectMidiRequest(BaseModel):
     track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     length: float = Field(4.0, description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.")
-    notes: List[NoteSchema]
+    notes: List['SemanticNoteSchema']
 
-class WorkerNoteSchema(BaseModel):
+class SemanticNoteSchema(BaseModel):
     pitch_name: str = Field(..., description="Semantic note pitch (e.g., 'C1', 'F#2')")
     start_time: float = Field(..., description="Start time in beats")
     duration: float = Field(..., description="Duration in beats")
     velocity: int = Field(..., description="Velocity (1-127)")
-
-class WorkerInjectMidiRequest(BaseModel):
-    notes: List[WorkerNoteSchema] = Field(..., description="List of notes to inject")
 
 class BrowserItemsRequest(BaseModel):
     path: str = Field(..., description="Path to a folder in the browser, e.g. 'Packs/Lost and Found'.")
@@ -109,10 +106,10 @@ class TweakSchema(BaseModel):
     parameter_name: str = Field(..., description="Name of the parameter to tweak.")
     value: float = Field(..., description="New value for the parameter (0.0 to 1.0).")
 
-class SoundDesignRequest(BaseModel):
-    track_name: str
-    device_name: str
-    tweaks: List[TweakSchema] = Field(..., description="List of parameter tweaks to apply.")
+class SetDeviceParameterBatchRequest(BaseModel):
+    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    device_index: int
+    parameters: List[TweakSchema]
 
 class SupervisorSoundDesign(BaseModel):
     track_name: str
