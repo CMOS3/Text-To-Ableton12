@@ -65,9 +65,9 @@ class GeminiRemoteScript(ControlSurface):
         finally:
             client.close()
 
-    def _send_response(self, client, data):
+    def _send_response(self, client, data, apply_toon=True):
         try:
-            if isinstance(data, (dict, list, tuple)):
+            if apply_toon and isinstance(data, (dict, list, tuple)):
                 data = self._to_toon(data)
             response = json.dumps({"result": data}) + "\n"
             client.sendall(response.encode('utf-8'))
@@ -356,8 +356,9 @@ class GeminiRemoteScript(ControlSurface):
                 "returns": returns_info,
                 "master": master_info
             }
-            self._send_response(client, info)
+            self._send_response(client, info, apply_toon=False)
         except Exception as e:
+            self.log_message(f"Get session info err: {e}")
             self._send_error(client, str(e))
 
     def _do_set_tempo(self, tempo):
@@ -469,7 +470,7 @@ class GeminiRemoteScript(ControlSurface):
                 node = getattr(browser, root_id, None)
                 if node:
                     tree.append({"name": node.name, "is_folder": node.is_folder})
-            self._send_response(client, tree)
+            self._send_response(client, tree, apply_toon=False)
         except Exception as e:
             self._send_error(client, f"Get browser tree err: {e}")
 
@@ -486,7 +487,7 @@ class GeminiRemoteScript(ControlSurface):
             for child in node.children:
                 items.append({"name": child.name, "is_folder": child.is_folder})
                 
-            self._send_response(client, items)
+            self._send_response(client, items, apply_toon=False)
         except Exception as e:
             self._send_error(client, f"Get browser items err: {e}")
 
