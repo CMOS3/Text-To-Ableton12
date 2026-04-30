@@ -320,6 +320,7 @@ class SupervisorAgent:
                 try:
                     midi_val = self._pitch_name_to_midi(n.pitch_name)
                     processed_notes.append(schema.NoteSchema(
+                        pitch_name=n.pitch_name,
                         pitch=midi_val,
                         start_time=n.start_time,
                         duration=n.duration,
