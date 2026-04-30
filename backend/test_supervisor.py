@@ -4,19 +4,19 @@ import asyncio
 import json
 
 sys.path.append('d:/Sync/Dev/AbletonMCP_with_Gemini_API')
-from backend.gemini_client import SupervisorAgent
+from backend.gemini_client import CreativePlannerAgent
 
 async def test_supervisor():
-    print("Testing SupervisorAgent E2E ReAct flow...")
+    print("Testing CreativePlannerAgent E2E ReAct flow...")
     try:
-        agent = SupervisorAgent()
+        agent = CreativePlannerAgent()
         
         # This prompt should force the Supervisor to:
         # 1. Realize it needs track details or device details
         # 2. Issue a fetch_resource command
         # 3. Receive the JIT context
         # 4. Delegate to the Worker to generate precise 'sound_design' and 'inject_midi' schemas
-        user_prompt = "Find Track 0, add an Operator device, make it sound like a plucky bass, and create a 4-beat clip with a groovy baseline."
+        user_prompt = "On track Midi Track 1, add an Operator device, make it sound like a plucky bass, and create a 4-bar clip with a groovy baseline."
         
         print(f"\nUser Prompt: {user_prompt}\n")
         print("--- Supervisor Stream ---")

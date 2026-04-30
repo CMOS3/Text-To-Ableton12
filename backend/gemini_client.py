@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
-class WorkerAgent:
+class RetrieverAgent:
     def __init__(self, api_key: str = None):
         if not api_key:
             api_key = os.getenv("GEMINI_API_KEY")
@@ -61,13 +61,13 @@ class WorkerAgent:
                 
             except (json.JSONDecodeError, ValidationError, ValueError) as e:
                 if attempt == max_retries:
-                    raise Exception(f"WorkerAgent failed to produce valid JSON after {max_retries} retries. Error: {str(e)}")
+                    raise Exception(f"RetrieverAgent failed to produce valid JSON after {max_retries} retries. Error: {str(e)}")
                 
                 # JSON Patch Refinement: Feed the exact error back to the model
                 error_msg = str(e)
                 prompt += f"\n\nERROR ON PREVIOUS ATTEMPT:\nThe parser threw this error:\n{error_msg}\n\nPlease analyze the error and output a corrected JSON payload that strictly matches the schema."
 
-class SupervisorAgent:
+class CreativePlannerAgent:
     def __init__(self):
         api_key = os.getenv("GEMINI_API_KEY")
         print(f"DEBUG: GEMINI_API_KEY found: {bool(api_key)}")
@@ -79,7 +79,7 @@ class SupervisorAgent:
             )
         
         self.client = genai.Client(api_key=api_key)
-        self.worker = WorkerAgent(api_key=api_key)
+        self.retriever = RetrieverAgent(api_key=api_key)
         
         self.pro_model = "models/gemini-3.1-pro-preview-customtools"
         self.approval_event = asyncio.Event()
@@ -95,7 +95,7 @@ class SupervisorAgent:
             self.set_track_volume_by_name,
             self.mix_track,
             self.inject_midi_to_new_clip,
-            self.sound_design
+            self.set_device_parameter_batch
         ]
         
         self.atomic_tools = []
@@ -305,39 +305,37 @@ class SupervisorAgent:
             
         return midi_note
 
-    async def inject_midi_to_new_clip(self, track_index: int, length: float, intent: str) -> str:
-        """Finds the first empty clip slot on the track, creates a clip of the specified length, and delegates to the Worker to generate semantic notes based on the intent."""
+    def inject_midi_to_new_clip(self, track_index: int, length: float, notes: list) -> str:
+        """Finds the first empty clip slot on the track, creates a clip of the specified length, and injects notes."""
         try:
-            # Delegate complex note generation to WorkerAgent
-            task_desc = f"Generate MIDI notes for track index {track_index} based on this musical intent: {intent}. Length of clip is {length} beats. Use valid semantic pitch_name (e.g. 'C1', 'F#2') for each note."
-            context = f"Intent: {intent}"
-            
-            # Use Worker to get valid schema
-            schema_res = await self.worker.execute_task(task_desc, context, schema.WorkerInjectMidiRequest)
-            
             processed_notes = []
-            for n in schema_res.notes:
+            for n in notes:
+                if hasattr(n, "model_dump"):
+                    note_dict = n.model_dump()
+                elif isinstance(n, dict):
+                    note_dict = n.copy()
+                else:
+                    note_dict = getattr(n, "__dict__", {}).copy()
+                    
+                pitch_name = note_dict.get("pitch_name")
+                if not pitch_name:
+                    continue
+                
                 try:
-                    midi_val = self._pitch_name_to_midi(n.pitch_name)
-                    processed_notes.append(schema.NoteSchema(
-                        pitch_name=n.pitch_name,
-                        pitch=midi_val,
-                        start_time=n.start_time,
-                        duration=n.duration,
-                        velocity=n.velocity
-                    ))
+                    midi_val = self._pitch_name_to_midi(pitch_name)
+                    note_dict["pitch"] = midi_val
+                    processed_notes.append(schema.SemanticNoteSchema(**note_dict))
                 except Exception as ve:
-                    print(f"Skipping invalid note {n.pitch_name}: {ve}")
+                    print(f"Skipping invalid note {pitch_name}: {ve}")
                     
             if not processed_notes:
-                return "WorkerAgent failed to generate any valid MIDI notes."
+                return "Failed to parse any valid MIDI notes."
                 
             req = schema.InjectMidiRequest(track_index=track_index, length=length, notes=processed_notes)
             
-            # Send the proxy request
             return str(self._execute_proxy_request("inject_midi_to_new_clip", **req.model_dump()))
         except Exception as e:
-            return f"Error injecting midi via worker: {e}"
+            return f"Error injecting midi: {e}"
 
     def load_instrument_or_effect(self, track_index: int, browser_path: str) -> str:
         """Loads a device (instrument or effect) onto a track from the browser."""
@@ -485,44 +483,31 @@ class SupervisorAgent:
             return "\n".join(status_lines) if status_lines else "No tracks found."
         except Exception as e:
             return str(e)
-    async def sound_design(self, track_name: str, device_name: str, intent: str) -> str:
-        """
-        Adjusts basic macro parameters for specific Ableton devices to achieve a sound design goal.
-        Delegates the exact parameter mapping to the WorkerAgent based on the intent.
-        """
-        import ast
-        import asyncio
-        
+    def set_device_parameter_batch(self, track_index: int, device_index: int, parameters: list) -> str:
+        """Sets multiple parameters on a single device sequentially."""
         try:
-            # First, fetch JIT context for the specific track to give the Worker accurate parameter boundaries
-            # In a full HMAS, the Supervisor might have already fetched this, but we'll fetch devices here to be safe.
-            track_index = self._get_track_index_by_name(track_name)
-            if track_index == -1:
-                return f"Error: Track matching '{track_name}' not found."
-                
-            devices_str = self.get_track_devices(track_index)
-            
-            task_desc = f"Determine precise Ableton parameter tweaks for device '{device_name}' on track '{track_name}' to achieve this sound design intent: {intent}."
-            context = f"Available Devices on Track: {devices_str}\n\nCRITICAL RULE: You must ONLY select parameter_names that EXACTLY match the names provided in the JSON list above. Do not guess, invent, or use synonyms for parameter names. Values must be normalized floats (0.0 to 1.0)."
-            
-            # Delegate to Worker
-            schema_res = await self.worker.execute_task(task_desc, context, schema.SoundDesignRequest)
-            
             success_keys = []
-            for tweak in schema_res.tweaks:
+            for p in parameters:
+                if hasattr(p, "model_dump"):
+                    tweak = p.model_dump()
+                elif isinstance(p, dict):
+                    tweak = p
+                else:
+                    tweak = getattr(p, "__dict__", {})
+                    
                 payload = {
                     "track_index": track_index,
-                    "device_index": 0, # Assuming first device for simplicity, worker could target this too
-                    "parameter_name": tweak.parameter_name,
-                    "value": tweak.value
+                    "device_index": device_index,
+                    "parameter_name": tweak.get("parameter_name"),
+                    "value": tweak.get("value")
                 }
-                await asyncio.to_thread(self._execute_proxy_request, "set_device_parameter", **payload)
-                success_keys.append(f"{tweak.parameter_name} ({tweak.value})")
+                self._execute_proxy_request("set_device_parameter", **payload)
+                success_keys.append(f"{payload['parameter_name']} ({payload['value']})")
                 
-            return f"Successfully targeted parameters via WorkerAgent:\n" + "\n".join(f"- {s}" for s in success_keys)
+            return f"Successfully updated parameters:\n" + "\n".join(f"- {s}" for s in success_keys)
             
         except Exception as e:
-            return f"Error executing sound_design via worker: {str(e)}"
+            return f"Error executing set_device_parameter_batch: {str(e)}"
 
     # --- Chat Engine ---
 
@@ -555,8 +540,8 @@ class SupervisorAgent:
             "load_instrument_or_effect": schema.LoadDeviceRequest,
             "set_track_volume_by_name": schema.SetTrackVolumeByNameRequest,
             "mix_track": schema.MixTrackRequest,
-            "inject_midi_to_new_clip": schema.SupervisorInjectMidi,
-            "sound_design": schema.SupervisorSoundDesign
+            "inject_midi_to_new_clip": schema.InjectMidiRequest,
+            "set_device_parameter_batch": schema.SetDeviceParameterBatchRequest
         }
         
         tool_list = []
@@ -599,8 +584,8 @@ class SupervisorAgent:
         """Executes a Single-Shot Compiler agent to fulfill the prompt."""
         self.approval_event.clear()
         self.is_approved = False
-        self.worker.prompt_tokens = 0
-        self.worker.candidate_tokens = 0
+        self.retriever.prompt_tokens = 0
+        self.retriever.candidate_tokens = 0
         
         if chat_history is None:
             chat_history = []
@@ -821,8 +806,8 @@ class SupervisorAgent:
                         except Exception:
                             pass
                             
-                    if tool_name in ["sound_design", "inject_midi_to_new_clip"]:
-                        yield json.dumps({"type": "status", "message": f"Worker Result:\n{res}"}) + "\n"
+                    if tool_name in ["set_device_parameter_batch", "inject_midi_to_new_clip"]:
+                        yield json.dumps({"type": "status", "message": f"Action Result:\n{res}"}) + "\n"
                     
                     await asyncio.sleep(0.5)
                 except Exception as e:
@@ -843,7 +828,7 @@ class SupervisorAgent:
                 "model_used": "PRO_AND_FLASH",
                 "pro_input_tokens": total_prompt_tokens,
                 "pro_output_tokens": total_candidate_tokens,
-                "flash_input_tokens": self.worker.prompt_tokens,
-                "flash_output_tokens": self.worker.candidate_tokens
+                "flash_input_tokens": self.retriever.prompt_tokens,
+                "flash_output_tokens": self.retriever.candidate_tokens
             }
         }) + "\n"
