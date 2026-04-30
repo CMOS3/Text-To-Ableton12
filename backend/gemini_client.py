@@ -503,7 +503,7 @@ class SupervisorAgent:
             devices_str = self.get_track_devices(track_index)
             
             task_desc = f"Determine precise Ableton parameter tweaks for device '{device_name}' on track '{track_name}' to achieve this sound design intent: {intent}."
-            context = f"Available Devices on Track: {devices_str}\n\nStrict Rules: Only tweak 'Filter Freq', 'Resonance', 'Decay Time', 'Dry/Wet', 'Tone'. Values must be normalized floats (0.0 to 1.0)."
+            context = f"Available Devices on Track: {devices_str}\n\nCRITICAL RULE: You must ONLY select parameter_names that EXACTLY match the names provided in the JSON list above. Do not guess, invent, or use synonyms for parameter names. Values must be normalized floats (0.0 to 1.0)."
             
             # Delegate to Worker
             schema_res = await self.worker.execute_task(task_desc, context, schema.SoundDesignRequest)
