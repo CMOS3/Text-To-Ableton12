@@ -95,7 +95,9 @@ class CreativePlannerAgent:
             self.set_track_volume_by_name,
             self.mix_track,
             self.inject_midi_to_new_clip,
-            self.set_device_parameter_batch
+            self.set_device_parameter_batch,
+            self.get_track_devices,
+            self.get_device_parameters
         ]
         
         self.atomic_tools = []
@@ -106,6 +108,14 @@ class CreativePlannerAgent:
             "DO NOT adopt the genre as a conversational persona.\n\n"
             "FORMATTING: Your text responses must ALWAYS be cleanly formatted using Markdown. Use bold headers and bulleted lists to organize your execution summaries.\n\n"
             "MANUAL ACTIONS: Because you operate in a single-shot environment, you cannot tweak every complex device parameter. You must ALWAYS include a bulleted '### Manual Actions Required' section in your text response, explicitly detailing exactly how the user should tweak the devices, filters, macros, and envelopes to achieve the requested sound.\n\n"
+            "SOUND DESIGN & PARAMETERS:\n"
+            "- To tweak a device, you MUST first use `get_track_devices` and `get_device_parameters` to discover the exact parameter names and their value bounds (min/max).\n"
+            "- Ableton parameters are often normalized to floats between 0.0 and 1.0. You MUST mathematically estimate and scale your desired real-world value into this float range.\n"
+            "- Once you know the exact names and bounds, use `set_device_parameter_batch` to tweak multiple parameters sequentially.\n\n"
+            "MIDI GENERATION:\n"
+            "- To generate MIDI, use `inject_midi_to_new_clip` and populate the `notes` array directly.\n"
+            "- You MUST use valid semantic pitch names for notes (e.g., 'C1', 'F#2', 'Bb-1').\n"
+            "- Ableton length and time values are strictly in BEATS, not bars! If the user asks for a 4-bar loop in 4/4 time, you MUST set length to 16.0. 1 Bar = 4.0 Beats.\n\n"
             "You have access to a suite of Ableton proxy tools to control the session.\n"
             "You MUST output exactly ONE valid JSON array containing a sequential script of actions.\n"
             "Example format:\n"
@@ -113,8 +123,6 @@ class CreativePlannerAgent:
             "   {\"tool\": \"create_midi_track\", \"args\": {\"track_name\": \"Drums\"}},\n"
             "   {\"tool\": \"ui_text_response\", \"args\": {\"text\": \"I have created your Drums track.\"}}\n"
             "]\n"
-            "CRITICAL TO KEEP IN MIND: Ableton length and time values are strictly in BEATS, not bars! "
-            "If the user asks for a 4-bar loop in 4/4 time, you MUST set length to 16.0. 1 Bar = 4.0 Beats. "
             "CRITICAL: If you create a new track, you must calculate its new `track_index` for subsequent tools. The new index is ALWAYS equal to the current total number of tracks in the session (e.g., if the provided session state shows 4 existing tracks [indexes 0,1,2,3], the newly created track will be index 4).\n"
             "CRITICAL: DO NOT HALLUCINATE TOOL NAMES. You must ONLY use the exact tool names provided in the minified JSON schemas below. Do not invent tools like 'load_device_to_track_by_name'. If a tool requires a `track_index`, you MUST use the integer index.\n"
             "If the user asks for advice, sound design guidance, or plain text communication, you MUST use the synthetic tool `ui_text_response` and provide the text in its `text` argument. Use Markdown within this text.\n"
@@ -541,7 +549,9 @@ class CreativePlannerAgent:
             "set_track_volume_by_name": schema.SetTrackVolumeByNameRequest,
             "mix_track": schema.MixTrackRequest,
             "inject_midi_to_new_clip": schema.InjectMidiRequest,
-            "set_device_parameter_batch": schema.SetDeviceParameterBatchRequest
+            "set_device_parameter_batch": schema.SetDeviceParameterBatchRequest,
+            "get_track_devices": schema.GetTrackDevicesRequest,
+            "get_device_parameters": schema.DeviceIndexRequest
         }
         
         tool_list = []
