@@ -58,7 +58,3 @@ GEMINI_API_KEY=your_api_key_here
 - **STRICT Beat-Based Timing**: Orchestral-grade precision where all MIDI lengths and start times are handled in beats (e.g., 4 bars = 16.0 beats in 4/4).
 - **Compound Tools (Optimized)**: High-priority macros (`get_session_mix_status`, `inject_midi_to_new_clip`) that parse track states and inject data in bulk.
 - **NDJSON Streaming**: Real-time feedback window showing granular agent status (Compiling -> Executing -> Finished).
-
-
----
-*Maintained at: https://github.com/CMOS3/Text-To-Ableton12*
