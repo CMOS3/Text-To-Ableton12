@@ -7,3 +7,4 @@ dist/
 .pytest_cache/
 *.log
 ollama_debug_log.txt
+.agents/
