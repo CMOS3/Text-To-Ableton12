@@ -3,13 +3,12 @@
 A powerful desktop application for controlling Ableton Live using Gemini AI and the Model Context Protocol (MCP).
 
 ## 🏗️ Architecture
-
-- **Single-Shot Compiler**: The primary orchestrator runs via Google's `gemini-3.1-pro-preview-customtools` using a pure cloud architecture.
-    - **Strict JSON Compilation**: Native tool calling is disabled. Instead, the model acts as a compiler, taking the full Ableton session state and outputting exactly ONE sequential JSON array of actions.
-    - **Zero Local Overhead**: Frees up all local VRAM by pushing routing to the cloud.
-- **Backend**: Python (FastAPI) - Pre-fetches local session state, handles the single-shot prompt compilation, and sequentially executes the tool calls over the JSON-RPC proxy with async delays to mitigate race conditions.
+- **Asymmetric Planner-Retriever-Executor (PRE)**: A dual-agent architecture separating reasoning from semantic mapping to minimize token cost and eliminate hallucinations.
+    - **CreativePlannerAgent (Gemini 3.1 Pro)**: The main orchestrator. Acts as a "Single-Shot Compiler", taking the Ableton session state and outputting a sequential JSON array of execution actions.
+    - **RetrieverAgent (Gemini 3.1 Flash-Lite)**: The semantic RAG engine. Intercepts search queries from the Planner and rapidly scans a localized `device_catalog.json` to return exact Ableton parameter names and bounds based on musical intent.
+- **Backend**: Python (FastAPI) - Pre-fetches local session state, manages the multi-turn ReAct compilation loop, and sequentially executes the tool calls over the JSON-RPC proxy with async delays to mitigate race conditions.
 - **Frontend**: Electron (Node.js) - Real-time NDJSON status streaming showing the orchestrator's compilation and execution steps.
-- **Ableton Integration**: Custom Python Remote Script - Stable TCP-to-LOM bridge on 127.0.0.1:9877, providing global session awareness (Tempo, Scale, Root Note).
+- **Ableton Integration**: Custom Python Remote Script - Stable TCP-to-LOM bridge on 127.0.0.1:9877, natively mutating the Live Object Model (LOM).
 
 
 ## 🚀 Quick Start (Windows)
@@ -49,6 +48,7 @@ GEMINI_API_KEY=your_api_key_here
 
 ## ✨ Advanced Features
 
+- **Multi-Turn RAG Execution**: The backend pauses the compilation loop when the Planner needs parameter data, delegating the search to the RetrieverAgent, and dynamically feeding the exact parameter constraints back into the context window.
 - **Single-Shot Cloud Compiler**: High-performance orchestration powered by Gemini 3.1 Pro, enabling robust multi-step actions without infinite looping.
 - **Action Preview (Dry-Run Mode)**: An optional interception gate that pauses the execution loop, presents the user with a compiled script of actions (collapsible Ableton 12-styled card), and waits for explicit approval before altering the Live set.
 - **Global Project Awareness**: Automatically fetches session tempo, scale, root note, and track details *before* generation, giving the AI complete context.

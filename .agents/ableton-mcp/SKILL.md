@@ -24,8 +24,8 @@ The integration now actively supports and exposes the following full suite of ca
   - **Note Format:** Uses semantic `pitch_name` strings (e.g., "C3", "Eb2", "G#4").
   - **STRICTLY In Beats:** All `start_time` and `duration` values MUST be in beats (e.g., 4.0 = one bar in 4/4). Use floats for precision (0.25 = sixteenth note).
 - **Mixing & Device Parameters:** `get_track_devices`, `get_device_parameters`, `set_device_parameter`, `design_sound`.
-  - **Parameter Matching:** Uses fuzzy **string names** (e.g., "Cutoff", "Freq"). This is synonym-aware: "cutoff" will match "Filter Freq", and "gain" will match "Level".
-  - **Normalization:** You MUST provide parameter values as floats strictly between **0.0 and 1.0**. The system scales these to the native device range.
+  - **Parameter Matching:** You MUST use the `search_device_parameters` tool to semantically look up the exact Ableton internal parameter names. Do NOT guess parameter names.
+  - **Normalization:** You MUST provide parameter values as floats strictly within the `min` and `max` bounds returned by the Retriever. The system sets the native device values directly.
 
 
 ## Compound Tools (Highest Priority)
@@ -35,11 +35,12 @@ The integration now actively supports and exposes the following full suite of ca
 - `load_device_to_track_by_name`: Load devices on named tracks.
 - `inject_midi_to_new_clip`: One-step clip creation and population.
 
-## Intelligent Routing & Context (Pure Cloud Single-Shot Compiler)
-- **Cloud Orchestrator:** The system uses `gemini-3.1-pro-preview-customtools` via the `google-genai` SDK as the primary agent.
+## Intelligent Routing & Context (Asymmetric PRE Architecture)
+- **Asymmetric Agents:** The system relies on a Planner-Retriever-Executor (PRE) model. The primary reasoning agent is `gemini-3.1-pro-preview-customtools`. The dedicated semantic RAG parameter Retriever is `gemini-3.1-flash-lite`.
 - **Global Context Pre-fetching:** Before generation, the backend locally fetches the full `session_info` (including tempo, scale, root note, and tracks) and injects it into the prompt.
-- **Single-Shot Compiler:** The model evaluates the state and user prompt, outputting exactly ONE JSON array containing a sequential script of actions.
-- **Action Preview (Dry-Run):** The generated script can optionally be intercepted and presented to the user via the frontend (using an `approval_required` stream chunk) before making any destructive changes.
+- **Pre-Execution ReAct Loop:** The Planner operates in a loop. It can output context-gathering tools (like `search_device_parameters`) in Turn 1, allowing the backend to fetch precise limits without mutating the session.
+- **Single-Shot Compilation:** In its final turn, the model evaluates the state and user prompt, outputting exactly ONE JSON array containing a sequential script of mutation actions.
+- **Action Preview (Dry-Run):** The generated script can optionally be intercepted and presented to the user via the frontend before execution.
 - **Sequential Execution:** The Python backend iteratively executes the JSON script with built-in async delays to prevent Ableton race conditions.
 
 
