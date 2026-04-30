@@ -1,0 +1,6294 @@
+{
+  "Wavetable": {
+    "device_name": "Wavetable",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "Osc 1 On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 2,
+        "name": "Osc 1 Transp",
+        "value": 0,
+        "display_value": "0 st",
+        "min": -24,
+        "max": 24
+      },
+      {
+        "index": 3,
+        "name": "Osc 1 Detune",
+        "value": 0.5,
+        "display_value": "0 ct",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 4,
+        "name": "Osc 1 Pos",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 5,
+        "name": "Osc 1 Effect 1",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 6,
+        "name": "Osc 1 Effect 2",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 7,
+        "name": "Osc 1 Pan",
+        "value": 0.5,
+        "display_value": "C",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 8,
+        "name": "Osc 1 Gain",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "Osc 2 On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 10,
+        "name": "Osc 2 Transp",
+        "value": 0,
+        "display_value": "0 st",
+        "min": -24,
+        "max": 24
+      },
+      {
+        "index": 11,
+        "name": "Osc 2 Detune",
+        "value": 0.5,
+        "display_value": "0 ct",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 12,
+        "name": "Osc 2 Pos",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 13,
+        "name": "Osc 2 Effect 1",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 14,
+        "name": "Osc 2 Effect 2",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 15,
+        "name": "Osc 2 Pan",
+        "value": 0.5,
+        "display_value": "C",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 16,
+        "name": "Osc 2 Gain",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 17,
+        "name": "Sub On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 18,
+        "name": "Sub Tone",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 19,
+        "name": "Sub Gain",
+        "value": 0.501,
+        "display_value": "-6.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 20,
+        "name": "Sub Transpose",
+        "value": 1,
+        "display_value": "-1",
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 21,
+        "name": "Filter 1 On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 22,
+        "name": "Filter 1 Type",
+        "value": 0,
+        "display_value": "Lowpass",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 23,
+        "name": "Filter 1 LP/HP",
+        "value": 0,
+        "display_value": "Clean",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 24,
+        "name": "Filter 1 BP/NO/Morph",
+        "value": 0,
+        "display_value": "Clean",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 25,
+        "name": "Filter 1 Slope",
+        "value": 0,
+        "display_value": 12,
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 26,
+        "name": "Filter 1 Freq",
+        "value": 1,
+        "display_value": "20.5 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 27,
+        "name": "Filter 1 Res",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 28,
+        "name": "Filter 1 Drive",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 29,
+        "name": "Filter 1 Morph",
+        "value": 0,
+        "display_value": "0 lp/bp",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 30,
+        "name": "Filter 2 On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 31,
+        "name": "Filter 2 Type",
+        "value": 1,
+        "display_value": "Highpass",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 32,
+        "name": "Filter 2 LP/HP",
+        "value": 0,
+        "display_value": "Clean",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 33,
+        "name": "Filter 2 BP/NO/Morph",
+        "value": 0,
+        "display_value": "Clean",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 34,
+        "name": "Filter 2 Slope",
+        "value": 0,
+        "display_value": 12,
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 35,
+        "name": "Filter 2 Freq",
+        "value": 0,
+        "display_value": "20.0 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 36,
+        "name": "Filter 2 Res",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 37,
+        "name": "Filter 2 Drive",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 38,
+        "name": "Filter 2 Morph",
+        "value": 0,
+        "display_value": "0 lp/bp",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 39,
+        "name": "Amp Attack",
+        "value": 0.084,
+        "display_value": "1.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 40,
+        "name": "Amp Decay",
+        "value": 0.416,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 41,
+        "name": "Amp Release",
+        "value": 0.416,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 42,
+        "name": "Amp A Slope",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 43,
+        "name": "Amp D Slope",
+        "value": 0.75,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 44,
+        "name": "Amp R Slope",
+        "value": 0.75,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 45,
+        "name": "Amp Sustain",
+        "value": 0.708,
+        "display_value": "-6.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 46,
+        "name": "Amp Loop Mode",
+        "value": 0,
+        "display_value": null,
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 47,
+        "name": "Env 2 Attack",
+        "value": 0.084,
+        "display_value": "1.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 48,
+        "name": "Env 2 Decay",
+        "value": 0.416,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 49,
+        "name": "Env 2 Release",
+        "value": 0.416,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 50,
+        "name": "Env 2 A Slope",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 51,
+        "name": "Env 2 D Slope",
+        "value": 0.75,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 52,
+        "name": "Env 2 R Slope",
+        "value": 0.75,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 53,
+        "name": "Env 2 Initial",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 54,
+        "name": "Env 2 Peak",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 55,
+        "name": "Env 2 Sustain",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 56,
+        "name": "Env 2 Final",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 57,
+        "name": "Env 2 Loop Mode",
+        "value": 0,
+        "display_value": null,
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 58,
+        "name": "Env 3 Attack",
+        "value": 0.084,
+        "display_value": "1.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 59,
+        "name": "Env 3 Decay",
+        "value": 0.416,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 60,
+        "name": "Env 3 Release",
+        "value": 0.416,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 61,
+        "name": "Env 3 A Slope",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 62,
+        "name": "Env 3 D Slope",
+        "value": 0.75,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 63,
+        "name": "Env 3 R Slope",
+        "value": 0.75,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 64,
+        "name": "Env 3 Initial",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 65,
+        "name": "Env 3 Peak",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 66,
+        "name": "Env 3 Sustain",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 67,
+        "name": "Env 3 Final",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 68,
+        "name": "Env 3 Loop Mode",
+        "value": 0,
+        "display_value": null,
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 69,
+        "name": "LFO 1 Retrigger",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 70,
+        "name": "LFO 1 Shape",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 71,
+        "name": "LFO 1 Amount",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 72,
+        "name": "LFO 1 Shaping",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 73,
+        "name": "LFO 1 Phase Offset",
+        "value": 0,
+        "display_value": "0.0\u00b0",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 74,
+        "name": "LFO 1 Sync",
+        "value": 0,
+        "display_value": "Free",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 75,
+        "name": "LFO 1 Rate",
+        "value": 0.321,
+        "display_value": "1.00 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 76,
+        "name": "LFO 1 S. Rate",
+        "value": 15,
+        "display_value": "1/8",
+        "min": 0,
+        "max": 21
+      },
+      {
+        "index": 77,
+        "name": "LFO 1 Attack Time",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 78,
+        "name": "LFO 2 Retrigger",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 79,
+        "name": "LFO 2 Shape",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 80,
+        "name": "LFO 2 Amount",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 81,
+        "name": "LFO 2 Shaping",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 82,
+        "name": "LFO 2 Phase Offset",
+        "value": 0,
+        "display_value": "0.0\u00b0",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 83,
+        "name": "LFO 2 Sync",
+        "value": 0,
+        "display_value": "Free",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 84,
+        "name": "LFO 2 Rate",
+        "value": 0.321,
+        "display_value": "1.00 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 85,
+        "name": "LFO 2 S. Rate",
+        "value": 15,
+        "display_value": "1/8",
+        "min": 0,
+        "max": 21
+      },
+      {
+        "index": 86,
+        "name": "LFO 2 Attack Time",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 87,
+        "name": "Time",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 88,
+        "name": "Global Mod Amount",
+        "value": 0.5,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 89,
+        "name": "Unison Amount",
+        "value": 0.3,
+        "display_value": "30 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 90,
+        "name": "Transpose",
+        "value": 0,
+        "display_value": "0 st",
+        "min": -48,
+        "max": 48
+      },
+      {
+        "index": 91,
+        "name": "Glide",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 92,
+        "name": "Volume",
+        "value": 0.596,
+        "display_value": "-9.0 dB",
+        "min": 0,
+        "max": 1
+      }
+    ]
+  },
+  "Operator": {
+    "device_name": "Operator",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "Algorithm",
+        "value": 0,
+        "display_value": "Alg. 1",
+        "min": 0,
+        "max": 10
+      },
+      {
+        "index": 2,
+        "name": "Transpose",
+        "value": 0,
+        "display_value": "0 st",
+        "min": -48,
+        "max": 48
+      },
+      {
+        "index": 3,
+        "name": "PB Range",
+        "value": 5,
+        "display_value": "+5 st",
+        "min": 0,
+        "max": 24
+      },
+      {
+        "index": 4,
+        "name": "Volume",
+        "value": 0.4,
+        "display_value": "-18 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 5,
+        "name": "Panorama",
+        "value": 0,
+        "display_value": "C",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 6,
+        "name": "Pan < Key",
+        "value": 0,
+        "display_value": 0,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 7,
+        "name": "Pan < Rnd",
+        "value": 0,
+        "display_value": 0,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 8,
+        "name": "Tone",
+        "value": 0.7,
+        "display_value": "70 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "Spread",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 10,
+        "name": "Glide On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 11,
+        "name": "Glide Time",
+        "value": 0.54,
+        "display_value": "50.0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 12,
+        "name": "Osc-A On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 13,
+        "name": "A Coarse",
+        "value": 1,
+        "display_value": 1,
+        "min": 0,
+        "max": 48
+      },
+      {
+        "index": 14,
+        "name": "A Fine",
+        "value": 0,
+        "display_value": 0,
+        "min": 0,
+        "max": 1000
+      },
+      {
+        "index": 15,
+        "name": "A Freq<Vel",
+        "value": 0,
+        "display_value": 0,
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 16,
+        "name": "A Quantize",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 17,
+        "name": "A Fix On ",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 18,
+        "name": "A Fix Freq",
+        "value": 0.435,
+        "display_value": "100 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 19,
+        "name": "A Fix Freq Mul",
+        "value": 4,
+        "display_value": 1,
+        "min": 0,
+        "max": 5
+      },
+      {
+        "index": 20,
+        "name": "Osc-A Level",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 21,
+        "name": "Osc-A Retrig",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 22,
+        "name": "Osc-A Phase",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 23,
+        "name": "Osc-A Lev < Vel",
+        "value": 50,
+        "display_value": "50 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 24,
+        "name": "Osc-A Lev < Key",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 25,
+        "name": "Osc-A Wave",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 22
+      },
+      {
+        "index": 26,
+        "name": "Osc-A Feedb",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 27,
+        "name": "Osc-A < Pe",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 28,
+        "name": "Osc-A < LFO",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 29,
+        "name": "Ae Attack",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 30,
+        "name": "Ae Init",
+        "value": 0,
+        "display_value": "-inf dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 31,
+        "name": "Ae Decay",
+        "value": 0.628,
+        "display_value": "1.00 s",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 32,
+        "name": "Ae Peak",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 33,
+        "name": "Ae Sustain",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 34,
+        "name": "Ae Release",
+        "value": 0.545,
+        "display_value": "400 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 35,
+        "name": "Ae Mode",
+        "value": 0,
+        "display_value": null,
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 36,
+        "name": "Ae Loop",
+        "value": 0.54,
+        "display_value": "100 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 37,
+        "name": "Ae Retrig",
+        "value": 3,
+        "display_value": "1/16",
+        "min": 0,
+        "max": 14
+      },
+      {
+        "index": 38,
+        "name": "Ae R < Vel",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 39,
+        "name": "Osc-B On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 40,
+        "name": "B Coarse",
+        "value": 1,
+        "display_value": 1,
+        "min": 0,
+        "max": 48
+      },
+      {
+        "index": 41,
+        "name": "B Fine",
+        "value": 0,
+        "display_value": 0,
+        "min": 0,
+        "max": 1000
+      },
+      {
+        "index": 42,
+        "name": "B Freq<Vel",
+        "value": 0,
+        "display_value": 0,
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 43,
+        "name": "B Quantize",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 44,
+        "name": "B Fix On ",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 45,
+        "name": "B Fix Freq",
+        "value": 0.435,
+        "display_value": "100 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 46,
+        "name": "B Fix Freq Mul",
+        "value": 4,
+        "display_value": 1,
+        "min": 0,
+        "max": 5
+      },
+      {
+        "index": 47,
+        "name": "Osc-B Level",
+        "value": 0,
+        "display_value": "-inf dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 48,
+        "name": "Osc-B Retrig",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 49,
+        "name": "Osc-B Phase",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 50,
+        "name": "Osc-B Lev < Vel",
+        "value": 50,
+        "display_value": "50 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 51,
+        "name": "Osc-B Lev < Key",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 52,
+        "name": "Osc-B Wave",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 22
+      },
+      {
+        "index": 53,
+        "name": "Osc-B Feedb",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 54,
+        "name": "Osc-B < Pe",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 55,
+        "name": "Osc-B < LFO",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 56,
+        "name": "Be Attack",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 57,
+        "name": "Be Init",
+        "value": 0,
+        "display_value": "-inf dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 58,
+        "name": "Be Decay",
+        "value": 0.545,
+        "display_value": "400 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 59,
+        "name": "Be Peak",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 60,
+        "name": "Be Sustain",
+        "value": 0.4,
+        "display_value": "-24 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 61,
+        "name": "Be Release",
+        "value": 0.545,
+        "display_value": "400 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 62,
+        "name": "Be Mode",
+        "value": 0,
+        "display_value": null,
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 63,
+        "name": "Be Loop",
+        "value": 0.54,
+        "display_value": "100 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 64,
+        "name": "Be Retrig",
+        "value": 3,
+        "display_value": "1/16",
+        "min": 0,
+        "max": 14
+      },
+      {
+        "index": 65,
+        "name": "Be R < Vel",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 66,
+        "name": "Osc-C On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 67,
+        "name": "C Coarse",
+        "value": 1,
+        "display_value": 1,
+        "min": 0,
+        "max": 48
+      },
+      {
+        "index": 68,
+        "name": "C Fine",
+        "value": 0,
+        "display_value": 0,
+        "min": 0,
+        "max": 1000
+      },
+      {
+        "index": 69,
+        "name": "C Freq<Vel",
+        "value": 0,
+        "display_value": 0,
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 70,
+        "name": "C Quantize",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 71,
+        "name": "C Fix On ",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 72,
+        "name": "C Fix Freq",
+        "value": 0.435,
+        "display_value": "100 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 73,
+        "name": "C Fix Freq Mul",
+        "value": 4,
+        "display_value": 1,
+        "min": 0,
+        "max": 5
+      },
+      {
+        "index": 74,
+        "name": "Osc-C Level",
+        "value": 0,
+        "display_value": "-inf dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 75,
+        "name": "Osc-C Retrig",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 76,
+        "name": "Osc-C Phase",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 77,
+        "name": "Osc-C Lev < Vel",
+        "value": 50,
+        "display_value": "50 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 78,
+        "name": "Osc-C Lev < Key",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 79,
+        "name": "Osc-C Wave",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 22
+      },
+      {
+        "index": 80,
+        "name": "Osc-C Feedb",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 81,
+        "name": "Osc-C < Pe",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 82,
+        "name": "Osc-C < LFO",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 83,
+        "name": "Ce Attack",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 84,
+        "name": "Ce Init",
+        "value": 0,
+        "display_value": "-inf dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 85,
+        "name": "Ce Decay",
+        "value": 0.545,
+        "display_value": "400 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 86,
+        "name": "Ce Peak",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 87,
+        "name": "Ce Sustain",
+        "value": 0.4,
+        "display_value": "-24 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 88,
+        "name": "Ce Release",
+        "value": 0.545,
+        "display_value": "400 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 89,
+        "name": "Ce Mode",
+        "value": 0,
+        "display_value": null,
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 90,
+        "name": "Ce Loop",
+        "value": 0.54,
+        "display_value": "100 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 91,
+        "name": "Ce Retrig",
+        "value": 3,
+        "display_value": "1/16",
+        "min": 0,
+        "max": 14
+      },
+      {
+        "index": 92,
+        "name": "Ce R < Vel",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 93,
+        "name": "Osc-D On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 94,
+        "name": "D Coarse",
+        "value": 1,
+        "display_value": 1,
+        "min": 0,
+        "max": 48
+      },
+      {
+        "index": 95,
+        "name": "D Fine",
+        "value": 0,
+        "display_value": 0,
+        "min": 0,
+        "max": 1000
+      },
+      {
+        "index": 96,
+        "name": "D Freq<Vel",
+        "value": 0,
+        "display_value": 0,
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 97,
+        "name": "D Quantize",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 98,
+        "name": "D Fix On ",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 99,
+        "name": "D Fix Freq",
+        "value": 0.435,
+        "display_value": "100 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 100,
+        "name": "D Fix Freq Mul",
+        "value": 4,
+        "display_value": 1,
+        "min": 0,
+        "max": 5
+      },
+      {
+        "index": 101,
+        "name": "Osc-D Level",
+        "value": 0,
+        "display_value": "-inf dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 102,
+        "name": "Osc-D Retrig",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 103,
+        "name": "Osc-D Phase",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 104,
+        "name": "Osc-D Lev < Vel",
+        "value": 50,
+        "display_value": "50 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 105,
+        "name": "Osc-D Lev < Key",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 106,
+        "name": "Osc-D Wave",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 22
+      },
+      {
+        "index": 107,
+        "name": "Osc-D Feedb",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 108,
+        "name": "Osc-D < Pe",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 109,
+        "name": "Osc-D < LFO",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 110,
+        "name": "De Attack",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 111,
+        "name": "De Init",
+        "value": 0,
+        "display_value": "-inf dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 112,
+        "name": "De Decay",
+        "value": 0.545,
+        "display_value": "400 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 113,
+        "name": "De Peak",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 114,
+        "name": "De Sustain",
+        "value": 0.4,
+        "display_value": "-24 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 115,
+        "name": "De Release",
+        "value": 0.545,
+        "display_value": "400 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 116,
+        "name": "De Mode",
+        "value": 0,
+        "display_value": null,
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 117,
+        "name": "De Loop",
+        "value": 0.54,
+        "display_value": "100 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 118,
+        "name": "De Retrig",
+        "value": 3,
+        "display_value": "1/16",
+        "min": 0,
+        "max": 14
+      },
+      {
+        "index": 119,
+        "name": "De R < Vel",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 120,
+        "name": "Time",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 121,
+        "name": "Time < Key",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 122,
+        "name": "Pe On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 123,
+        "name": "Pe Attack",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 124,
+        "name": "Pe Init",
+        "value": 12,
+        "display_value": "+12 st",
+        "min": -48,
+        "max": 48
+      },
+      {
+        "index": 125,
+        "name": "Pe A Slope",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 126,
+        "name": "Pe Decay",
+        "value": 0.545,
+        "display_value": "400 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 127,
+        "name": "Pe Peak",
+        "value": 12,
+        "display_value": "+12 st",
+        "min": -48,
+        "max": 48
+      },
+      {
+        "index": 128,
+        "name": "Pe D Slope",
+        "value": 1,
+        "display_value": "100 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 129,
+        "name": "Pe Sustain",
+        "value": 0,
+        "display_value": "0 st",
+        "min": -48,
+        "max": 48
+      },
+      {
+        "index": 130,
+        "name": "Pe Release",
+        "value": 0.356,
+        "display_value": "50.0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 131,
+        "name": "Pe End",
+        "value": 0,
+        "display_value": "0 st",
+        "min": -48,
+        "max": 48
+      },
+      {
+        "index": 132,
+        "name": "Pe R Slope",
+        "value": 1,
+        "display_value": "100 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 133,
+        "name": "Pe Mode",
+        "value": 0,
+        "display_value": null,
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 134,
+        "name": "Pe Loop",
+        "value": 0.54,
+        "display_value": "100 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 135,
+        "name": "Pe Retrig",
+        "value": 3,
+        "display_value": "1/16",
+        "min": 0,
+        "max": 14
+      },
+      {
+        "index": 136,
+        "name": "Pe R < Vel",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 137,
+        "name": "Pe Amount",
+        "value": 1,
+        "display_value": "100 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 138,
+        "name": "Pe Amt A",
+        "value": 100,
+        "display_value": "100 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 139,
+        "name": "Pe Dst B",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 23
+      },
+      {
+        "index": 140,
+        "name": "Pe Amt B",
+        "value": 100,
+        "display_value": "100 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 141,
+        "name": "LFO On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 142,
+        "name": "LFO Type",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 6
+      },
+      {
+        "index": 143,
+        "name": "LFO Range",
+        "value": 0,
+        "display_value": "Low",
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 144,
+        "name": "LFO Rate",
+        "value": 100,
+        "display_value": "100.00",
+        "min": 0,
+        "max": 127
+      },
+      {
+        "index": 145,
+        "name": "LFO Sync",
+        "value": 3,
+        "display_value": "1/16",
+        "min": 0,
+        "max": 14
+      },
+      {
+        "index": 146,
+        "name": "LFO R < K",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 147,
+        "name": "LFO Retrigger",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 148,
+        "name": "LFO Amt",
+        "value": 0.1,
+        "display_value": "10 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 149,
+        "name": "LFO Amt A",
+        "value": 100,
+        "display_value": "100 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 150,
+        "name": "LFO Dst B",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 23
+      },
+      {
+        "index": 151,
+        "name": "LFO Amt B",
+        "value": 100,
+        "display_value": "100 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 152,
+        "name": "LFO < Vel",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 153,
+        "name": "LFO < Pe",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 154,
+        "name": "Le Attack",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 155,
+        "name": "Le Init",
+        "value": 0,
+        "display_value": "-inf dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 156,
+        "name": "Le Decay",
+        "value": 0.581,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 157,
+        "name": "Le Peak",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 158,
+        "name": "Le Sustain",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 159,
+        "name": "Le Release",
+        "value": 0.356,
+        "display_value": "50.0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 160,
+        "name": "Le End",
+        "value": 0,
+        "display_value": "-inf dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 161,
+        "name": "Le Mode",
+        "value": 0,
+        "display_value": null,
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 162,
+        "name": "Le Loop",
+        "value": 0.54,
+        "display_value": "100 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 163,
+        "name": "Le Retrig",
+        "value": 3,
+        "display_value": "1/16",
+        "min": 0,
+        "max": 14
+      },
+      {
+        "index": 164,
+        "name": "Le R < Vel",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 165,
+        "name": "Filter On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 166,
+        "name": "Filter Type",
+        "value": 0,
+        "display_value": "Lowpass",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 167,
+        "name": "Filter Circuit - LP/HP",
+        "value": 0,
+        "display_value": "Clean",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 168,
+        "name": "Filter Circuit - BP/NO/Morph",
+        "value": 0,
+        "display_value": "Clean",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 169,
+        "name": "Filter Slope",
+        "value": 1,
+        "display_value": "24 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 170,
+        "name": "Filter Freq",
+        "value": 0.933,
+        "display_value": "12.0 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 171,
+        "name": "Filter Res",
+        "value": 0.278,
+        "display_value": "28 %",
+        "min": 0,
+        "max": 1.25
+      },
+      {
+        "index": 172,
+        "name": "Filter Morph",
+        "value": 0,
+        "display_value": "0 lp/bp",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 173,
+        "name": "Filter Drive",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": 0,
+        "max": 24
+      },
+      {
+        "index": 174,
+        "name": "Filt < Vel",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 175,
+        "name": "Filt < Key",
+        "value": 100,
+        "display_value": "100 %",
+        "min": -200,
+        "max": 200
+      },
+      {
+        "index": 176,
+        "name": "Fe Amount",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 177,
+        "name": "Filt < LFO",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 178,
+        "name": "Fe Attack",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 179,
+        "name": "Fe Init",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 180,
+        "name": "Fe A Slope",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 181,
+        "name": "Fe Decay",
+        "value": 0.581,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 182,
+        "name": "Fe Peak",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 183,
+        "name": "Fe D Slope",
+        "value": 1,
+        "display_value": "100 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 184,
+        "name": "Fe Sustain",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 185,
+        "name": "Fe Release",
+        "value": 0.356,
+        "display_value": "50.0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 186,
+        "name": "Fe End",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 187,
+        "name": "Fe R Slope",
+        "value": 1,
+        "display_value": "100 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 188,
+        "name": "Fe Mode",
+        "value": 0,
+        "display_value": null,
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 189,
+        "name": "Fe Loop",
+        "value": 0.54,
+        "display_value": "100 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 190,
+        "name": "Fe Retrig",
+        "value": 3,
+        "display_value": "1/16",
+        "min": 0,
+        "max": 14
+      },
+      {
+        "index": 191,
+        "name": "Fe R < Vel",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -100,
+        "max": 100
+      },
+      {
+        "index": 192,
+        "name": "Shaper Type",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 193,
+        "name": "Shaper Mix",
+        "value": 100,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 100
+      },
+      {
+        "index": 194,
+        "name": "Shaper Drive",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -12,
+        "max": 12
+      }
+    ]
+  },
+  "Analog": {
+    "device_name": "Analog",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "Voices",
+        "value": 3,
+        "display_value": 8,
+        "min": 0,
+        "max": 9
+      },
+      {
+        "index": 2,
+        "name": "PB Range",
+        "value": 0.167,
+        "display_value": "2.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 3,
+        "name": "Volume",
+        "value": 0.705,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 4,
+        "name": "Note PB Range",
+        "value": 48,
+        "display_value": "48 st",
+        "min": 0,
+        "max": 48
+      },
+      {
+        "index": 5,
+        "name": "Press Dest A",
+        "value": 0,
+        "display_value": "No Destination",
+        "min": 0,
+        "max": 46
+      },
+      {
+        "index": 6,
+        "name": "Press Amt A",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 7,
+        "name": "Press Dest B",
+        "value": 0,
+        "display_value": "No Destination",
+        "min": 0,
+        "max": 46
+      },
+      {
+        "index": 8,
+        "name": "Press Amt B",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "Slide Dest A",
+        "value": 0,
+        "display_value": "No Destination",
+        "min": 0,
+        "max": 46
+      },
+      {
+        "index": 10,
+        "name": "Slide Amt A",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 11,
+        "name": "Slide Dest B",
+        "value": 0,
+        "display_value": "No Destination",
+        "min": 0,
+        "max": 46
+      },
+      {
+        "index": 12,
+        "name": "Slide Amt B",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 13,
+        "name": "Octave",
+        "value": 0,
+        "display_value": 0,
+        "min": -3,
+        "max": 3
+      },
+      {
+        "index": 14,
+        "name": "Semitone",
+        "value": 0,
+        "display_value": "0 st",
+        "min": -12,
+        "max": 12
+      },
+      {
+        "index": 15,
+        "name": "Detune",
+        "value": 0.5,
+        "display_value": "0.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 16,
+        "name": "Unison On/Off",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 17,
+        "name": "Unison Voices",
+        "value": 0,
+        "display_value": 2,
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 18,
+        "name": "Unison Detune",
+        "value": 0,
+        "display_value": "0.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 19,
+        "name": "Unison Delay",
+        "value": 0,
+        "display_value": "0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 20,
+        "name": "Key Priority",
+        "value": 2,
+        "display_value": "Last",
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 21,
+        "name": "Key Stretch",
+        "value": 0.5,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 22,
+        "name": "Key Error",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 23,
+        "name": "Vib On/Off",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 24,
+        "name": "Vib Speed",
+        "value": 0.5,
+        "display_value": "5.1 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 25,
+        "name": "Vib Fade-In",
+        "value": 0,
+        "display_value": "0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 26,
+        "name": "Vib Amount",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 27,
+        "name": "Vib Error",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 28,
+        "name": "Vib Delay",
+        "value": 0,
+        "display_value": "0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 29,
+        "name": "Vib < ModWh",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 30,
+        "name": "Glide On/Off",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 31,
+        "name": "Glide Time",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 32,
+        "name": "Glide Mode",
+        "value": 0,
+        "display_value": "Prop",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 33,
+        "name": "Glide Legato",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 34,
+        "name": "Noise On/Off",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 35,
+        "name": "Noise Color",
+        "value": 0.5,
+        "display_value": "682 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 36,
+        "name": "Noise Balance",
+        "value": 1,
+        "display_value": " F1",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 37,
+        "name": "Noise Level",
+        "value": 0.806,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 38,
+        "name": "OSC1 On/Off",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 39,
+        "name": "OSC1 Shape",
+        "value": 1,
+        "display_value": "Saw",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 40,
+        "name": "OSC1 Octave",
+        "value": 0,
+        "display_value": 0,
+        "min": -3,
+        "max": 3
+      },
+      {
+        "index": 41,
+        "name": "OSC1 Semi",
+        "value": 0,
+        "display_value": "0 st",
+        "min": -12,
+        "max": 12
+      },
+      {
+        "index": 42,
+        "name": "OSC1 Mode",
+        "value": 0,
+        "display_value": "Sub",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 43,
+        "name": "PEG1 Time",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 44,
+        "name": "OSC1 Detune",
+        "value": 0.5,
+        "display_value": "0.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 45,
+        "name": "O1 Keytrack",
+        "value": 0.5,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 46,
+        "name": "OSC1 PW",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 47,
+        "name": "O1 Sub/Sync",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 48,
+        "name": "OSC1 Balance",
+        "value": 1,
+        "display_value": " F1",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 49,
+        "name": "PEG1 Amount",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 50,
+        "name": "OSC1 < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 51,
+        "name": "O1 PW < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 52,
+        "name": "OSC1 Level",
+        "value": 0.806,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 53,
+        "name": "F1 On/Off",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 54,
+        "name": "F1 Type",
+        "value": 1,
+        "display_value": "Low-pass 24dB/oct",
+        "min": 0,
+        "max": 9
+      },
+      {
+        "index": 55,
+        "name": "F1 Drive",
+        "value": 1,
+        "display_value": "Sym1",
+        "min": 0,
+        "max": 6
+      },
+      {
+        "index": 56,
+        "name": "F1 Freq < Key",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 57,
+        "name": "F1 Freq",
+        "value": 1,
+        "display_value": "22.0k",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 58,
+        "name": "F1 Reso < Key",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 59,
+        "name": "F1 Resonance",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 60,
+        "name": "F1 To F2",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 61,
+        "name": "F1 Freq < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 62,
+        "name": "F1 Freq < Env",
+        "value": 0.705,
+        "display_value": "4.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 63,
+        "name": "F1 Res < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 64,
+        "name": "F1 Res < Env",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 65,
+        "name": "FEG1 Exp",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 66,
+        "name": "FEG1 Loop",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 67,
+        "name": "FEG1 Free",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 68,
+        "name": "FEG1 Legato",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 69,
+        "name": "FEG1 A < Vel",
+        "value": 0,
+        "display_value": "0.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 70,
+        "name": "FEG1 Attack",
+        "value": 0,
+        "display_value": "5 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 71,
+        "name": "FEG1 Decay",
+        "value": 0.6,
+        "display_value": "626 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 72,
+        "name": "FEG1 < Vel",
+        "value": 0,
+        "display_value": "0.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 73,
+        "name": "FEG1 Sustain",
+        "value": 0.5,
+        "display_value": "0.50",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 74,
+        "name": "FEG1 S Time",
+        "value": 1,
+        "display_value": "inf s",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 75,
+        "name": "FEG1 Rel",
+        "value": 0.485,
+        "display_value": "250 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 76,
+        "name": "AMP1 On/Off",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 77,
+        "name": "AMP1 < Key",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 78,
+        "name": "AMP1 Level",
+        "value": 0.474,
+        "display_value": "-18 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 79,
+        "name": "A1 Pan < Key",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 80,
+        "name": "AMP1 Pan",
+        "value": 0.5,
+        "display_value": "C",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 81,
+        "name": "AMP1 < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 82,
+        "name": "A1 Pan < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 83,
+        "name": "A1 Pan < Env",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 84,
+        "name": "AEG1 Exp",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 85,
+        "name": "AEG1 Loop",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 86,
+        "name": "AEG1 Free",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 87,
+        "name": "AEG1 Legato",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 88,
+        "name": "AEG1 A < Vel",
+        "value": 0,
+        "display_value": "0.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 89,
+        "name": "AEG1 Attack",
+        "value": 0,
+        "display_value": "5 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 90,
+        "name": "AEG1 Decay",
+        "value": 0.6,
+        "display_value": "626 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 91,
+        "name": "AEG1 < Vel",
+        "value": 0.5,
+        "display_value": "4.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 92,
+        "name": "AEG1 Sustain",
+        "value": 0.5,
+        "display_value": "0.50",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 93,
+        "name": "AEG1 S Time",
+        "value": 1,
+        "display_value": "inf s",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 94,
+        "name": "AEG1 Rel",
+        "value": 0.572,
+        "display_value": "500 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 95,
+        "name": "LFO1 On/Off",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 96,
+        "name": "LFO1 Shape",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 97,
+        "name": "LFO1 SncRate",
+        "value": 13,
+        "display_value": "1/4",
+        "min": 0,
+        "max": 23
+      },
+      {
+        "index": 98,
+        "name": "LFO1 Sync",
+        "value": 0,
+        "display_value": "Hertz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 99,
+        "name": "LFO1 Retrig",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 100,
+        "name": "LFO1 PW",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 101,
+        "name": "LFO1 Speed",
+        "value": 0.5,
+        "display_value": "0.9 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 102,
+        "name": "LFO1 Phase",
+        "value": 0,
+        "display_value": "  0\u00b0",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 103,
+        "name": "LFO1 Delay",
+        "value": 0,
+        "display_value": "0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 104,
+        "name": "LFO1 Fade In",
+        "value": 0,
+        "display_value": "0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 105,
+        "name": "OSC2 On/Off",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 106,
+        "name": "OSC2 Shape",
+        "value": 1,
+        "display_value": "Saw",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 107,
+        "name": "OSC2 Octave",
+        "value": 0,
+        "display_value": 0,
+        "min": -3,
+        "max": 3
+      },
+      {
+        "index": 108,
+        "name": "OSC2 Semi",
+        "value": 0,
+        "display_value": "0 st",
+        "min": -12,
+        "max": 12
+      },
+      {
+        "index": 109,
+        "name": "OSC2 Mode",
+        "value": 0,
+        "display_value": "Sub",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 110,
+        "name": "PEG2 Time",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 111,
+        "name": "OSC2 Detune",
+        "value": 0.5,
+        "display_value": "0.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 112,
+        "name": "O2 Keytrack",
+        "value": 0.5,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 113,
+        "name": "OSC2 PW",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 114,
+        "name": "O2 Sub/Sync",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 115,
+        "name": "OSC2 Balance",
+        "value": 1,
+        "display_value": " F1",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 116,
+        "name": "PEG2 Amount",
+        "value": 0,
+        "display_value": "0 %",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 117,
+        "name": "OSC2 < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 118,
+        "name": "O2 PW < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 119,
+        "name": "OSC2 Level",
+        "value": 0.806,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 120,
+        "name": "F2 On/Off",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 121,
+        "name": "F2 Type",
+        "value": 0,
+        "display_value": "Low-pass 12dB/oct",
+        "min": 0,
+        "max": 9
+      },
+      {
+        "index": 122,
+        "name": "F2 Drive",
+        "value": 1,
+        "display_value": "Sym1",
+        "min": 0,
+        "max": 6
+      },
+      {
+        "index": 123,
+        "name": "F2 Freq < Key",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 124,
+        "name": "F2 Freq",
+        "value": 1,
+        "display_value": "22.0k",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 125,
+        "name": "F2 Reso < Key",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 126,
+        "name": "F2 Resonance",
+        "value": 0,
+        "display_value": "0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 127,
+        "name": "F2 Slave",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 128,
+        "name": "F2 Freq < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 129,
+        "name": "F2 Freq < Env",
+        "value": 0.705,
+        "display_value": "4.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 130,
+        "name": "F2 Res < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 131,
+        "name": "F2 Res < Env",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 132,
+        "name": "FEG2 Exp",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 133,
+        "name": "FEG2 Loop",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 134,
+        "name": "FEG2 Free",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 135,
+        "name": "FEG2 Legato",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 136,
+        "name": "FEG2 A < Vel",
+        "value": 0,
+        "display_value": "0.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 137,
+        "name": "FEG2 Attack",
+        "value": 0,
+        "display_value": "5 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 138,
+        "name": "FEG2 Decay",
+        "value": 0.6,
+        "display_value": "626 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 139,
+        "name": "FEG2 < Vel",
+        "value": 0,
+        "display_value": "0.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 140,
+        "name": "FEG2 Sustain",
+        "value": 0.5,
+        "display_value": "0.50",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 141,
+        "name": "FEG2 S Time",
+        "value": 1,
+        "display_value": "inf s",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 142,
+        "name": "FEG2 Rel",
+        "value": 0.485,
+        "display_value": "250 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 143,
+        "name": "AMP2 On/Off",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 144,
+        "name": "AMP2 < Key",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 145,
+        "name": "AMP2 Level",
+        "value": 0.474,
+        "display_value": "-18 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 146,
+        "name": "A2 Pan < Key",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 147,
+        "name": "AMP2 Pan",
+        "value": 0.5,
+        "display_value": "C",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 148,
+        "name": "AMP2 < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 149,
+        "name": "A2 Pan < LFO",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 150,
+        "name": "A2 Pan < Env",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 151,
+        "name": "AEG2 Exp",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 152,
+        "name": "AEG2 Loop",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 153,
+        "name": "AEG2 Free",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 154,
+        "name": "AEG2 Legato",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 155,
+        "name": "AEG2 A < Vel",
+        "value": 0,
+        "display_value": "0.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 156,
+        "name": "AEG2 Attack",
+        "value": 0,
+        "display_value": "5 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 157,
+        "name": "AEG2 Decay",
+        "value": 0.6,
+        "display_value": "626 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 158,
+        "name": "AEG2 < Vel",
+        "value": 0.5,
+        "display_value": "4.00",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 159,
+        "name": "AEG2 Sustain",
+        "value": 0.5,
+        "display_value": "0.50",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 160,
+        "name": "AEG2 S Time",
+        "value": 1,
+        "display_value": "inf s",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 161,
+        "name": "AEG2 Rel",
+        "value": 0.572,
+        "display_value": "500 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 162,
+        "name": "LFO2 On/Off",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 163,
+        "name": "LFO2 Shape",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 164,
+        "name": "LFO2 SncRate",
+        "value": 13,
+        "display_value": "1/4",
+        "min": 0,
+        "max": 23
+      },
+      {
+        "index": 165,
+        "name": "LFO2 Sync",
+        "value": 0,
+        "display_value": "Hertz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 166,
+        "name": "LFO2 Retrig",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 167,
+        "name": "LFO2 PW",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 168,
+        "name": "LFO2 Speed",
+        "value": 0.5,
+        "display_value": "0.9 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 169,
+        "name": "LFO2 Phase",
+        "value": 0,
+        "display_value": "  0\u00b0",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 170,
+        "name": "LFO2 Delay",
+        "value": 0,
+        "display_value": "0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 171,
+        "name": "LFO2 Fade In",
+        "value": 0,
+        "display_value": "0 ms",
+        "min": 0,
+        "max": 1
+      }
+    ]
+  },
+  "Drift": {
+    "device_name": "Drift",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "LP Freq",
+        "value": 1,
+        "display_value": "20.0 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 2,
+        "name": "LP Reso",
+        "value": 0,
+        "display_value": "0.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 3,
+        "name": "LP Type",
+        "value": 0,
+        "display_value": "I",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 4,
+        "name": "HP Freq",
+        "value": 0,
+        "display_value": "10.0 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 5,
+        "name": "Key > LPF",
+        "value": 0,
+        "display_value": "0.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 6,
+        "name": "LP Mod Amt 1",
+        "value": 0.968,
+        "display_value": "80 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 7,
+        "name": "LP Mod Amt 2",
+        "value": 0.783,
+        "display_value": "15 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 8,
+        "name": "Osc 1 Flt On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "Osc 2 Flt On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 10,
+        "name": "Noise Flt On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 11,
+        "name": "LFO Time Mode",
+        "value": 0,
+        "display_value": "Freq",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 12,
+        "name": "LFO Rate",
+        "value": 0.113,
+        "display_value": "0.40 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 13,
+        "name": "LFO Ratio",
+        "value": 0.048,
+        "display_value": "1.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 14,
+        "name": "LFO Time",
+        "value": 0.296,
+        "display_value": "1.00 s",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 15,
+        "name": "LFO Synced",
+        "value": 15,
+        "display_value": "1/8",
+        "min": 0,
+        "max": 21
+      },
+      {
+        "index": 16,
+        "name": "LFO Amt",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 17,
+        "name": "LFO Wave",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 8
+      },
+      {
+        "index": 18,
+        "name": "LFO Mod Amt",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 19,
+        "name": "LFO Retrig On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 20,
+        "name": "Osc 1 Wave",
+        "value": 4,
+        "display_value": "Saw",
+        "min": 0,
+        "max": 6
+      },
+      {
+        "index": 21,
+        "name": "Osc 1 Shape",
+        "value": 0,
+        "display_value": "0.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 22,
+        "name": "Osc 1 Oct",
+        "value": 0,
+        "display_value": "0 ",
+        "min": -2,
+        "max": 3
+      },
+      {
+        "index": 23,
+        "name": "Osc 1 Shape Mod Amt",
+        "value": 0.525,
+        "display_value": "5.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 24,
+        "name": "Osc 2 Wave",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 4
+      },
+      {
+        "index": 25,
+        "name": "Osc 2 Detune",
+        "value": 0.5,
+        "display_value": "0.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 26,
+        "name": "Osc 2 Oct",
+        "value": -1,
+        "display_value": "-1 ",
+        "min": -3,
+        "max": 2
+      },
+      {
+        "index": 27,
+        "name": "Pitch Mod Amt 1",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 28,
+        "name": "Pitch Mod Amt 2",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 29,
+        "name": "Osc 1 Gain",
+        "value": 0.548,
+        "display_value": "-6.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 30,
+        "name": "Osc 2 Gain",
+        "value": 0.499,
+        "display_value": "-8.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 31,
+        "name": "Osc 1 On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 32,
+        "name": "Osc 2 On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 33,
+        "name": "Noise Gain",
+        "value": 0,
+        "display_value": "-inf dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 34,
+        "name": "Noise On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 35,
+        "name": "Env 1 Attack",
+        "value": 0.111,
+        "display_value": "1.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 36,
+        "name": "Env 1 Decay",
+        "value": 0.397,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 37,
+        "name": "Env 1 Release",
+        "value": 0.397,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 38,
+        "name": "Env 1 Sustain",
+        "value": 0.7,
+        "display_value": "70 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 39,
+        "name": "Env 2 Attack",
+        "value": 0.111,
+        "display_value": "1.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 40,
+        "name": "Env 2 Decay",
+        "value": 0.397,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 41,
+        "name": "Env 2 Release",
+        "value": 0.397,
+        "display_value": "600 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 42,
+        "name": "Env 2 Sustain",
+        "value": 0.2,
+        "display_value": "20 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 43,
+        "name": "Cyc Env Time Mode",
+        "value": 0,
+        "display_value": "Freq",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 44,
+        "name": "Cyc Env Rate",
+        "value": 0.312,
+        "display_value": "5.00 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 45,
+        "name": "Cyc Env Ratio",
+        "value": 0.048,
+        "display_value": "1.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 46,
+        "name": "Cyc Env Time",
+        "value": 0.296,
+        "display_value": "1.00 s",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 47,
+        "name": "Cyc Env Synced",
+        "value": 15,
+        "display_value": "1/8",
+        "min": 0,
+        "max": 21
+      },
+      {
+        "index": 48,
+        "name": "Cyc Env Tilt",
+        "value": 0.5,
+        "display_value": "0.50 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 49,
+        "name": "Cyc Env Hold",
+        "value": 0,
+        "display_value": "0.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 50,
+        "name": "Mod Matrix Amt 1",
+        "value": 0.968,
+        "display_value": "80 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 51,
+        "name": "Mod Matrix Amt 2",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 52,
+        "name": "Mod Matrix Amt 3",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 53,
+        "name": "Vel > Vol",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 54,
+        "name": "Osc Retrig On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 55,
+        "name": "Env 2 Cyc On",
+        "value": 0,
+        "display_value": "Env",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 56,
+        "name": "Poly Voice Depth",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 57,
+        "name": "Spread",
+        "value": 0.1,
+        "display_value": "10 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 58,
+        "name": "Strength",
+        "value": 0.05,
+        "display_value": "5.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 59,
+        "name": "Thickness",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 60,
+        "name": "Drift",
+        "value": 0.072,
+        "display_value": "7.2 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 61,
+        "name": "Legato On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 62,
+        "name": "Note Pitch Bend On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 63,
+        "name": "Glide Time",
+        "value": 0,
+        "display_value": "0.00 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 64,
+        "name": "Volume",
+        "value": 0.5,
+        "display_value": "-6.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 65,
+        "name": "Transpose",
+        "value": 0,
+        "display_value": "0 st",
+        "min": -48,
+        "max": 48
+      }
+    ]
+  },
+  "Utility": {
+    "device_name": "Utility",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "Left Inv",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 2,
+        "name": "Right Inv",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 3,
+        "name": "Channel Mode",
+        "value": 1,
+        "display_value": "Stereo",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 4,
+        "name": "Stereo Width",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 5,
+        "name": "Mono",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 6,
+        "name": "Bass Mono",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 7,
+        "name": "Bass Freq",
+        "value": 0.38,
+        "display_value": "120 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 8,
+        "name": "Balance",
+        "value": 0,
+        "display_value": "C",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "Gain",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 10,
+        "name": "Mute",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 11,
+        "name": "DC Filter",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      }
+    ]
+  },
+  "EQ Eight": {
+    "device_name": "EQ Eight",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "Output Gain",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -12,
+        "max": 12
+      },
+      {
+        "index": 2,
+        "name": "Scale",
+        "value": 1,
+        "display_value": "100 %",
+        "min": -2,
+        "max": 2
+      },
+      {
+        "index": 3,
+        "name": "Adaptive Q",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 4,
+        "name": "1 Filter On A",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 5,
+        "name": "1 Filter Type A",
+        "value": 2,
+        "display_value": "Low Shelf",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 6,
+        "name": "1 Frequency A",
+        "value": 0.143,
+        "display_value": "30.0 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 7,
+        "name": "1 Gain A",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 8,
+        "name": "1 Resonance A",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "1 Filter On B",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 10,
+        "name": "1 Filter Type B",
+        "value": 1,
+        "display_value": "High Pass 12dB",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 11,
+        "name": "1 Frequency B",
+        "value": 0.18,
+        "display_value": "40.0 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 12,
+        "name": "1 Gain B",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 13,
+        "name": "1 Resonance B",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 14,
+        "name": "2 Filter On A",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 15,
+        "name": "2 Filter Type A",
+        "value": 3,
+        "display_value": "Bell",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 16,
+        "name": "2 Frequency A",
+        "value": 0.389,
+        "display_value": "200 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 17,
+        "name": "2 Gain A",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 18,
+        "name": "2 Resonance A",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 19,
+        "name": "2 Filter On B",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 20,
+        "name": "2 Filter Type B",
+        "value": 2,
+        "display_value": "Low Shelf",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 21,
+        "name": "2 Frequency B",
+        "value": 0.389,
+        "display_value": "200 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 22,
+        "name": "2 Gain B",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 23,
+        "name": "2 Resonance B",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 24,
+        "name": "3 Filter On A",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 25,
+        "name": "3 Filter Type A",
+        "value": 3,
+        "display_value": "Bell",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 26,
+        "name": "3 Frequency A",
+        "value": 0.598,
+        "display_value": "1000 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 27,
+        "name": "3 Gain A",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 28,
+        "name": "3 Resonance A",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 29,
+        "name": "3 Filter On B",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 30,
+        "name": "3 Filter Type B",
+        "value": 3,
+        "display_value": "Bell",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 31,
+        "name": "3 Frequency B",
+        "value": 0.299,
+        "display_value": "100.0 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 32,
+        "name": "3 Gain B",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 33,
+        "name": "3 Resonance B",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 34,
+        "name": "4 Filter On A",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 35,
+        "name": "4 Filter Type A",
+        "value": 5,
+        "display_value": "High Shelf",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 36,
+        "name": "4 Frequency A",
+        "value": 0.807,
+        "display_value": "5.00 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 37,
+        "name": "4 Gain A",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 38,
+        "name": "4 Resonance A",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 39,
+        "name": "4 Filter On B",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 40,
+        "name": "4 Filter Type B",
+        "value": 3,
+        "display_value": "Bell",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 41,
+        "name": "4 Frequency B",
+        "value": 0.508,
+        "display_value": "500 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 42,
+        "name": "4 Gain B",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 43,
+        "name": "4 Resonance B",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 44,
+        "name": "5 Filter On A",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 45,
+        "name": "5 Filter Type A",
+        "value": 3,
+        "display_value": "Bell",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 46,
+        "name": "5 Frequency A",
+        "value": 0.299,
+        "display_value": "100.0 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 47,
+        "name": "5 Gain A",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 48,
+        "name": "5 Resonance A",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 49,
+        "name": "5 Filter On B",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 50,
+        "name": "5 Filter Type B",
+        "value": 3,
+        "display_value": "Bell",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 51,
+        "name": "5 Frequency B",
+        "value": 0.688,
+        "display_value": "2.00 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 52,
+        "name": "5 Gain B",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 53,
+        "name": "5 Resonance B",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 54,
+        "name": "6 Filter On A",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 55,
+        "name": "6 Filter Type A",
+        "value": 3,
+        "display_value": "Bell",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 56,
+        "name": "6 Frequency A",
+        "value": 0.898,
+        "display_value": "10.0 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 57,
+        "name": "6 Gain A",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 58,
+        "name": "6 Resonance A",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 59,
+        "name": "6 Filter On B",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 60,
+        "name": "6 Filter Type B",
+        "value": 3,
+        "display_value": "Bell",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 61,
+        "name": "6 Frequency B",
+        "value": 0.898,
+        "display_value": "10.0 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 62,
+        "name": "6 Gain B",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 63,
+        "name": "6 Resonance B",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 64,
+        "name": "7 Filter On A",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 65,
+        "name": "7 Filter Type A",
+        "value": 3,
+        "display_value": "Bell",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 66,
+        "name": "7 Frequency A",
+        "value": 0.807,
+        "display_value": "5.00 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 67,
+        "name": "7 Gain A",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 68,
+        "name": "7 Resonance A",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 69,
+        "name": "7 Filter On B",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 70,
+        "name": "7 Filter Type B",
+        "value": 5,
+        "display_value": "High Shelf",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 71,
+        "name": "7 Frequency B",
+        "value": 0.807,
+        "display_value": "5.00 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 72,
+        "name": "7 Gain B",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 73,
+        "name": "7 Resonance B",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 74,
+        "name": "8 Filter On A",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 75,
+        "name": "8 Filter Type A",
+        "value": 6,
+        "display_value": "Low Pass 12dB",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 76,
+        "name": "8 Frequency A",
+        "value": 0.974,
+        "display_value": "18.0 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 77,
+        "name": "8 Gain A",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 78,
+        "name": "8 Resonance A",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 79,
+        "name": "8 Filter On B",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 80,
+        "name": "8 Filter Type B",
+        "value": 6,
+        "display_value": "Low Pass 12dB",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 81,
+        "name": "8 Frequency B",
+        "value": 0.974,
+        "display_value": "18.0 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 82,
+        "name": "8 Gain B",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 83,
+        "name": "8 Resonance B",
+        "value": 0.377,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      }
+    ]
+  },
+  "Glue Compressor": {
+    "device_name": "Glue Compressor",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "Threshold",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -40,
+        "max": 0
+      },
+      {
+        "index": 2,
+        "name": "Range",
+        "value": 70,
+        "display_value": "70.0 dB",
+        "min": 0,
+        "max": 70
+      },
+      {
+        "index": 3,
+        "name": "Makeup",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": 0,
+        "max": 20
+      },
+      {
+        "index": 4,
+        "name": "Attack",
+        "value": 3,
+        "display_value": 1,
+        "min": 0,
+        "max": 6
+      },
+      {
+        "index": 5,
+        "name": "Ratio",
+        "value": 1,
+        "display_value": 4,
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 6,
+        "name": "Release",
+        "value": 3,
+        "display_value": ".6",
+        "min": 0,
+        "max": 6
+      },
+      {
+        "index": 7,
+        "name": "Dry/Wet",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 8,
+        "name": "Peak Clip In",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "S/C On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 10,
+        "name": "S/C Gain",
+        "value": 0.4,
+        "display_value": "0.00 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 11,
+        "name": "S/C Mix",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 12,
+        "name": "S/C EQ Type",
+        "value": 5,
+        "display_value": "High pass",
+        "min": 0,
+        "max": 5
+      },
+      {
+        "index": 13,
+        "name": "S/C EQ On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 14,
+        "name": "S/C EQ Freq",
+        "value": 0.305,
+        "display_value": "200 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 15,
+        "name": "S/C EQ Gain",
+        "value": 0,
+        "display_value": "0.00 dB",
+        "min": -15,
+        "max": 15
+      },
+      {
+        "index": 16,
+        "name": "S/C EQ Q",
+        "value": 0.409,
+        "display_value": "0.71",
+        "min": 0,
+        "max": 1
+      }
+    ]
+  },
+  "Drum Buss": {
+    "device_name": "Drum Buss",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "Compressor On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 2,
+        "name": "Drive",
+        "value": 0.2,
+        "display_value": "20 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 3,
+        "name": "Drive Type",
+        "value": 0,
+        "display_value": "Soft",
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 4,
+        "name": "Crunch",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 5,
+        "name": "Damping Freq",
+        "value": 0.789,
+        "display_value": "9.20 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 6,
+        "name": "Transients",
+        "value": 0,
+        "display_value": "0.00",
+        "min": -1,
+        "max": 1
+      },
+      {
+        "index": 7,
+        "name": "Boom Freq",
+        "value": 0.465,
+        "display_value": "50.0 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 8,
+        "name": "Boom Amt",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "Boom Decay",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 10,
+        "name": "Boom Audition",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 11,
+        "name": "Trim",
+        "value": 1,
+        "display_value": "0.00 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 12,
+        "name": "Output Gain",
+        "value": 0.925,
+        "display_value": "0.00 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 13,
+        "name": "Dry/Wet",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      }
+    ]
+  },
+  "Saturator": {
+    "device_name": "Saturator",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "Drive",
+        "value": 0.5,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 2,
+        "name": "Pre Dc Filter",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 3,
+        "name": "Type",
+        "value": 0,
+        "display_value": "Analog Clip",
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 4,
+        "name": "Color On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 5,
+        "name": "Color Amt Low",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 6,
+        "name": "Color Freq",
+        "value": 0.546,
+        "display_value": "1.00 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 7,
+        "name": "Color Width",
+        "value": 0.3,
+        "display_value": "30 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 8,
+        "name": "Color Amt Hi",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "Post Clip Mode",
+        "value": 0,
+        "display_value": "No Clip",
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 10,
+        "name": "Output",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 11,
+        "name": "Dry/Wet",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 12,
+        "name": "Threshold",
+        "value": 0,
+        "display_value": "-50 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 13,
+        "name": "WS Drive",
+        "value": 1,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 14,
+        "name": "WS Linearity",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 15,
+        "name": "WS Curve",
+        "value": 0.05,
+        "display_value": "5.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 16,
+        "name": "WS Damp",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 17,
+        "name": "WS Period",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 18,
+        "name": "WS Depth",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      }
+    ]
+  },
+  "Echo": {
+    "device_name": "Echo",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "L Sync",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 2,
+        "name": "L Time",
+        "value": 0.565,
+        "display_value": "375 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 3,
+        "name": "L Division",
+        "value": -3,
+        "display_value": "1/8",
+        "min": -6,
+        "max": 0
+      },
+      {
+        "index": 4,
+        "name": "L 16th",
+        "value": 3,
+        "display_value": "3 ",
+        "min": 1,
+        "max": 16
+      },
+      {
+        "index": 5,
+        "name": "L Sync Mode",
+        "value": 2,
+        "display_value": "Dotted",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 6,
+        "name": "L Offset",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 7,
+        "name": "R Time",
+        "value": 0.565,
+        "display_value": "375 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 8,
+        "name": "R Sync",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "R Division",
+        "value": -3,
+        "display_value": "1/8",
+        "min": -6,
+        "max": 0
+      },
+      {
+        "index": 10,
+        "name": "R 16th",
+        "value": 3,
+        "display_value": "3 ",
+        "min": 1,
+        "max": 16
+      },
+      {
+        "index": 11,
+        "name": "R Sync Mode",
+        "value": 2,
+        "display_value": "Dotted",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 12,
+        "name": "R Offset",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 13,
+        "name": "Link",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 14,
+        "name": "Repitch",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 15,
+        "name": "Repitch Smoothing Time",
+        "value": 0.756,
+        "display_value": "400 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 16,
+        "name": "Feedback",
+        "value": 0.333,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 17,
+        "name": "Feedback Inv",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 18,
+        "name": "Channel Mode",
+        "value": 0,
+        "display_value": "Stereo",
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 19,
+        "name": "Input Gain",
+        "value": 0.5,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 20,
+        "name": "Output Gain",
+        "value": 0.5,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 21,
+        "name": "Clip Dry",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 22,
+        "name": "Gate On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 23,
+        "name": "Gate Thr",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 24,
+        "name": "Gate Release",
+        "value": 0.603,
+        "display_value": "50.0 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 25,
+        "name": "Duck On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 26,
+        "name": "Duck Thr",
+        "value": 1,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 27,
+        "name": "Duck Release",
+        "value": 0.373,
+        "display_value": "100 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 28,
+        "name": "Filter On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 29,
+        "name": "HP Freq",
+        "value": 0.133,
+        "display_value": "50.0 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 30,
+        "name": "HP Res",
+        "value": 0,
+        "display_value": "0.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 31,
+        "name": "LP Freq",
+        "value": 0.799,
+        "display_value": "5.00 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 32,
+        "name": "LP Res",
+        "value": 0,
+        "display_value": "0.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 33,
+        "name": "Mod Wave",
+        "value": 0,
+        "display_value": "Sine",
+        "min": 0,
+        "max": 5
+      },
+      {
+        "index": 34,
+        "name": "Mod Freq",
+        "value": 0.639,
+        "display_value": "2.00 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 35,
+        "name": "Mod Sync",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 36,
+        "name": "Mod Rate",
+        "value": 12,
+        "display_value": "1/4",
+        "min": 0,
+        "max": 21
+      },
+      {
+        "index": 37,
+        "name": "Mod Phase",
+        "value": 0.5,
+        "display_value": "90\u00b0",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 38,
+        "name": "Env Mix",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 39,
+        "name": "Dly < Mod",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 40,
+        "name": "Flt < Mod",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 41,
+        "name": "Mod 4x",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 42,
+        "name": "Reverb Level",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 43,
+        "name": "Reverb Decay",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 44,
+        "name": "Reverb Loc",
+        "value": 1,
+        "display_value": "Post",
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 45,
+        "name": "Noise On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 46,
+        "name": "Noise Amt",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 47,
+        "name": "Noise Mrph",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 48,
+        "name": "Wobble On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 49,
+        "name": "Wobble Amt",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 50,
+        "name": "Wobble Mrph",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 51,
+        "name": "Stereo Width",
+        "value": 0.5,
+        "display_value": "100 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 52,
+        "name": "Dry Wet",
+        "value": 0.7,
+        "display_value": "70 %",
+        "min": 0,
+        "max": 1
+      }
+    ]
+  },
+  "Reverb": {
+    "device_name": "Reverb",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "Predelay",
+        "value": 0.259,
+        "display_value": "2.50 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 2,
+        "name": "In LowCut On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 3,
+        "name": "In HighCut On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 4,
+        "name": "In Filter Freq",
+        "value": 0.477,
+        "display_value": "830 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 5,
+        "name": "In Filter Width",
+        "value": 0.629,
+        "display_value": "5.85 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 6,
+        "name": "ER Spin On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 7,
+        "name": "ER Spin Rate",
+        "value": 0.486,
+        "display_value": "0.30 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 8,
+        "name": "ER Spin Amount",
+        "value": 0.654,
+        "display_value": "17.50 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 9,
+        "name": "ER Shape",
+        "value": 0.5,
+        "display_value": "0.50 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 10,
+        "name": "HiFilter On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 11,
+        "name": "HiFilter Type",
+        "value": 0,
+        "display_value": "Shelf",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 12,
+        "name": "HiFilter Freq",
+        "value": 0.81,
+        "display_value": "4.50 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 13,
+        "name": "HiShelf Gain",
+        "value": 0.625,
+        "display_value": "0.70 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 14,
+        "name": "LowShelf On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 15,
+        "name": "LowShelf Freq",
+        "value": 0.227,
+        "display_value": "90.0 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 16,
+        "name": "LowShelf Gain",
+        "value": 0.688,
+        "display_value": "0.75 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 17,
+        "name": "Chorus On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 18,
+        "name": "Chorus Rate",
+        "value": 0.104,
+        "display_value": "0.02 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 19,
+        "name": "Chorus Amount",
+        "value": 0.003,
+        "display_value": "0.02 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 20,
+        "name": "Decay Time",
+        "value": 0.314,
+        "display_value": "1.20 s",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 21,
+        "name": "Diffusion",
+        "value": 0.625,
+        "display_value": "60 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 22,
+        "name": "Scale",
+        "value": 0.368,
+        "display_value": "40 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 23,
+        "name": "Freeze On",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 24,
+        "name": "Flat On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 25,
+        "name": "Cut On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 26,
+        "name": "Room Size",
+        "value": 0.792,
+        "display_value": "100.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 27,
+        "name": "Size Smoothing",
+        "value": 2,
+        "display_value": "Fast",
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 28,
+        "name": "Stereo Image",
+        "value": 0.833,
+        "display_value": "100.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 29,
+        "name": "Density",
+        "value": 1,
+        "display_value": "Low",
+        "min": 0,
+        "max": 3
+      },
+      {
+        "index": 30,
+        "name": "Reflect Level",
+        "value": 0.494,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 31,
+        "name": "Diffuse Level",
+        "value": 0.494,
+        "display_value": "0.0 dB",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 32,
+        "name": "Dry/Wet",
+        "value": 0.55,
+        "display_value": "55 %",
+        "min": 0,
+        "max": 1
+      }
+    ]
+  },
+  "Delay": {
+    "device_name": "Delay",
+    "parameters": [
+      {
+        "index": 0,
+        "name": "Device On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 1,
+        "name": "Delay Mode",
+        "value": 0,
+        "display_value": "Repitch",
+        "min": 0,
+        "max": 2
+      },
+      {
+        "index": 2,
+        "name": "Link",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 3,
+        "name": "Ping Pong",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 4,
+        "name": "L Sync",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 5,
+        "name": "R Sync",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 6,
+        "name": "L Time",
+        "value": 0.595,
+        "display_value": "375 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 7,
+        "name": "R Time",
+        "value": 0.595,
+        "display_value": "375 ms",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 8,
+        "name": "L 16th",
+        "value": 2,
+        "display_value": 3,
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 9,
+        "name": "R 16th",
+        "value": 3,
+        "display_value": 4,
+        "min": 0,
+        "max": 7
+      },
+      {
+        "index": 10,
+        "name": "L Offset",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 11,
+        "name": "R Offset",
+        "value": 0.5,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 12,
+        "name": "Feedback",
+        "value": 0.526,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 13,
+        "name": "Freeze",
+        "value": 0,
+        "display_value": "Off",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 14,
+        "name": "Filter On",
+        "value": 1,
+        "display_value": "On",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 15,
+        "name": "Filter Freq",
+        "value": 0.509,
+        "display_value": "1.00 kHz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 16,
+        "name": "Filter Width",
+        "value": 0.882,
+        "display_value": "8.00 ",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 17,
+        "name": "Mod Freq",
+        "value": 0.472,
+        "display_value": "0.50 Hz",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 18,
+        "name": "Dly < Mod",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 19,
+        "name": "Filter < Mod",
+        "value": 0,
+        "display_value": "0.0 %",
+        "min": 0,
+        "max": 1
+      },
+      {
+        "index": 20,
+        "name": "Dry/Wet",
+        "value": 0.5,
+        "display_value": "50 %",
+        "min": 0,
+        "max": 1
+      }
+    ]
+  }
+}

@@ -56,6 +56,7 @@ class InjectMidiRequest(BaseModel):
 
 class SemanticNoteSchema(BaseModel):
     pitch_name: str = Field(..., description="Semantic note pitch (e.g., 'C1', 'F#2')")
+    pitch: Optional[int] = Field(None, description="MIDI pitch (0-127). Derived automatically by backend, leave empty.")
     start_time: float = Field(..., description="Start time in beats")
     duration: float = Field(..., description="Duration in beats")
     velocity: int = Field(..., description="Velocity (1-127)")
@@ -111,15 +112,18 @@ class SetDeviceParameterBatchRequest(BaseModel):
     device_index: int
     parameters: List[TweakSchema]
 
-class SupervisorSoundDesign(BaseModel):
-    track_name: str
-    device_name: str
-    intent: str = Field(..., description="The sound design goal, e.g. 'Make it a dark reese bass'")
+class SearchDeviceParametersRequest(BaseModel):
+    device_name: str = Field(..., description="The name of the device, e.g., 'Wavetable', 'Operator'")
+    intent: str = Field(..., description="The semantic intent or parameters you are looking for, e.g., 'Filter cutoff and resonance'")
 
-class SupervisorInjectMidi(BaseModel):
-    track_index: int
-    length: float
-    intent: str = Field(..., description="The musical goal, e.g. 'A 4-to-the-floor kick drum pattern'")
+class RetrievedParameterInfo(BaseModel):
+    name: str = Field(..., description="The exact internal name of the parameter in Ableton")
+    min: float = Field(..., description="The minimum allowed value")
+    max: float = Field(..., description="The maximum allowed value")
+    value: float = Field(..., description="The current/default value of the parameter")
+
+class RetrieverSearchResponse(BaseModel):
+    relevant_parameters: List[RetrievedParameterInfo] = Field(..., description="A list of relevant parameters matching the intent")
 
 class FetchResourceRequest(BaseModel):
     uri: str = Field(..., description="The MCP resource URI to fetch, e.g., 'ableton://tracks/1/state'")

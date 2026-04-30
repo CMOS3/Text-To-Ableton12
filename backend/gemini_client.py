@@ -67,6 +67,41 @@ class RetrieverAgent:
                 error_msg = str(e)
                 prompt += f"\n\nERROR ON PREVIOUS ATTEMPT:\nThe parser threw this error:\n{error_msg}\n\nPlease analyze the error and output a corrected JSON payload that strictly matches the schema."
 
+    async def search_catalog(self, device_name: str, intent: str) -> str:
+        """Searches the local device_catalog.json for parameters matching the intent."""
+        catalog_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "device_catalog.json")
+        try:
+            with open(catalog_path, "r", encoding="utf-8") as f:
+                catalog = json.load(f)
+        except Exception as e:
+            return f"Error loading catalog: {e}"
+            
+        # Case insensitive key matching since Planner might pass 'wavetable' instead of 'Wavetable'
+        target_key = None
+        for k in catalog.keys():
+            if k.lower() == device_name.lower():
+                target_key = k
+                break
+                
+        if not target_key:
+            return f"Device '{device_name}' not found in the ground-truth catalog. (Available: {', '.join(catalog.keys())})"
+            
+        device_params = catalog[target_key].get("parameters", [])
+        
+        task_description = f"The Planner wants to achieve this intent: '{intent}' on the device '{device_name}'. Find all relevant parameters."
+        context_data = json.dumps(device_params)
+        
+        try:
+            response = await self.execute_task(
+                task_description=task_description,
+                context_data=context_data,
+                response_schema=schema.RetrieverSearchResponse,
+                max_retries=2
+            )
+            return response.model_dump_json()
+        except Exception as e:
+            return f"Retriever search failed: {e}"
+
 class CreativePlannerAgent:
     def __init__(self):
         api_key = os.getenv("GEMINI_API_KEY")
@@ -96,8 +131,7 @@ class CreativePlannerAgent:
             self.mix_track,
             self.inject_midi_to_new_clip,
             self.set_device_parameter_batch,
-            self.get_track_devices,
-            self.get_device_parameters
+            self.search_device_parameters
         ]
         
         self.atomic_tools = []
@@ -109,9 +143,9 @@ class CreativePlannerAgent:
             "FORMATTING: Your text responses must ALWAYS be cleanly formatted using Markdown. Use bold headers and bulleted lists to organize your execution summaries.\n\n"
             "MANUAL ACTIONS: Because you operate in a single-shot environment, you cannot tweak every complex device parameter. You must ALWAYS include a bulleted '### Manual Actions Required' section in your text response, explicitly detailing exactly how the user should tweak the devices, filters, macros, and envelopes to achieve the requested sound.\n\n"
             "SOUND DESIGN & PARAMETERS:\n"
-            "- To tweak a device, you MUST first use `get_track_devices` and `get_device_parameters` to discover the exact parameter names and their value bounds (min/max).\n"
-            "- Ableton parameters are often normalized to floats between 0.0 and 1.0. You MUST mathematically estimate and scale your desired real-world value into this float range.\n"
-            "- Once you know the exact names and bounds, use `set_device_parameter_batch` to tweak multiple parameters sequentially.\n\n"
+            "- To tweak a device, you MUST first use the `search_device_parameters` tool and provide a semantic intent (e.g., 'Find the attack and decay for the amp envelope').\n"
+            "- Do not guess parameter names! You MUST use the exact internal names and respect the min/max bounds returned by the Retriever in your `set_device_parameter_batch` payload.\n"
+            "- Ableton parameters are often normalized to floats between 0.0 and 1.0. You MUST mathematically estimate and scale your desired real-world value into this float range based on the returned bounds.\n\n"
             "MIDI GENERATION:\n"
             "- To generate MIDI, use `inject_midi_to_new_clip` and populate the `notes` array directly.\n"
             "- You MUST use valid semantic pitch names for notes (e.g., 'C1', 'F#2', 'Bb-1').\n"
@@ -491,6 +525,10 @@ class CreativePlannerAgent:
             return "\n".join(status_lines) if status_lines else "No tracks found."
         except Exception as e:
             return str(e)
+    async def search_device_parameters(self, device_name: str, intent: str) -> str:
+        """[RAG TOOL] Semantically searches for parameter names and value bounds for a specific device based on your musical intent."""
+        return await self.retriever.search_catalog(device_name, intent)
+
     def set_device_parameter_batch(self, track_index: int, device_index: int, parameters: list) -> str:
         """Sets multiple parameters on a single device sequentially."""
         try:
@@ -550,8 +588,7 @@ class CreativePlannerAgent:
             "mix_track": schema.MixTrackRequest,
             "inject_midi_to_new_clip": schema.InjectMidiRequest,
             "set_device_parameter_batch": schema.SetDeviceParameterBatchRequest,
-            "get_track_devices": schema.GetTrackDevicesRequest,
-            "get_device_parameters": schema.DeviceIndexRequest
+            "search_device_parameters": schema.SearchDeviceParametersRequest
         }
         
         tool_list = []
@@ -739,9 +776,9 @@ class CreativePlannerAgent:
                     }) + "\n"
                     return
                 
-                # ReAct Loop Check: Are there only fetch actions?
-                has_mutations = any(a.get("tool") not in ["fetch_resource", "ui_text_response"] for a in script_actions)
-                has_fetches = any(a.get("tool") == "fetch_resource" for a in script_actions)
+                # ReAct Loop Check: Are there only context-gathering actions?
+                has_mutations = any(a.get("tool") not in ["fetch_resource", "ui_text_response", "search_device_parameters"] for a in script_actions)
+                has_fetches = any(a.get("tool") in ["fetch_resource", "search_device_parameters"] for a in script_actions)
             
                 if not has_mutations and has_fetches:
                     fetch_results = []
@@ -752,6 +789,12 @@ class CreativePlannerAgent:
                                 yield json.dumps({"type": "status", "message": f"Supervisor fetching {uri}..."}) + "\n"
                                 res = await asyncio.to_thread(self.fetch_resource, uri)
                                 fetch_results.append(f"Result for {uri}:\n{res}")
+                        elif action.get("tool") == "search_device_parameters":
+                            d_name = action.get("args", {}).get("device_name", "")
+                            intent = action.get("args", {}).get("intent", "")
+                            yield json.dumps({"type": "status", "message": f"RAG Search: {d_name} -> '{intent}'..."}) + "\n"
+                            res = await self.search_device_parameters(d_name, intent)
+                            fetch_results.append(f"Result for RAG search '{d_name}':\n{res}")
                             
                     # Append the model's action and the tool results to the history
                     contents.append(response.candidates[0].content)

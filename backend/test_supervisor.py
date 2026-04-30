@@ -11,12 +11,11 @@ async def test_supervisor():
     try:
         agent = CreativePlannerAgent()
         
-        # This prompt should force the Supervisor to:
-        # 1. Realize it needs track details or device details
-        # 2. Issue a fetch_resource command
-        # 3. Receive the JIT context
-        # 4. Delegate to the Worker to generate precise 'sound_design' and 'inject_midi' schemas
-        user_prompt = "On track Midi Track 1, add an Operator device, make it sound like a plucky bass, and create a 4-bar clip with a groovy baseline."
+        # This prompt should force the Planner to:
+        # 1. Load Wavetable
+        # 2. Call search_device_parameters("Wavetable", "filter 1 cutoff and resonance")
+        # 3. Use the exact internal names to set_device_parameter_batch
+        user_prompt = "On track 0, load the Wavetable instrument. Use the search tool to find the parameters for Filter 1 frequency/cutoff and resonance. Set the frequency to maximum and resonance to a little bit above zero."
         
         print(f"\nUser Prompt: {user_prompt}\n")
         print("--- Supervisor Stream ---")
@@ -35,7 +34,8 @@ async def test_supervisor():
             elif msg_type == "final":
                 print(f"\n[FINAL RESPONSE]")
                 print(data.get("data", {}).get("response", ""))
-                print(f"\nTokens used: Input {data.get('data', {}).get('input_tokens')} / Output {data.get('data', {}).get('output_tokens')}")
+                d = data.get("data", {})
+                print(f"\nTokens used: PRO Input {d.get('pro_input_tokens')} / PRO Output {d.get('pro_output_tokens')} | FLASH Input {d.get('flash_input_tokens')} / FLASH Output {d.get('flash_output_tokens')}")
             else:
                 print(f"[{msg_type.upper()}] {chunk.strip()}")
                 
