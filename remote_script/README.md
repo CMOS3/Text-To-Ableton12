@@ -9,11 +9,10 @@ This directory contains the custom Ableton Live Remote Script that enables exter
 - **Parameter Resolution Fallback**: Contains a legacy three-tier matching system (exact, substring, synonym) for resolving device parameters. Note: This acts primarily as a safety fallback, as the backend's PRE architecture now guarantees exact parameter resolution via semantic RAG before execution.
 
 ## Installation
-**Automatic Deployment (Windows):** Run the `deploy.ps1` PowerShell script in this directory to automatically deploy the files.
+**Automatic Deployment:** Open the Text-to-Ableton application, navigate to **Settings**, select your Ableton User Library folder using the **Browse** button, and click **Deploy Remote Script**.
 
 **Manual Deployment:**
-1. Copy this folder to your Ableton User Library:
-   `...\Documents\Ableton\User Library\Remote Scripts\TextToAbleton`
+1. Copy this folder to your Ableton User Library (e.g. `...\Documents\Ableton\User Library\Remote Scripts\TextToAbleton`).
 2. Restart Ableton Live.
 3. Enable "TextToAbleton" as a Control Surface in Preferences.
 

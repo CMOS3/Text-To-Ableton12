@@ -27,7 +27,7 @@ An Electron-based web application providing a chat-like interface.
 * **Responsibilities**:
   * Captures user input (via auto-expanding multiline textarea) and displays AI responses.
   * Streams LLM responses chunk-by-chunk using NDJSON (`application/x-ndjson`).
-  * Manages settings like Backend URL, Action Preview toggle, and model cost/token tracking.
+  * Manages settings like Gemini API Key, MCP Port, User Library Path, Action Preview toggle, and model cost/token tracking.
   * Connects to the backend via HTTP (`POST http://127.0.0.1:8000/chat`).
   * Intercepts `approval_required` chunks to render a collapsible confirmation card, letting the user manually approve or cancel the pending action script (Dry Run Mode).
 

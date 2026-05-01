@@ -28,18 +28,14 @@ This will automatically activate the virtual environment, start the FastAPI serv
 - **Ableton Live 11/12**
 
 ### 2. Ableton Configuration
-**Automatic Deployment (Windows):** Run the `remote_script/deploy.ps1` PowerShell script to automatically copy the Remote Script to your Ableton User Library.
+**Automatic Deployment (Windows):** Open the Text-to-Ableton application, navigate to Settings, and use the **Browse** button to select your Ableton User Library Path. Click **Deploy Remote Script** to automatically copy the Remote Script.
 
-**Manual Deployment:** Copy the contents of the `remote_script/` directory to your Ableton User Library:
-`...\Documents\Ableton\User Library\Remote Scripts\TextToAbleton`
+**Manual Deployment:** Copy the contents of the `remote_script/` directory to your Ableton User Library (e.g. `...\Documents\Ableton\User Library\Remote Scripts\TextToAbleton`).
 
 Select **TextToAbleton** as a Control Surface in Ableton's Link/Tempo/MIDI preferences.
 
-### 3. Environment Variables
-Create a `.env` file in the root directory:
-```env
-GEMINI_API_KEY=your_api_key_here
-```
+### 3. API Configuration
+Open the Text-to-Ableton application, navigate to **Settings**, and paste your Gemini API Key into the **Gemini API Key** input field. This setting is securely stored in the app and persists across sessions.
 
 ### 4. Component Details
 - **Backend**: Runs on `http://127.0.0.1:8000`. 
