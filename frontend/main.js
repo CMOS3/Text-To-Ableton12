@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, screen } = require('electron');
 const path = require('path');
 const { spawn, execSync } = require('child_process');
 
@@ -28,9 +28,13 @@ function startBackend(mainWindow) {
 }
 
 function createWindow() {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { height } = primaryDisplay.workAreaSize;
+
     const win = new BrowserWindow({
         width: 1200,
-        height: 800,
+        height: height,
+        y: 0,
         backgroundColor: '#1a1a1a', // Match Ableton's dark theme
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),

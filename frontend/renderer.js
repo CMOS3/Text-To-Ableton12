@@ -18,8 +18,10 @@ const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsCancelBtn = document.getElementById('settings-cancel-btn');
 const restartAppBtn = document.getElementById('restart-app-btn');
 
-// Session Inspector DOM
-const sessionInspector = document.getElementById('session-inspector');
+// Session Drawer DOM
+const sessionDrawer = document.getElementById('session-drawer');
+const sessionDrawerToggleBtn = document.getElementById('session-drawer-toggle');
+const closeDrawerBtn = document.getElementById('close-drawer-btn');
 const inspectorBpm = document.getElementById('inspector-bpm');
 const inspectorKey = document.getElementById('inspector-key');
 const inspectorTracks = document.getElementById('inspector-tracks');
@@ -50,6 +52,21 @@ const costProM = document.getElementById('cost-pro');
 const historyFlashM = document.getElementById('history-flash');
 const historyProM = document.getElementById('history-pro');
 const resetHistoryBtn = document.getElementById('reset-history-btn');
+const costPromptFlashM = document.getElementById('cost-prompt-flash');
+const costPromptProM = document.getElementById('cost-prompt-pro');
+
+// Drawer Toggle Logic
+if (sessionDrawerToggleBtn) {
+    sessionDrawerToggleBtn.addEventListener('click', () => {
+        sessionDrawer.classList.toggle('closed');
+    });
+}
+
+if (closeDrawerBtn) {
+    closeDrawerBtn.addEventListener('click', () => {
+        sessionDrawer.classList.add('closed');
+    });
+}
 
 historyFlashM.textContent = `Flash: $${historyFlashCost.toFixed(4)}`;
 historyProM.textContent = `Pro: $${historyProCost.toFixed(4)}`;
@@ -103,8 +120,10 @@ clearBtn.addEventListener('click', () => {
     costPro = 0.0;
     flashTokens = 0;
     proTokens = 0;
-    costFlashM.textContent = `Flash: $0.0000 (0 tk)`;
-    costProM.textContent = `Pro: $0.0000 (0 tk)`;
+    if (costPromptFlashM) costPromptFlashM.textContent = `Flash: $0.0000`;
+    if (costPromptProM) costPromptProM.textContent = `Pro: $0.0000`;
+    costFlashM.textContent = `Flash: $0.0000`;
+    costProM.textContent = `Pro: $0.0000`;
 });
 
 // Settings Logic
@@ -413,7 +432,8 @@ async function handleSendMessage() {
                 const stepCostPro = (proIn / 1000000) * 2.00 + (proOut / 1000000) * 12.00;
                 costPro += stepCostPro;
                 proTokens += (proIn + proOut);
-                costProM.textContent = `Pro: $${costPro.toFixed(4)} (${proTokens} tk)`;
+                if (costPromptProM) costPromptProM.textContent = `Pro: $${stepCostPro.toFixed(4)}`;
+                costProM.textContent = `Pro: $${costPro.toFixed(4)}`;
                 
                 historyProCost += stepCostPro;
                 localStorage.setItem('historyProCost', historyProCost.toString());
@@ -428,7 +448,8 @@ async function handleSendMessage() {
                 const stepCostFlash = (flashIn / 1000000) * 0.25 + (flashOut / 1000000) * 1.50;
                 costFlash += stepCostFlash;
                 flashTokens += (flashIn + flashOut);
-                costFlashM.textContent = `Flash: $${costFlash.toFixed(4)} (${flashTokens} tk)`;
+                if (costPromptFlashM) costPromptFlashM.textContent = `Flash: $${stepCostFlash.toFixed(4)}`;
+                costFlashM.textContent = `Flash: $${costFlash.toFixed(4)}`;
                 
                 historyFlashCost += stepCostFlash;
                 localStorage.setItem('historyFlashCost', historyFlashCost.toString());
@@ -514,8 +535,6 @@ async function fetchSessionContext() {
         inspectorBpm.textContent = `BPM: ${bpm}`;
         inspectorKey.textContent = `Key: ${key}`;
         inspectorTracks.textContent = `Tracks: ${tracksCount}`;
-        
-        sessionInspector.classList.remove('hidden');
     } catch (error) {
         console.warn("Failed to fetch session context:", error);
         inspectorBpm.textContent = `BPM: --`;
