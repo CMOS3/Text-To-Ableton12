@@ -32,7 +32,7 @@ function createWindow() {
     const { height } = primaryDisplay.workAreaSize;
 
     const win = new BrowserWindow({
-        width: 1200,
+        width: 1500,
         height: height,
         y: 0,
         backgroundColor: '#1a1a1a', // Match Ableton's dark theme

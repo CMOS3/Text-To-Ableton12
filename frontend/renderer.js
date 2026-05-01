@@ -59,12 +59,14 @@ const costPromptProM = document.getElementById('cost-prompt-pro');
 if (sessionDrawerToggleBtn) {
     sessionDrawerToggleBtn.addEventListener('click', () => {
         sessionDrawer.classList.toggle('closed');
+        document.body.classList.toggle('drawer-open');
     });
 }
 
 if (closeDrawerBtn) {
     closeDrawerBtn.addEventListener('click', () => {
         sessionDrawer.classList.add('closed');
+        document.body.classList.remove('drawer-open');
     });
 }
 
@@ -495,11 +497,11 @@ async function handleSendMessage() {
 
 function updateStatus(isOnline) {
     if (isOnline) {
-        statusIndicator.innerHTML = '<span class="status-dot" style="background-color: var(--accent-color);"></span> Ready (Gemini 3.1 Pro)';
+        statusIndicator.innerHTML = '<span class="status-dot" style="background-color: var(--accent-color);"></span> Backend Ready';
         statusIndicator.className = 'status-ready';
         fetchSessionContext();
     } else {
-        statusIndicator.innerHTML = '<span class="status-dot" style="background-color: var(--error-color);"></span> Disconnected';
+        statusIndicator.innerHTML = '<span class="status-dot" style="background-color: var(--error-color);"></span> Backend Offline';
         statusIndicator.className = 'status-offline';
     }
 }
