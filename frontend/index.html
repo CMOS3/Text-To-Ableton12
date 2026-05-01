@@ -32,8 +32,22 @@
             <div class="modal-card">
                 <h2>Settings</h2>
                 <div class="input-group">
-                    <label for="backend-url-input">Backend URL</label>
-                    <input type="text" id="backend-url-input" placeholder="http://127.0.0.1:8000">
+                    <label for="gemini-api-key-input">Gemini API Key</label>
+                    <input type="password" id="gemini-api-key-input" placeholder="AIza...">
+                </div>
+
+                <div class="input-group">
+                    <label for="mcp-port-input">Ableton MCP Port</label>
+                    <input type="number" id="mcp-port-input" placeholder="9877" value="9877">
+                </div>
+
+                <div class="input-group">
+                    <label for="user-library-path-input">Ableton User Library Path</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="user-library-path-input" placeholder="e.g. D:\Ableton\User Library" style="flex: 1;">
+                        <button id="browse-library-btn" class="secondary-btn">Browse</button>
+                    </div>
+                    <button id="deploy-script-btn" class="secondary-btn" style="margin-top: 0.5rem; width: 100%;">Deploy Remote Script</button>
                 </div>
 
                 <div class="input-group">

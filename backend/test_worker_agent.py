@@ -3,7 +3,7 @@ import os
 import asyncio
 from pydantic import BaseModel, Field
 
-sys.path.append('d:/Sync/Dev/AbletonMCP_with_Gemini_API')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from backend.gemini_client import WorkerAgent
 
 # Define a strict schema for testing

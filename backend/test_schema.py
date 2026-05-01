@@ -1,10 +1,10 @@
 import sys
 import os
-sys.path.append('d:/Sync/Dev/AbletonMCP_with_Gemini_API/backend')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from pydantic import ValidationError
 from schema import (
-    SoundDesignRequest,
+    SetDeviceParameterBatchRequest,
     FetchResourceRequest,
     CreateClipRequest,
     NoteSchema,
@@ -13,30 +13,30 @@ from schema import (
 
 def test_sound_design_request_valid():
     payload = {
-        "track_name": "Lead Synth",
-        "device_name": "Operator",
-        "tweaks": [
+        "track_index": 0,
+        "device_index": 0,
+        "parameters": [
             {"parameter_name": "Filter Freq", "value": 0.5},
             {"parameter_name": "Resonance", "value": 0.8}
         ]
     }
-    req = SoundDesignRequest(**payload)
-    assert req.track_name == "Lead Synth"
-    assert req.device_name == "Operator"
-    assert len(req.tweaks) == 2
-    assert req.tweaks[0].parameter_name == "Filter Freq"
-    assert req.tweaks[0].value == 0.5
+    req = SetDeviceParameterBatchRequest(**payload)
+    assert req.track_index == 0
+    assert req.device_index == 0
+    assert len(req.parameters) == 2
+    assert req.parameters[0].parameter_name == "Filter Freq"
+    assert req.parameters[0].value == 0.5
 
 def test_sound_design_request_invalid_tweaks():
     payload = {
-        "track_name": "Lead Synth",
-        "device_name": "Operator",
-        "tweaks": {
+        "track_index": 0,
+        "device_index": 0,
+        "parameters": {
             "Filter Freq": 0.5
         }
     }
     try:
-        SoundDesignRequest(**payload)
+        SetDeviceParameterBatchRequest(**payload)
         assert False, "Should have raised ValidationError"
     except ValidationError:
         pass

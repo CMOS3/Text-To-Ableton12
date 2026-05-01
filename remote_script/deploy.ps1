@@ -1,8 +1,11 @@
 # Ableton Remote Script Deployment Script
 # Standardized deployment pipeline to transfer the Remote Script from the local workspace to the Ableton Live User Library.
 
+param (
+    [string]$destination = "D:\Sync\00 PC Sharing\Ableton\User Library\Remote Scripts\TextToAbleton"
+)
+
 $source = "$PSScriptRoot"
-$destination = "D:\Sync\00 PC Sharing\Ableton\User Library\Remote Scripts\TextToAbleton"
 
 Write-Host "Starting deployment to: $destination"
 

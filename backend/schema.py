@@ -19,6 +19,10 @@ class ChatRequest(BaseModel):
 class ApprovalRequest(BaseModel):
     approved: bool
 
+class SettingsRequest(BaseModel):
+    gemini_api_key: Optional[str] = None
+    mcp_port: Optional[int] = 9877
+
 class TrackNameRequest(BaseModel):
     track_name: str
 

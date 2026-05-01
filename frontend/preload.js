@@ -87,5 +87,16 @@ contextBridge.exposeInMainWorld('api', {
     /**
      * Sends a request to restart the application.
      */
-    restartApp: () => ipcRenderer.send('restart-app')
+    restartApp: () => ipcRenderer.send('restart-app'),
+    /**
+     * Opens a native OS folder selection dialog.
+     * @returns {Promise<string|null>} The selected folder path or null.
+     */
+    selectFolder: () => ipcRenderer.invoke('select-folder'),
+    /**
+     * Deploys the remote script to the given destination path.
+     * @param {string} destinationPath - The path to deploy to.
+     * @returns {Promise<Object>} Success status and message.
+     */
+    deployRemoteScript: (destinationPath) => ipcRenderer.invoke('deploy-remote-script', destinationPath)
 });

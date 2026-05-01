@@ -52,11 +52,30 @@ class ChatResponse(BaseModel):
 @app.post("/chat")
 async def chat_endpoint(req: schema.ChatRequest):
     if not gemini_client:
-        raise HTTPException(status_code=500, detail="Gemini Client not configured. Check API key.")
+        raise HTTPException(status_code=500, detail="Gemini Client not configured. Check API key in settings.")
     
     return StreamingResponse(gemini_client.chat(req.prompt, req.chat_history, req.require_approval), media_type="application/x-ndjson")
 
 # --- Direct API Endpoints for UI Tester ---
+
+@app.post("/api/settings")
+def update_settings(req: schema.SettingsRequest):
+    global gemini_client
+    # Update MCP port
+    if req.mcp_port:
+        proxy.port = req.mcp_port
+        proxy._reset_connection()
+        
+    # Reinitialize Gemini client if key provided
+    if req.gemini_api_key and req.gemini_api_key.strip():
+        os.environ["GEMINI_API_KEY"] = req.gemini_api_key
+        try:
+            gemini_client = CreativePlannerAgent()
+        except Exception as e:
+            logger.error(f"Failed to initialize Gemini Client with new key: {e}")
+            return {"status": "error", "message": f"Failed to initialize Gemini: {e}"}
+            
+    return {"status": "success"}
 
 @app.post("/api/action-response")
 async def action_response(req: schema.ApprovalRequest):

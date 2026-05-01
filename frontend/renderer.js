@@ -7,8 +7,12 @@ const statusIndicator = document.getElementById('status-indicator');
 // Settings DOM
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
-const backendUrlInput = document.getElementById('backend-url-input');
 const genreInput = document.getElementById('genre-input');
+const geminiApiKeyInput = document.getElementById('gemini-api-key-input');
+const mcpPortInput = document.getElementById('mcp-port-input');
+const userLibraryPathInput = document.getElementById('user-library-path-input');
+const browseLibraryBtn = document.getElementById('browse-library-btn');
+const deployScriptBtn = document.getElementById('deploy-script-btn');
 const optimizerShortcutInput = document.getElementById('optimizer-shortcut-input');
 const settingsSaveBtn = document.getElementById('settings-save-btn');
 const settingsCancelBtn = document.getElementById('settings-cancel-btn');
@@ -22,8 +26,11 @@ const inspectorTracks = document.getElementById('inspector-tracks');
 const refreshSessionBtn = document.getElementById('refresh-session-btn');
 
 // State
-let backendUrl = localStorage.getItem('backendUrl') || 'http://127.0.0.1:8000';
+const backendUrl = 'http://127.0.0.1:8000';
 let currentGenre = localStorage.getItem('currentGenre') || '';
+let geminiApiKey = localStorage.getItem('geminiApiKey') || '';
+let mcpPort = parseInt(localStorage.getItem('mcpPort')) || 9877;
+let userLibraryPath = localStorage.getItem('userLibraryPath') || '';
 let optimizerShortcut = localStorage.getItem('optimizerShortcut') || 'Ctrl+E';
 let requireApproval = localStorage.getItem('requireApproval') !== 'false'; // default true
 const requireApprovalToggle = document.getElementById('require-approval-toggle');
@@ -102,8 +109,10 @@ clearBtn.addEventListener('click', () => {
 
 // Settings Logic
 settingsBtn.addEventListener('click', () => {
-    backendUrlInput.value = backendUrl;
     genreInput.value = currentGenre;
+    if (geminiApiKeyInput) geminiApiKeyInput.value = geminiApiKey;
+    if (mcpPortInput) mcpPortInput.value = mcpPort;
+    if (userLibraryPathInput) userLibraryPathInput.value = userLibraryPath;
     settingsModal.classList.remove('hidden');
 });
 
@@ -111,21 +120,42 @@ settingsCancelBtn.addEventListener('click', () => {
     settingsModal.classList.add('hidden');
 });
 
-settingsSaveBtn.addEventListener('click', () => {
-    const newUrl = backendUrlInput.value.trim();
+settingsSaveBtn.addEventListener('click', async () => {
     const newGenre = genreInput.value.trim();
+    
+    if (geminiApiKeyInput) {
+        geminiApiKey = geminiApiKeyInput.value.trim();
+        localStorage.setItem('geminiApiKey', geminiApiKey);
+    }
+    if (mcpPortInput) {
+        mcpPort = parseInt(mcpPortInput.value.trim()) || 9877;
+        localStorage.setItem('mcpPort', mcpPort.toString());
+    }
+    if (userLibraryPathInput) {
+        userLibraryPath = userLibraryPathInput.value.trim();
+        localStorage.setItem('userLibraryPath', userLibraryPath);
+    }
     
     if (requireApprovalToggle) {
         requireApproval = requireApprovalToggle.checked;
         localStorage.setItem('requireApproval', requireApproval.toString());
     }
     
-    backendUrl = newUrl || 'http://127.0.0.1:8000';
     currentGenre = newGenre || '';
     
-    localStorage.setItem('backendUrl', backendUrl);
     localStorage.setItem('currentGenre', currentGenre);
     settingsModal.classList.add('hidden');
+    
+    try {
+        await fetch(`${backendUrl}/api/settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gemini_api_key: geminiApiKey, mcp_port: mcpPort })
+        });
+    } catch (e) {
+        console.warn("Failed to update backend settings:", e);
+    }
+    
     checkConnection();
 });
 
@@ -133,6 +163,44 @@ if (restartAppBtn) {
     restartAppBtn.addEventListener('click', () => {
         if (window.api && window.api.restartApp) {
             window.api.restartApp();
+        }
+    });
+}
+
+if (browseLibraryBtn) {
+    browseLibraryBtn.addEventListener('click', async () => {
+        if (window.api && window.api.selectFolder) {
+            const folder = await window.api.selectFolder();
+            if (folder) {
+                userLibraryPathInput.value = folder;
+            }
+        }
+    });
+}
+
+if (deployScriptBtn) {
+    deployScriptBtn.addEventListener('click', async () => {
+        const dest = userLibraryPathInput.value.trim();
+        if (!dest) {
+            alert("Please provide an Ableton User Library Path first.");
+            return;
+        }
+        if (window.api && window.api.deployRemoteScript) {
+            deployScriptBtn.disabled = true;
+            deployScriptBtn.textContent = "Deploying...";
+            try {
+                const result = await window.api.deployRemoteScript(dest);
+                if (result.success) {
+                    alert("Deployment successful! Please refresh your Ableton Live Browser or restart Ableton Live.");
+                } else {
+                    alert("Deployment failed: " + result.message);
+                }
+            } catch (e) {
+                alert("Error during deployment: " + e.message);
+            } finally {
+                deployScriptBtn.disabled = false;
+                deployScriptBtn.textContent = "Deploy Remote Script";
+            }
         }
     });
 }
@@ -462,6 +530,12 @@ if (refreshSessionBtn) {
 
 async function checkConnection() {
     try {
+        await fetch(`${backendUrl}/api/settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ gemini_api_key: geminiApiKey, mcp_port: mcpPort })
+        }).catch(e => console.warn("Could not sync initial settings to backend", e));
+
         await window.api.ping(backendUrl);
         updateStatus(true);
     } catch (error) {

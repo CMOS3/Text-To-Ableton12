@@ -1,6 +1,6 @@
 import sys
-import json
-sys.path.append('d:/Sync/Dev/AbletonMCP_with_Gemini_API/backend')
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from mcp_proxy import proxy
 
 def test_fetch():

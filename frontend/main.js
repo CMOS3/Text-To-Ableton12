@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const { spawn, execSync } = require('child_process');
 
@@ -53,6 +53,28 @@ app.whenReady().then(() => {
     ipcMain.on('restart-app', () => {
         app.relaunch({ args: process.argv.slice(1) });
         app.quit();
+    });
+
+    ipcMain.handle('select-folder', async () => {
+        const result = await dialog.showOpenDialog({
+            properties: ['openDirectory']
+        });
+        if (result.canceled) {
+            return null;
+        }
+        return result.filePaths[0];
+    });
+
+    ipcMain.handle('deploy-remote-script', async (event, destinationPath) => {
+        try {
+            const scriptPath = path.join(__dirname, '..', 'remote_script', 'deploy.ps1');
+            const command = `powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}" -destination "${destinationPath}"`;
+            const output = execSync(command).toString();
+            return { success: true, message: output };
+        } catch (error) {
+            console.error('Deployment error:', error);
+            return { success: false, message: error.message };
+        }
     });
 
     createWindow();
