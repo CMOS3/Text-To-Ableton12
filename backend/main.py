@@ -20,6 +20,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from backend.gemini_client import CreativePlannerAgent
 from backend import schema
 from backend.mcp_proxy import proxy
+from backend.session_manager import session_manager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,6 +56,60 @@ async def chat_endpoint(req: schema.ChatRequest):
         raise HTTPException(status_code=500, detail="Gemini Client not configured. Check API key in settings.")
     
     return StreamingResponse(gemini_client.chat(req.prompt, req.chat_history, req.require_approval), media_type="application/x-ndjson")
+
+# --- Session API Endpoints ---
+
+@app.get("/api/sessions")
+def get_all_sessions():
+    return session_manager.list_sessions()
+
+@app.get("/api/sessions/{session_id}")
+def get_session(session_id: str):
+    session = session_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session
+
+@app.post("/api/sessions")
+async def save_session(req: schema.SaveSessionRequest):
+    if req.id:
+        # Update existing session
+        data = {
+            "id": req.id,
+            "title": req.title or "Untitled Session",
+            "chat_history": req.chat_history,
+            "metrics": req.metrics.model_dump()
+        }
+        session_manager.save_session(req.id, data)
+        return {"status": "success", "session": data}
+    else:
+        # Create new session
+        title = req.title
+        if not title and req.chat_history and gemini_client and hasattr(gemini_client, 'retriever'):
+            # Auto-generate title using the first prompt
+            for msg in req.chat_history:
+                if msg.get("role") == "user":
+                    try:
+                        title = await gemini_client.retriever.generate_session_title(msg.get("content", ""))
+                    except Exception as e:
+                        logger.error(f"Title generation failed: {e}")
+                    break
+        
+        if not title:
+            title = "New Session"
+            
+        session_data = session_manager.create_session(
+            title=title, 
+            chat_history=req.chat_history, 
+            metrics=req.metrics.model_dump()
+        )
+        return {"status": "success", "session": session_data}
+
+@app.delete("/api/sessions/{session_id}")
+def delete_session(session_id: str):
+    if session_manager.delete_session(session_id):
+        return {"status": "success"}
+    raise HTTPException(status_code=404, detail="Session not found")
 
 # --- Direct API Endpoints for UI Tester ---
 

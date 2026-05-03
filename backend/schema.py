@@ -131,3 +131,28 @@ class RetrieverSearchResponse(BaseModel):
 
 class FetchResourceRequest(BaseModel):
     uri: str = Field(..., description="The MCP resource URI to fetch, e.g., 'ableton://tracks/1/state'")
+
+# ---- Session Models ----
+
+class SessionSummary(BaseModel):
+    id: str
+    title: str
+    last_edited: float
+
+class SessionMetrics(BaseModel):
+    cost_flash: float = 0.0
+    cost_pro: float = 0.0
+
+class SessionData(BaseModel):
+    id: str
+    title: str
+    last_edited: float
+    chat_history: List[dict]
+    metrics: SessionMetrics
+
+class SaveSessionRequest(BaseModel):
+    id: Optional[str] = None
+    title: Optional[str] = None
+    chat_history: List[dict]
+    metrics: SessionMetrics
+

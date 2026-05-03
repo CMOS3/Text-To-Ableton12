@@ -102,6 +102,30 @@ class RetrieverAgent:
         except Exception as e:
             return f"Retriever search failed: {e}"
 
+    async def generate_session_title(self, first_prompt: str) -> str:
+        """Generates a short, concise title (max 4 words) for a session based on the first prompt."""
+        task_description = "Generate a concise title (maximum 4 words) for a music production session based on the user's first prompt. Respond ONLY with the title string, no quotes."
+        context_data = first_prompt
+        
+        prompt = f"TASK:\n{task_description}\n\nUSER PROMPT:\n{context_data}"
+        
+        config = types.GenerateContentConfig(
+            temperature=0.7,
+            response_mime_type="text/plain"
+        )
+        
+        try:
+            response = await self.client.aio.models.generate_content(
+                model=self.model,
+                contents=[types.Content(role="user", parts=[types.Part.from_text(text=prompt)])],
+                config=config
+            )
+            title = response.text.strip().replace('"', '')
+            return title if title else "Untitled Session"
+        except Exception as e:
+            logger.error(f"Failed to generate session title: {e}")
+            return "Untitled Session"
+
 class CreativePlannerAgent:
     def __init__(self):
         api_key = os.getenv("GEMINI_API_KEY")
