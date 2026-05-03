@@ -40,6 +40,8 @@ if (requireApprovalToggle) {
     requireApprovalToggle.checked = requireApproval;
 }
 let chatHistoryArray = [];
+let currentSessionId = null;
+let currentSessionTitle = null;
 let costFlash = 0.0;
 let costPro = 0.0;
 let flashTokens = 0;
@@ -118,6 +120,8 @@ function appendMessage(sender, text) {
 clearBtn.addEventListener('click', () => {
     chatHistory.innerHTML = '';
     chatHistoryArray = [];
+    currentSessionId = null;
+    currentSessionTitle = null;
     costFlash = 0.0;
     costPro = 0.0;
     flashTokens = 0;
@@ -273,6 +277,31 @@ function removeThinking() {
 }
 
 /**
+ * Auto-saves the current session state to the backend.
+ */
+async function autoSaveSession() {
+    if (!chatHistoryArray.length || !window.api || !window.api.sessions) return;
+    try {
+        const payload = {
+            id: currentSessionId,
+            title: currentSessionTitle,
+            chat_history: chatHistoryArray,
+            metrics: {
+                cost_flash: costFlash,
+                cost_pro: costPro
+            }
+        };
+        const result = await window.api.sessions.save(backendUrl, payload);
+        if (result && result.session) {
+            currentSessionId = result.session.id;
+            currentSessionTitle = result.session.title;
+        }
+    } catch (e) {
+        console.warn("Failed to auto-save session:", e);
+    }
+}
+
+/**
  * Handles sending a message.
  */
 async function handleSendMessage() {
@@ -283,6 +312,7 @@ async function handleSendMessage() {
     const instruction = currentGenre ? `[Style: ${currentGenre}] ${text}` : text;
     appendMessage('user', text);
     chatHistoryArray.push({ role: "user", content: instruction });
+    await autoSaveSession();
     
     // 2. Clear and disable input
     chatInput.value = '';
@@ -481,6 +511,7 @@ async function handleSendMessage() {
             }
         }
 
+        await autoSaveSession();
         updateStatus(true);
     } catch (error) {
         // 6. Failure

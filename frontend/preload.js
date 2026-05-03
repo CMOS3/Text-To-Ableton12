@@ -98,5 +98,33 @@ contextBridge.exposeInMainWorld('api', {
      * @param {string} destinationPath - The path to deploy to.
      * @returns {Promise<Object>} Success status and message.
      */
-    deployRemoteScript: (destinationPath) => ipcRenderer.invoke('deploy-remote-script', destinationPath)
+    deployRemoteScript: (destinationPath) => ipcRenderer.invoke('deploy-remote-script', destinationPath),
+    
+    /**
+     * Session management API methods connecting to the backend.
+     */
+    sessions: {
+        getAll: async (baseUrl) => {
+            const response = await fetch(`${baseUrl}/api/sessions`);
+            return await response.json();
+        },
+        getOne: async (baseUrl, id) => {
+            const response = await fetch(`${baseUrl}/api/sessions/${id}`);
+            return await response.json();
+        },
+        save: async (baseUrl, sessionData) => {
+            const response = await fetch(`${baseUrl}/api/sessions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sessionData)
+            });
+            return await response.json();
+        },
+        delete: async (baseUrl, id) => {
+            const response = await fetch(`${baseUrl}/api/sessions/${id}`, {
+                method: 'DELETE'
+            });
+            return await response.json();
+        }
+    }
 });
