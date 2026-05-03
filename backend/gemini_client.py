@@ -176,6 +176,8 @@ class CreativePlannerAgent:
             "- To generate MIDI, use `inject_midi_to_new_clip` and populate the `notes` array directly.\n"
             "- You MUST use valid semantic pitch names for notes (e.g., 'C1', 'F#2', 'Bb-1').\n"
             "- Ableton length and time values are strictly in BEATS, not bars! If the user asks for a 4-bar loop in 4/4 time, you MUST set length to 16.0. 1 Bar = 4.0 Beats.\n\n"
+            "CLIP NAMING:\n"
+            "- Whenever you use `create_clip` or `inject_midi_to_new_clip`, you MUST always provide a descriptive `clip_name` argument based on the musical intent.\n\n"
             "You have access to a suite of Ableton proxy tools to control the session.\n"
             "You MUST output exactly ONE valid JSON array containing a sequential script of actions.\n"
             "Example format:\n"
@@ -279,10 +281,10 @@ class CreativePlannerAgent:
         """Arms or disarms a track for recording by name."""
         return str(self._execute_proxy_request("arm_track", **{"track_name": track_name, "arm": arm}))
 
-    def create_clip(self, track_index: int, clip_slot_index: int, length: float) -> str:
+    def create_clip(self, track_index: int, clip_slot_index: int, length: float, clip_name: str = "") -> str:
         """Creates a new MIDI clip in a specific track and clip slot."""
         try:
-            req = schema.CreateClipRequest(track_index=track_index, clip_slot_index=clip_slot_index, length=length)
+            req = schema.CreateClipRequest(track_index=track_index, clip_slot_index=clip_slot_index, length=length, clip_name=clip_name)
             return str(self._execute_proxy_request("create_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
@@ -373,7 +375,7 @@ class CreativePlannerAgent:
             
         return midi_note
 
-    def inject_midi_to_new_clip(self, track_index: int, length: float, notes: list) -> str:
+    def inject_midi_to_new_clip(self, track_index: int, length: float, notes: list, clip_name: str = "") -> str:
         """Finds the first empty clip slot on the track, creates a clip of the specified length, and injects notes."""
         try:
             processed_notes = []
@@ -399,7 +401,7 @@ class CreativePlannerAgent:
             if not processed_notes:
                 return "Failed to parse any valid MIDI notes."
                 
-            req = schema.InjectMidiRequest(track_index=track_index, length=length, notes=processed_notes)
+            req = schema.InjectMidiRequest(track_index=track_index, length=length, clip_name=clip_name, notes=processed_notes)
             
             return str(self._execute_proxy_request("inject_midi_to_new_clip", **req.model_dump()))
         except Exception as e:

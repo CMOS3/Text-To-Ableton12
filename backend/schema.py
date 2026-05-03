@@ -37,6 +37,7 @@ class CreateClipRequest(BaseModel):
     track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     clip_slot_index: int
     length: float = Field(4.0, description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.")
+    clip_name: Optional[str] = Field(None, description="A descriptive name for the new clip.")
 
 class SetClipNameRequest(BaseModel):
     track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
@@ -56,6 +57,7 @@ class GetNotesFromClipRequest(BaseModel):
 class InjectMidiRequest(BaseModel):
     track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
     length: float = Field(4.0, description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.")
+    clip_name: Optional[str] = Field(None, description="A descriptive name for the new clip.")
     notes: List['SemanticNoteSchema']
 
 class SemanticNoteSchema(BaseModel):

@@ -237,7 +237,25 @@ class GeminiRemoteScript(ControlSurface):
             
             if uri.startswith("ableton://session/state"):
                 tracks = [{"i": i, "n": t.name} for i, t in enumerate(self.song().tracks)]
-                data = {"bpm": self.song().tempo, "trk": tracks}
+                returns = [{"i": i, "n": t.name} for i, t in enumerate(self.song().return_tracks)]
+                try:
+                    master_name = self.song().master_track.name
+                except Exception:
+                    master_name = "Master"
+                    
+                scale_active = getattr(self.song(), "scale_mode", 0) == 1
+                root_note = getattr(self.song(), "root_note", -1)
+                scale_name = getattr(self.song(), "scale_name", "Unknown")
+
+                data = {
+                    "bpm": self.song().tempo, 
+                    "trk": tracks,
+                    "returns": returns,
+                    "master": {"n": master_name},
+                    "scale_active": scale_active,
+                    "root_note": root_note,
+                    "scale_name": scale_name
+                }
             elif uri.startswith("ableton://tracks/"):
                 parts = uri.split("/")
                 if len(parts) >= 5 and parts[4] == "state":
@@ -250,12 +268,26 @@ class GeminiRemoteScript(ControlSurface):
                             pan = t.mixer_device.panning.value
                         except: pass
                         data = {"i": t_idx, "n": t.name, "v": vol, "p": pan}
+                elif len(parts) >= 5 and parts[4] == "clip_slots":
+                    t_idx = int(parts[3])
+                    if t_idx < len(self.song().tracks):
+                        t = self.song().tracks[t_idx]
+                        slots = [{"s": j, "has_clip": slot.has_clip, "n": slot.clip.name if slot.has_clip and slot.clip else ""} for j, slot in enumerate(t.clip_slots)]
+                        data = slots
                 elif len(parts) >= 5 and parts[4] == "clips":
                     t_idx = int(parts[3])
                     if t_idx < len(self.song().tracks):
                         t = self.song().tracks[t_idx]
-                        clips = [{"s": j, "n": slot.clip.name} for j, slot in enumerate(t.clip_slots) if slot.has_clip and slot.clip]
-                        data = clips
+                        if len(parts) >= 7 and parts[6] == "notes":
+                            c_idx = int(parts[5])
+                            if c_idx < len(t.clip_slots):
+                                clip = t.clip_slots[c_idx].clip
+                                if clip:
+                                    notes = clip.get_notes_extended(int(0), int(128), float(0.0), float(9999.0))
+                                    data = [{"pitch": n.pitch, "start_time": n.start_time, "duration": n.duration, "velocity": n.velocity} for n in notes]
+                        else:
+                            clips = [{"s": j, "n": slot.clip.name} for j, slot in enumerate(t.clip_slots) if slot.has_clip and slot.clip]
+                            data = clips
                 elif len(parts) >= 5 and parts[4] == "devices":
                     t_idx = int(parts[3])
                     if t_idx < len(self.song().tracks):
@@ -407,9 +439,12 @@ class GeminiRemoteScript(ControlSurface):
             t_idx = params.get("track_index", 0)
             c_idx = params.get("clip_slot_index", 0)
             length = params.get("length", 4.0)
+            clip_name = params.get("clip_name", "")
             slot = self.song().tracks[t_idx].clip_slots[c_idx]
             if not slot.has_clip:
                 slot.create_clip(length)
+                if clip_name and slot.clip:
+                    slot.clip.name = clip_name
         except Exception as e:
             self.log_message(f"Create clip err: {e}")
             
@@ -535,6 +570,7 @@ class GeminiRemoteScript(ControlSurface):
             t_idx = params.get("track_index", 0)
             length = params.get("length", 4.0)
             notes_req = params.get("notes", [])
+            clip_name = params.get("clip_name", "")
             
             if t_idx >= len(self.song().tracks):
                 self._send_error(client, "Track index out of bounds")
@@ -555,6 +591,9 @@ class GeminiRemoteScript(ControlSurface):
             slot = track.clip_slots[open_slot_idx]
             slot.create_clip(length)
             clip = slot.clip
+            
+            if clip_name and clip:
+                clip.name = clip_name
             
             if notes_req and clip:
                 notes_to_add = tuple(Live.Clip.MidiNoteSpecification(
