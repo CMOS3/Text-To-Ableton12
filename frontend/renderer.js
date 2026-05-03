@@ -27,6 +27,12 @@ const inspectorKey = document.getElementById('inspector-key');
 const inspectorTracks = document.getElementById('inspector-tracks');
 const refreshSessionBtn = document.getElementById('refresh-session-btn');
 
+// History Drawer DOM
+const historyDrawer = document.getElementById('history-drawer');
+const historyDrawerToggleBtn = document.getElementById('history-drawer-toggle');
+const closeHistoryDrawerBtn = document.getElementById('close-history-drawer-btn');
+const historyList = document.getElementById('history-list');
+
 // State
 const backendUrl = 'http://127.0.0.1:8000';
 let currentGenre = localStorage.getItem('currentGenre') || '';
@@ -61,13 +67,38 @@ const costPromptProM = document.getElementById('cost-prompt-pro');
 if (sessionDrawerToggleBtn) {
     sessionDrawerToggleBtn.addEventListener('click', () => {
         sessionDrawer.classList.toggle('closed');
-        document.body.classList.toggle('drawer-open');
+        if (!sessionDrawer.classList.contains('closed')) {
+            historyDrawer.classList.add('closed');
+            document.body.classList.add('drawer-open');
+        } else {
+            document.body.classList.remove('drawer-open');
+        }
     });
 }
 
 if (closeDrawerBtn) {
     closeDrawerBtn.addEventListener('click', () => {
         sessionDrawer.classList.add('closed');
+        document.body.classList.remove('drawer-open');
+    });
+}
+
+if (historyDrawerToggleBtn) {
+    historyDrawerToggleBtn.addEventListener('click', () => {
+        historyDrawer.classList.toggle('closed');
+        // Ensure the session drawer is closed if we open history
+        if (!historyDrawer.classList.contains('closed')) {
+            sessionDrawer.classList.add('closed');
+            document.body.classList.add('drawer-open');
+        } else {
+            document.body.classList.remove('drawer-open');
+        }
+    });
+}
+
+if (closeHistoryDrawerBtn) {
+    closeHistoryDrawerBtn.addEventListener('click', () => {
+        historyDrawer.classList.add('closed');
         document.body.classList.remove('drawer-open');
     });
 }

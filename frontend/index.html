@@ -23,6 +23,10 @@
             <span class="tab-text">SESSION</span>
         </button>
 
+        <button id="history-drawer-toggle" class="drawer-tab history-tab">
+            <span class="tab-text">HISTORY</span>
+        </button>
+
         <!-- Session Drawer -->
         <div id="session-drawer" class="session-drawer closed">
             <div class="drawer-header">
@@ -69,6 +73,29 @@
                         </div>
                         <button id="reset-history-btn" class="text-btn" style="margin-top: 0.5rem; font-size: 0.75rem;">[Clear History]</button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Drawer -->
+        <div id="history-drawer" class="session-drawer closed history-drawer-position">
+            <div class="drawer-header">
+                <h2>Session History</h2>
+                <button id="close-history-drawer-btn" class="text-btn" style="font-size: 1.5rem; padding: 0;">×</button>
+            </div>
+            <div id="history-list" class="history-list">
+                <!-- History items will be injected here -->
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="delete-confirm-modal" class="modal-overlay hidden" style="z-index: 1005;">
+            <div class="modal-card" style="width: 400px; height: auto; padding: 2rem;">
+                <h2 style="color: var(--error-color); margin-bottom: 1rem;">Delete Session?</h2>
+                <p style="margin-bottom: 2rem; color: var(--text-primary);">Are you sure you want to delete this session? This action cannot be undone.</p>
+                <div class="modal-actions">
+                    <button id="delete-confirm-yes-btn" class="primary-btn" style="background-color: var(--error-color);">Delete</button>
+                    <button id="delete-confirm-no-btn" class="secondary-btn">Cancel</button>
                 </div>
             </div>
         </div>
