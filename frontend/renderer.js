@@ -90,6 +90,7 @@ if (historyDrawerToggleBtn) {
         if (!historyDrawer.classList.contains('closed')) {
             sessionDrawer.classList.add('closed');
             document.body.classList.add('drawer-open');
+            loadHistoryList();
         } else {
             document.body.classList.remove('drawer-open');
         }
@@ -698,4 +699,149 @@ if (window.api && window.api.onBackendLog) {
 window.addEventListener('DOMContentLoaded', () => {
     checkConnection();
     chatInput.focus();
+    loadHistoryList(); // Load history on startup
 });
+
+// --- Session History Interaction Logic ---
+
+let sessionToDelete = null;
+const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+const deleteConfirmYesBtn = document.getElementById('delete-confirm-yes-btn');
+const deleteConfirmNoBtn = document.getElementById('delete-confirm-no-btn');
+
+deleteConfirmNoBtn.addEventListener('click', () => {
+    deleteConfirmModal.classList.add('hidden');
+    sessionToDelete = null;
+});
+
+deleteConfirmYesBtn.addEventListener('click', async () => {
+    if (sessionToDelete) {
+        try {
+            await window.api.sessions.delete(backendUrl, sessionToDelete);
+            if (currentSessionId === sessionToDelete) {
+                clearBtn.click();
+            }
+            await loadHistoryList();
+        } catch (e) {
+            console.error("Failed to delete session", e);
+        }
+        deleteConfirmModal.classList.add('hidden');
+        sessionToDelete = null;
+    }
+});
+
+async function loadHistoryList() {
+    if (!window.api || !window.api.sessions) return;
+    try {
+        const sessions = await window.api.sessions.getAll(backendUrl);
+        sessions.sort((a, b) => new Date(b.last_edited) - new Date(a.last_edited));
+        
+        historyList.innerHTML = '';
+        
+        if (sessions.length === 0) {
+            historyList.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 2rem;">No history yet.</div>';
+            return;
+        }
+
+        sessions.forEach(session => {
+            const item = document.createElement('div');
+            item.className = 'history-item' + (currentSessionId === session.id ? ' active' : '');
+            
+            const date = new Date(session.last_edited).toLocaleString();
+            
+            item.innerHTML = `
+                <div class="history-item-content">
+                    <div class="history-item-title">${session.title}</div>
+                    <div class="history-item-date">${date}</div>
+                </div>
+                <button class="history-item-menu-btn">⋮</button>
+                <div class="history-item-menu hidden">
+                    <button class="rename-btn">Rename</button>
+                    <button class="delete-btn">Delete</button>
+                </div>
+            `;
+            
+            item.querySelector('.history-item-content').addEventListener('click', () => {
+                loadSession(session.id);
+            });
+            
+            const menuBtn = item.querySelector('.history-item-menu-btn');
+            const menu = item.querySelector('.history-item-menu');
+            
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.history-item-menu').forEach(m => {
+                    if (m !== menu) m.classList.add('hidden');
+                });
+                menu.classList.toggle('hidden');
+            });
+            
+            item.querySelector('.rename-btn').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                menu.classList.add('hidden');
+                const newTitle = prompt("Enter new session title:", session.title);
+                if (newTitle && newTitle.trim() !== "") {
+                    try {
+                        const fullSession = await window.api.sessions.getOne(backendUrl, session.id);
+                        fullSession.title = newTitle.trim();
+                        await window.api.sessions.save(backendUrl, fullSession);
+                        if (currentSessionId === session.id) {
+                            currentSessionTitle = fullSession.title;
+                        }
+                        loadHistoryList();
+                    } catch (err) {
+                        console.error("Rename failed", err);
+                    }
+                }
+            });
+            
+            item.querySelector('.delete-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.add('hidden');
+                sessionToDelete = session.id;
+                deleteConfirmModal.classList.remove('hidden');
+            });
+
+            historyList.appendChild(item);
+        });
+    } catch (e) {
+        console.error("Failed to load history list:", e);
+    }
+}
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.history-item-menu-btn')) {
+        document.querySelectorAll('.history-item-menu').forEach(m => m.classList.add('hidden'));
+    }
+});
+
+async function loadSession(id) {
+    if (!window.api || !window.api.sessions) return;
+    try {
+        const session = await window.api.sessions.getOne(backendUrl, id);
+        currentSessionId = session.id;
+        currentSessionTitle = session.title;
+        chatHistoryArray = session.chat_history || [];
+        
+        costFlash = session.metrics?.cost_flash || 0.0;
+        costPro = session.metrics?.cost_pro || 0.0;
+        if (costPromptFlashM) costPromptFlashM.textContent = `Flash: $0.0000`;
+        if (costPromptProM) costPromptProM.textContent = `Pro: $0.0000`;
+        if (costFlashM) costFlashM.textContent = `Flash: $${costFlash.toFixed(4)}`;
+        if (costProM) costProM.textContent = `Pro: $${costPro.toFixed(4)}`;
+        
+        chatHistory.innerHTML = '';
+        chatHistoryArray.forEach(msg => {
+            let displayRole = msg.role === "assistant" ? "ai" : "user";
+            appendMessage(displayRole, msg.content);
+        });
+        
+        historyDrawer.classList.add('closed');
+        document.body.classList.remove('drawer-open');
+        
+        loadHistoryList();
+    } catch (e) {
+        console.error("Failed to load session:", e);
+        alert("Failed to load session. Check backend logs.");
+    }
+}
