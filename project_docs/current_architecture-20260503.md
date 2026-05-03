@@ -42,6 +42,16 @@ The AI tier is heavily optimized to eliminate token bloat (hallucinations) and r
 - Runs inside Ableton Live 12's embedded Python 3 environment.
 - Deserializes proxy strings (accounting for the custom TOON format) and natively invokes the `Live.Track`, `Live.Device`, and `Live.Clip` APIs.
 
+### 2.3 Session Management & Persistence
+
+#### **Backend Storage (`backend/session_manager.py`)**
+- Implements isolated, file-based JSON persistence in `backend/data/sessions/`.
+- Every session tracks its UUID, auto-generated title (via Gemini Flash), session-specific genre constraint, chronological `chat_history`, and cumulative token costs.
+
+#### **Frontend State (`frontend/renderer.js`)**
+- Integrates an auto-save mechanic: after every AI interaction, the frontend state pushes the current chat array and metrics to the backend.
+- Provides a "Gemini Web App" style floating drawer interface to allow real-time browsing, context-swapping, renaming, and deletion of past sessions without interrupting the Ableton flow.
+
 ---
 
 ## 3. The Execution Flow (The "Pre-Execution RAG" Pipeline)
