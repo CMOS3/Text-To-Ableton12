@@ -3,6 +3,7 @@ const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const clearBtn = document.getElementById('clear-btn');
 const statusIndicator = document.getElementById('status-indicator');
+const activeSessionTitle = document.getElementById('active-session-title');
 
 // Settings DOM
 const settingsBtn = document.getElementById('settings-btn');
@@ -155,6 +156,7 @@ clearBtn.addEventListener('click', () => {
     currentSessionId = null;
     currentSessionTitle = null;
     currentSessionGenre = '';
+    if (activeSessionTitle) activeSessionTitle.textContent = 'New Session';
     if (sessionGenreInput) sessionGenreInput.value = '';
     costFlash = 0.0;
     costPro = 0.0;
@@ -324,6 +326,7 @@ async function autoSaveSession() {
         if (result && result.session) {
             currentSessionId = result.session.id;
             currentSessionTitle = result.session.title;
+            if (activeSessionTitle) activeSessionTitle.textContent = currentSessionTitle;
         }
     } catch (e) {
         console.warn("Failed to auto-save session:", e);
@@ -731,6 +734,7 @@ if (renameSessionSaveBtn) {
                 await window.api.sessions.save(backendUrl, fullSession);
                 if (currentSessionId === sessionToRename) {
                     currentSessionTitle = fullSession.title;
+                    if (activeSessionTitle) activeSessionTitle.textContent = currentSessionTitle;
                 }
                 await loadHistoryList();
             } catch (err) {
@@ -869,6 +873,7 @@ async function loadSession(id) {
         currentSessionId = session.id;
         currentSessionTitle = session.title;
         currentSessionGenre = session.genre || '';
+        if (activeSessionTitle) activeSessionTitle.textContent = currentSessionTitle;
         if (sessionGenreInput) sessionGenreInput.value = currentSessionGenre;
         chatHistoryArray = session.chat_history || [];
         
