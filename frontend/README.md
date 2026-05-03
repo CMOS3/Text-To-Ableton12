@@ -13,6 +13,7 @@ This directory contains the Electron-based GUI for the Text-to-Ableton project.
 - **Connection**: Communicates with the FastAPI backend using NDJSON streaming for real-time agentic status updates.
 - **Features**:
   - **Session Drawer**: A dedicated slide-out drawer consolidating live stats (BPM, Key, Tracks), session controls, and hierarchical per-prompt token cost tracking.
+  - **History Drawer**: A persistent UI panel allowing users to browse, rename, delete, and instantly hot-swap between past conversations without losing context.
   - **Responsive Chat Panel**: The main chat window dynamically squeezes when the drawer is open to prevent text overlap.
   - **Action Preview**: An interception UI that morphs a confirmation card into a collapsible execution trace, allowing users to approve/cancel AI scripts before execution.
   - **Markdown & Code Rendering**: Chat relies on `marked.js` to render formatted responses.
