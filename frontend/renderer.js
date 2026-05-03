@@ -702,9 +702,45 @@ window.addEventListener('DOMContentLoaded', () => {
 // --- Session History Interaction Logic ---
 
 let sessionToDelete = null;
+let sessionToRename = null;
+
 const deleteConfirmModal = document.getElementById('delete-confirm-modal');
 const deleteConfirmYesBtn = document.getElementById('delete-confirm-yes-btn');
 const deleteConfirmNoBtn = document.getElementById('delete-confirm-no-btn');
+
+const renameSessionModal = document.getElementById('rename-session-modal');
+const renameSessionInput = document.getElementById('rename-session-input');
+const renameSessionSaveBtn = document.getElementById('rename-session-save-btn');
+const renameSessionCancelBtn = document.getElementById('rename-session-cancel-btn');
+
+if (renameSessionCancelBtn) {
+    renameSessionCancelBtn.addEventListener('click', () => {
+        renameSessionModal.classList.add('hidden');
+        sessionToRename = null;
+    });
+}
+
+if (renameSessionSaveBtn) {
+    renameSessionSaveBtn.addEventListener('click', async () => {
+        if (!sessionToRename) return;
+        const newTitle = renameSessionInput.value.trim();
+        if (newTitle !== "") {
+            try {
+                const fullSession = await window.api.sessions.getOne(backendUrl, sessionToRename);
+                fullSession.title = newTitle;
+                await window.api.sessions.save(backendUrl, fullSession);
+                if (currentSessionId === sessionToRename) {
+                    currentSessionTitle = fullSession.title;
+                }
+                await loadHistoryList();
+            } catch (err) {
+                console.error("Rename failed", err);
+            }
+        }
+        renameSessionModal.classList.add('hidden');
+        sessionToRename = null;
+    });
+}
 
 deleteConfirmNoBtn.addEventListener('click', () => {
     deleteConfirmModal.classList.add('hidden');
@@ -773,23 +809,13 @@ async function loadHistoryList() {
                 menu.classList.toggle('hidden');
             });
             
-            item.querySelector('.rename-btn').addEventListener('click', async (e) => {
+            item.querySelector('.rename-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 menu.classList.add('hidden');
-                const newTitle = prompt("Enter new session title:", session.title);
-                if (newTitle && newTitle.trim() !== "") {
-                    try {
-                        const fullSession = await window.api.sessions.getOne(backendUrl, session.id);
-                        fullSession.title = newTitle.trim();
-                        await window.api.sessions.save(backendUrl, fullSession);
-                        if (currentSessionId === session.id) {
-                            currentSessionTitle = fullSession.title;
-                        }
-                        loadHistoryList();
-                    } catch (err) {
-                        console.error("Rename failed", err);
-                    }
-                }
+                sessionToRename = session.id;
+                renameSessionInput.value = session.title;
+                renameSessionModal.classList.remove('hidden');
+                renameSessionInput.focus();
             });
             
             item.querySelector('.delete-btn').addEventListener('click', (e) => {
