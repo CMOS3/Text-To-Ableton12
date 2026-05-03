@@ -8,12 +8,12 @@
 </head>
 <body>
     <div class="app-container">
-        <header>
+        <header style="position: relative;">
             <div class="header-left" style="display: flex; flex-direction: column; gap: 4px;">
                 <h1 style="margin: 0; line-height: 1;">Text-to-Ableton</h1>
-                <div id="active-session-title" style="font-size: 0.85rem; color: var(--accent-color); font-weight: 500;">New Session</div>
                 <div id="status-indicator" class="status-ready" style="padding: 0; font-size: 0.7rem;"><span class="status-dot"></span> Backend Ready</div>
             </div>
+            <div id="active-session-title" style="position: absolute; left: 50%; transform: translateX(-50%); font-size: 1.1rem; color: #ffffff; font-weight: 500;">New Session</div>
             <div class="header-right">
                 <button id="settings-btn" class="text-btn">⚙ Settings</button>
             </div>
