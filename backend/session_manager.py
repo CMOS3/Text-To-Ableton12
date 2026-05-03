@@ -14,13 +14,14 @@ class SessionManager:
     def _get_filepath(self, session_id: str) -> str:
         return os.path.join(SESSIONS_DIR, f"{session_id}.json")
 
-    def create_session(self, title: str = "New Session", chat_history: List[Dict[str, Any]] = None, metrics: Dict[str, Any] = None) -> Dict[str, Any]:
+    def create_session(self, title: str = "New Session", genre: Optional[str] = None, chat_history: List[Dict[str, Any]] = None, metrics: Dict[str, Any] = None) -> Dict[str, Any]:
         session_id = str(uuid.uuid4())
         timestamp = time.time()
         
         session_data = {
             "id": session_id,
             "title": title,
+            "genre": genre,
             "last_edited": timestamp,
             "chat_history": chat_history or [],
             "metrics": metrics or {
@@ -61,6 +62,7 @@ class SessionManager:
                         sessions.append({
                             "id": data.get("id"),
                             "title": data.get("title", "Untitled Session"),
+                            "genre": data.get("genre"),
                             "last_edited": data.get("last_edited", 0)
                         })
                 except Exception:

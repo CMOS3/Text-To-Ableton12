@@ -123,11 +123,6 @@
                     <button id="deploy-script-btn" class="secondary-btn" style="margin-top: 0.5rem; width: 100%;">Deploy Remote Script</button>
                 </div>
 
-                <div class="input-group">
-                    <label for="genre-input">Current Genre/Style</label>
-                    <input type="text" id="genre-input" placeholder="e.g. Melodic Techno, Lo-fi Hip Hop">
-                </div>
-
 
                 <div class="input-group" style="flex-direction: row; align-items: center; gap: 0.5rem; margin-top: 1rem; margin-bottom: 2rem;">
                     <input type="checkbox" id="require-approval-toggle" checked style="width: auto;">
@@ -147,6 +142,9 @@
                 <div class="message ai">
                     <div class="bubble">Hello! I'm your Ableton Assistant. How can I help you today?</div>
                 </div>
+            </div>
+            <div class="session-context-bar">
+                <input type="text" id="session-genre-input" placeholder="Session Style/Genre (e.g. Melodic Techno, Lo-fi Hip Hop)" autocomplete="off">
             </div>
             <div class="chat-input-container">
                 <textarea id="chat-input" rows="1" placeholder="Type a command... (Shift+Enter for new line)" autocomplete="off"></textarea>

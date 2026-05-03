@@ -137,6 +137,7 @@ class FetchResourceRequest(BaseModel):
 class SessionSummary(BaseModel):
     id: str
     title: str
+    genre: Optional[str] = None
     last_edited: float
 
 class SessionMetrics(BaseModel):
@@ -146,6 +147,7 @@ class SessionMetrics(BaseModel):
 class SessionData(BaseModel):
     id: str
     title: str
+    genre: Optional[str] = None
     last_edited: float
     chat_history: List[dict]
     metrics: SessionMetrics
@@ -153,6 +155,7 @@ class SessionData(BaseModel):
 class SaveSessionRequest(BaseModel):
     id: Optional[str] = None
     title: Optional[str] = None
+    genre: Optional[str] = None
     chat_history: List[dict]
     metrics: SessionMetrics
 

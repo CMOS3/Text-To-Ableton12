@@ -7,7 +7,7 @@ const statusIndicator = document.getElementById('status-indicator');
 // Settings DOM
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
-const genreInput = document.getElementById('genre-input');
+const sessionGenreInput = document.getElementById('session-genre-input');
 const geminiApiKeyInput = document.getElementById('gemini-api-key-input');
 const mcpPortInput = document.getElementById('mcp-port-input');
 const userLibraryPathInput = document.getElementById('user-library-path-input');
@@ -35,7 +35,7 @@ const historyList = document.getElementById('history-list');
 
 // State
 const backendUrl = 'http://127.0.0.1:8000';
-let currentGenre = localStorage.getItem('currentGenre') || '';
+let currentSessionGenre = '';
 let geminiApiKey = localStorage.getItem('geminiApiKey') || '';
 let mcpPort = parseInt(localStorage.getItem('mcpPort')) || 9877;
 let userLibraryPath = localStorage.getItem('userLibraryPath') || '';
@@ -154,6 +154,8 @@ clearBtn.addEventListener('click', () => {
     chatHistoryArray = [];
     currentSessionId = null;
     currentSessionTitle = null;
+    currentSessionGenre = '';
+    if (sessionGenreInput) sessionGenreInput.value = '';
     costFlash = 0.0;
     costPro = 0.0;
     flashTokens = 0;
@@ -166,7 +168,6 @@ clearBtn.addEventListener('click', () => {
 
 // Settings Logic
 settingsBtn.addEventListener('click', () => {
-    genreInput.value = currentGenre;
     if (geminiApiKeyInput) geminiApiKeyInput.value = geminiApiKey;
     if (mcpPortInput) mcpPortInput.value = mcpPort;
     if (userLibraryPathInput) userLibraryPathInput.value = userLibraryPath;
@@ -178,8 +179,6 @@ settingsCancelBtn.addEventListener('click', () => {
 });
 
 settingsSaveBtn.addEventListener('click', async () => {
-    const newGenre = genreInput.value.trim();
-    
     if (geminiApiKeyInput) {
         geminiApiKey = geminiApiKeyInput.value.trim();
         localStorage.setItem('geminiApiKey', geminiApiKey);
@@ -198,9 +197,6 @@ settingsSaveBtn.addEventListener('click', async () => {
         localStorage.setItem('requireApproval', requireApproval.toString());
     }
     
-    currentGenre = newGenre || '';
-    
-    localStorage.setItem('currentGenre', currentGenre);
     settingsModal.classList.add('hidden');
     
     try {
@@ -317,6 +313,7 @@ async function autoSaveSession() {
         const payload = {
             id: currentSessionId,
             title: currentSessionTitle,
+            genre: currentSessionGenre,
             chat_history: chatHistoryArray,
             metrics: {
                 cost_flash: costFlash,
@@ -341,7 +338,7 @@ async function handleSendMessage() {
     if (!text) return;
 
     // 1. Append user message
-    const instruction = currentGenre ? `[Style: ${currentGenre}] ${text}` : text;
+    const instruction = currentSessionGenre ? `[Style: ${currentSessionGenre}] ${text}` : text;
     appendMessage('user', text);
     chatHistoryArray.push({ role: "user", content: instruction });
     await autoSaveSession();
@@ -821,6 +818,8 @@ async function loadSession(id) {
         const session = await window.api.sessions.getOne(backendUrl, id);
         currentSessionId = session.id;
         currentSessionTitle = session.title;
+        currentSessionGenre = session.genre || '';
+        if (sessionGenreInput) sessionGenreInput.value = currentSessionGenre;
         chatHistoryArray = session.chat_history || [];
         
         costFlash = session.metrics?.cost_flash || 0.0;
@@ -844,4 +843,11 @@ async function loadSession(id) {
         console.error("Failed to load session:", e);
         alert("Failed to load session. Check backend logs.");
     }
+}
+
+if (sessionGenreInput) {
+    sessionGenreInput.addEventListener('change', () => {
+        currentSessionGenre = sessionGenreInput.value.trim();
+        autoSaveSession();
+    });
 }

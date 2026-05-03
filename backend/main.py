@@ -77,6 +77,7 @@ async def save_session(req: schema.SaveSessionRequest):
         data = {
             "id": req.id,
             "title": req.title or "Untitled Session",
+            "genre": req.genre,
             "chat_history": req.chat_history,
             "metrics": req.metrics.model_dump()
         }
@@ -100,6 +101,7 @@ async def save_session(req: schema.SaveSessionRequest):
             
         session_data = session_manager.create_session(
             title=title, 
+            genre=req.genre,
             chat_history=req.chat_history, 
             metrics=req.metrics.model_dump()
         )
