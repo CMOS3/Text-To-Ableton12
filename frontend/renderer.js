@@ -731,7 +731,7 @@ async function loadHistoryList() {
     if (!window.api || !window.api.sessions) return;
     try {
         const sessions = await window.api.sessions.getAll(backendUrl);
-        sessions.sort((a, b) => new Date(b.last_edited) - new Date(a.last_edited));
+        sessions.sort((a, b) => b.last_edited - a.last_edited);
         
         historyList.innerHTML = '';
         
@@ -744,7 +744,7 @@ async function loadHistoryList() {
             const item = document.createElement('div');
             item.className = 'history-item' + (currentSessionId === session.id ? ' active' : '');
             
-            const date = new Date(session.last_edited).toLocaleString();
+            const date = new Date(session.last_edited * 1000).toLocaleString();
             
             item.innerHTML = `
                 <div class="history-item-content">
