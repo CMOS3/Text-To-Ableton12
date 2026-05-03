@@ -744,7 +744,7 @@ async function loadHistoryList() {
             const item = document.createElement('div');
             item.className = 'history-item' + (currentSessionId === session.id ? ' active' : '');
             
-            const date = new Date(session.last_edited * 1000).toLocaleString();
+            const date = new Date(session.last_edited * 1000).toLocaleString('en-GB');
             
             item.innerHTML = `
                 <div class="history-item-content">
