@@ -8,3 +8,4 @@ dist/
 *.log
 ollama_debug_log.txt
 .agents/
+backend/data/sessions/
