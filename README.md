@@ -55,4 +55,5 @@ Open the Text-to-Ableton application, navigate to **Settings**, and paste your G
 - **Anthracite UI & UX Polish**: Premium dark theme inspired by Ableton Live 12's neutral gray aesthetics, featuring an auto-expanding multiline chat input, a backend log drawer, and full Markdown-parsed chat responses.
 - **STRICT Beat-Based Timing**: Orchestral-grade precision where all MIDI lengths and start times are handled in beats (e.g., 4 bars = 16.0 beats in 4/4).
 - **Compound Tools (Optimized)**: High-priority macros (`get_session_mix_status`, `inject_midi_to_new_clip`) that parse track states and inject data in bulk.
+- **Session Browser & History**: A multi-turn, persistent chat history system. Automatically generates concise session titles using Gemini Flash, locally saves session state and token costs, and provides a sleek drawer interface to browse, rename, delete, and seamlessly hot-swap between past creative contexts.
 - **NDJSON Streaming**: Real-time feedback window showing granular agent status (Compiling -> Executing -> Finished).
