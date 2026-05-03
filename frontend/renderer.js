@@ -810,6 +810,30 @@ document.addEventListener('click', (e) => {
     if (!e.target.closest('.history-item-menu-btn')) {
         document.querySelectorAll('.history-item-menu').forEach(m => m.classList.add('hidden'));
     }
+    
+    const isClickInsideSessionDrawer = sessionDrawer && sessionDrawer.contains(e.target);
+    const isClickInsideSessionToggle = sessionDrawerToggleBtn && sessionDrawerToggleBtn.contains(e.target);
+    const isClickInsideHistoryDrawer = historyDrawer && historyDrawer.contains(e.target);
+    const isClickInsideHistoryToggle = historyDrawerToggleBtn && historyDrawerToggleBtn.contains(e.target);
+    const isClickInsideModal = e.target.closest('.modal-overlay');
+    
+    if (!isClickInsideSessionDrawer && !isClickInsideSessionToggle && 
+        !isClickInsideHistoryDrawer && !isClickInsideHistoryToggle && 
+        !isClickInsideModal) {
+        
+        let closedAny = false;
+        if (sessionDrawer && !sessionDrawer.classList.contains('closed')) {
+            sessionDrawer.classList.add('closed');
+            closedAny = true;
+        }
+        if (historyDrawer && !historyDrawer.classList.contains('closed')) {
+            historyDrawer.classList.add('closed');
+            closedAny = true;
+        }
+        if (closedAny) {
+            document.body.classList.remove('drawer-open');
+        }
+    }
 });
 
 async function loadSession(id) {
