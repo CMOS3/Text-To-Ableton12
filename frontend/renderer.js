@@ -887,7 +887,11 @@ async function loadSession(id) {
         chatHistory.innerHTML = '';
         chatHistoryArray.forEach(msg => {
             let displayRole = msg.role === "assistant" ? "ai" : "user";
-            appendMessage(displayRole, msg.content);
+            let displayContent = msg.content;
+            if (msg.role === "user") {
+                displayContent = displayContent.replace(/^\[Style:.*?\]\s*/i, '');
+            }
+            appendMessage(displayRole, displayContent);
         });
         
         historyDrawer.classList.add('closed');
