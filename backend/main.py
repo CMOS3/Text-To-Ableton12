@@ -20,7 +20,7 @@ from pydantic import BaseModel
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend import schema
-from backend.gemini_client import CreativePlannerAgent
+from backend.gemini import CreativePlannerAgent
 from backend.mcp_proxy import proxy
 from backend.session_manager import session_manager
 
