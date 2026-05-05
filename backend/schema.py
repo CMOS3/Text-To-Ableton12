@@ -1,126 +1,226 @@
+
 from pydantic import BaseModel, Field
-from typing import List, Optional
+
 
 # ---- Note Models ----
 class NoteSchema(BaseModel):
-    pitch_name: str = Field(..., description="Semantic pitch name (e.g., 'C1', 'Eb2', 'F#3'). Use flats (b) or sharps (#).")
-    pitch: Optional[int] = Field(None, description="MIDI pitch (0-127). Derived automatically by backend, leave empty.")
-    start_time: float = Field(..., description="Start time STRICTLY in beats. E.g., beat 1 = 0.0, beat 2 = 1.0.")
-    duration: float = Field(..., description="Duration STRICTLY in beats. 1 bar = 4.0 beats (in 4/4).")
+    pitch_name: str = Field(
+        ...,
+        description="Semantic pitch name (e.g., 'C1', 'Eb2', 'F#3'). Use flats (b) or sharps (#).",
+    )
+    pitch: int | None = Field(
+        None, description="MIDI pitch (0-127). Derived automatically by backend, leave empty."
+    )
+    start_time: float = Field(
+        ..., description="Start time STRICTLY in beats. E.g., beat 1 = 0.0, beat 2 = 1.0."
+    )
+    duration: float = Field(
+        ..., description="Duration STRICTLY in beats. 1 bar = 4.0 beats (in 4/4)."
+    )
     velocity: int = Field(100, description="Velocity (1-127).")
+
 
 # ---- Request Models for FastAPI & Gemini Tools ----
 
+
 class ChatRequest(BaseModel):
     prompt: str
-    chat_history: Optional[List[dict]] = Field(default_factory=list)
+    chat_history: list[dict] | None = Field(default_factory=list)
     require_approval: bool = True
+
 
 class ApprovalRequest(BaseModel):
     approved: bool
 
+
 class SettingsRequest(BaseModel):
-    gemini_api_key: Optional[str] = None
-    mcp_port: Optional[int] = 9877
+    gemini_api_key: str | None = None
+    mcp_port: int | None = 9877
+
 
 class TrackNameRequest(BaseModel):
     track_name: str
 
+
 class TrackIndexNameRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     name: str
+
 
 class TempoRequest(BaseModel):
     tempo: float = Field(..., description="BPM, e.g. 120.0")
 
+
 class CreateClipRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     clip_slot_index: int
-    length: float = Field(4.0, description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.")
-    clip_name: Optional[str] = Field(None, description="A descriptive name for the new clip.")
+    length: float = Field(
+        4.0,
+        description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.",
+    )
+    clip_name: str | None = Field(None, description="A descriptive name for the new clip.")
+
 
 class SetClipNameRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     clip_slot_index: int
     name: str
 
+
 class AddNotesRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     clip_slot_index: int
-    notes: List[NoteSchema]
+    notes: list[NoteSchema]
+
 
 class GetNotesFromClipRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     clip_slot_index: int
 
 
 class InjectMidiRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
-    length: float = Field(4.0, description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.")
-    clip_name: Optional[str] = Field(None, description="A descriptive name for the new clip.")
-    notes: List['SemanticNoteSchema']
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
+    length: float = Field(
+        4.0,
+        description="Length of the new clip STRICTLY in beats. E.g., for a 4-bar clip in 4/4 time, use 16.0.",
+    )
+    clip_name: str | None = Field(None, description="A descriptive name for the new clip.")
+    notes: list["SemanticNoteSchema"]
+
 
 class SemanticNoteSchema(BaseModel):
     pitch_name: str = Field(..., description="Semantic note pitch (e.g., 'C1', 'F#2')")
-    pitch: Optional[int] = Field(None, description="MIDI pitch (0-127). Derived automatically by backend, leave empty.")
+    pitch: int | None = Field(
+        None, description="MIDI pitch (0-127). Derived automatically by backend, leave empty."
+    )
     start_time: float = Field(..., description="Start time in beats")
     duration: float = Field(..., description="Duration in beats")
     velocity: int = Field(..., description="Velocity (1-127)")
 
+
 class BrowserItemsRequest(BaseModel):
-    path: str = Field(..., description="Path to a folder in the browser, e.g. 'Packs/Lost and Found'.")
+    path: str = Field(
+        ..., description="Path to a folder in the browser, e.g. 'Packs/Lost and Found'."
+    )
+
 
 class LoadDeviceRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     browser_path: str = Field(..., description="Path to the instrument or effect in the browser.")
 
+
 class LoadDrumKitRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     drum_kit_path: str
 
+
 class GetTrackDevicesRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
+
 
 class GetTrackInfoRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
+
 
 class DeleteNotesRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     clip_slot_index: int
-    notes: List[NoteSchema]
+    notes: list[NoteSchema]
+
 
 class DeviceIndexRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     device_index: int
 
+
 class SetDeviceParameterByNameRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     device_index: int
     parameter_name: str
     value: float
+
 
 class SetTrackVolumeByNameRequest(BaseModel):
     track_name: str
     gain_db: float
 
+
 class MixTrackRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track (or return track).")
-    volume: Optional[float] = Field(None, description="Volume level from 0.0 to 1.0 (where ~0.85 is 0dB). Matches the volume shown in the session state.")
-    panning: Optional[float] = Field(None, description="Panning from -1.0 (Left) to 1.0 (Right).")
-    mute: Optional[bool] = Field(None, description="Set to true to mute the track, false to unmute.")
+    track_index: int = Field(
+        ..., description="The 0-based index of the target track (or return track)."
+    )
+    volume: float | None = Field(
+        None,
+        description="Volume level from 0.0 to 1.0 (where ~0.85 is 0dB). Matches the volume shown in the session state.",
+    )
+    panning: float | None = Field(None, description="Panning from -1.0 (Left) to 1.0 (Right).")
+    mute: bool | None = Field(
+        None, description="Set to true to mute the track, false to unmute."
+    )
+
 
 class TweakSchema(BaseModel):
     parameter_name: str = Field(..., description="Name of the parameter to tweak.")
     value: float = Field(..., description="New value for the parameter (0.0 to 1.0).")
 
+
 class SetDeviceParameterBatchRequest(BaseModel):
-    track_index: int = Field(..., description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.")
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
     device_index: int
-    parameters: List[TweakSchema]
+    parameters: list[TweakSchema]
+
 
 class SearchDeviceParametersRequest(BaseModel):
-    device_name: str = Field(..., description="The name of the device, e.g., 'Wavetable', 'Operator'")
-    intent: str = Field(..., description="The semantic intent or parameters you are looking for, e.g., 'Filter cutoff and resonance'")
+    device_name: str = Field(
+        ..., description="The name of the device, e.g., 'Wavetable', 'Operator'"
+    )
+    intent: str = Field(
+        ...,
+        description="The semantic intent or parameters you are looking for, e.g., 'Filter cutoff and resonance'",
+    )
+
 
 class RetrievedParameterInfo(BaseModel):
     name: str = Field(..., description="The exact internal name of the parameter in Ableton")
@@ -128,36 +228,46 @@ class RetrievedParameterInfo(BaseModel):
     max: float = Field(..., description="The maximum allowed value")
     value: float = Field(..., description="The current/default value of the parameter")
 
+
 class RetrieverSearchResponse(BaseModel):
-    relevant_parameters: List[RetrievedParameterInfo] = Field(..., description="A list of relevant parameters matching the intent")
+    relevant_parameters: list[RetrievedParameterInfo] = Field(
+        ..., description="A list of relevant parameters matching the intent"
+    )
+
 
 class FetchResourceRequest(BaseModel):
-    uri: str = Field(..., description="The MCP resource URI to fetch, e.g., 'ableton://tracks/1/state'")
+    uri: str = Field(
+        ..., description="The MCP resource URI to fetch, e.g., 'ableton://tracks/1/state'"
+    )
+
 
 # ---- Session Models ----
+
 
 class SessionSummary(BaseModel):
     id: str
     title: str
-    genre: Optional[str] = None
+    genre: str | None = None
     last_edited: float
+
 
 class SessionMetrics(BaseModel):
     cost_flash: float = 0.0
     cost_pro: float = 0.0
 
+
 class SessionData(BaseModel):
     id: str
     title: str
-    genre: Optional[str] = None
+    genre: str | None = None
     last_edited: float
-    chat_history: List[dict]
+    chat_history: list[dict]
     metrics: SessionMetrics
+
 
 class SaveSessionRequest(BaseModel):
-    id: Optional[str] = None
-    title: Optional[str] = None
-    genre: Optional[str] = None
-    chat_history: List[dict]
+    id: str | None = None
+    title: str | None = None
+    genre: str | None = None
+    chat_history: list[dict]
     metrics: SessionMetrics
-
