@@ -21,9 +21,11 @@ This directory contains the Python-based backend for the Text-to-Ableton project
 
 - **Centralized Proxy Logic**: Uses a unified `_execute_proxy_request` helper for data extraction and error handling.
 
-## Primary Files
 - `main.py`: FastAPI entry point for the Electron shell.
-- `gemini_client.py`: Core logic for intent routing, semantic filtering, and tool implementation.
+- `gemini/`: Modular package containing the AI reasoning components:
+  - `planner.py`: The `CreativePlannerAgent` orchestration loop.
+  - `retriever.py`: The RAG agent for parameter lookup.
+  - `tools.py`: Mixins and schema generation for the proxy endpoints.
 - `session_manager.py`: File-based CRUD interface for persisting session context, chat histories, and token metrics.
 - `mcp_proxy.py`: Persistent TCP socket manager for the Ableton bridge.
 - **Validation Layers**:
