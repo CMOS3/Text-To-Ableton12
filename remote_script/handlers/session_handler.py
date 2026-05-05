@@ -1,5 +1,11 @@
+import socket
+from typing import Tuple, Any
+
 class SessionMixin:
-    def _do_get_song_scale(self, args):
+    """Provides Session state, Transport controls, and Scale parsing methods."""
+
+    def _do_get_song_scale(self, args: Tuple[socket.socket]) -> None:
+        """Retrieves the global scale and root note from the Ableton Song."""
         (client,) = args
         try:
             is_active = getattr(self.song(), "scale_mode", 0) == 1
@@ -16,12 +22,13 @@ class SessionMixin:
         except Exception as e:
             self._send_error(client, str(e))
 
-    def _do_get_session_info(self, client):
+    def _do_get_session_info(self, client: socket.socket) -> None:
+        """Collects the entire structural state of the session (tracks, clips, mix values)."""
         try:
             tracks_info = []
             for i, track in enumerate(self.song().tracks):
-                vol = "UNKNOWN"
-                pan = "UNKNOWN"
+                vol: Any = "UNKNOWN"
+                pan: Any = "UNKNOWN"
                 try:
                     vol = track.mixer_device.volume.value
                     pan = track.mixer_device.panning.value
@@ -106,15 +113,18 @@ class SessionMixin:
             self.log_message(f"Get session info err: {e}")
             self._send_error(client, str(e))
 
-    def _do_set_tempo(self, tempo):
+    def _do_set_tempo(self, tempo: float) -> None:
+        """Sets the global session tempo (BPM)."""
         try:
             self.song().tempo = tempo
             self.log_message(f"Set tempo to {tempo}")
         except Exception as e:
             self.log_message(str(e))
 
-    def _do_start_playback(self):
+    def _do_start_playback(self) -> None:
+        """Starts the main transport playback."""
         self.song().is_playing = True
 
-    def _do_stop_playback(self):
+    def _do_stop_playback(self) -> None:
+        """Stops the main transport playback."""
         self.song().is_playing = False

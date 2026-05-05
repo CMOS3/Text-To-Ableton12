@@ -1,23 +1,52 @@
 import re
 import ast
 import json
+from typing import Any, Dict, List, Optional
 
 from pydantic import ValidationError
 from backend import schema
 from backend.mcp_proxy import proxy
+from backend.exceptions import AbletonProxyError, SchemaValidationError, ResourceNotFoundError
+from backend.logger import get_json_logger
+
+logger = get_json_logger(__name__)
 
 class AbletonToolMixin:
     """Provides all the Ableton interaction tools for the CreativePlannerAgent."""
 
-    def _execute_proxy_request(self, command: str, **kwargs):
-        res = proxy.request_state(command, kwargs if kwargs else None)
+    def _execute_proxy_request(self, command: str, **kwargs: Any) -> Any:
+        """
+        Executes a proxy request to the Ableton Remote Script.
+        
+        Args:
+            command: The method name to execute.
+            **kwargs: Arguments to pass to the method.
+            
+        Returns:
+            The parsed result from the proxy.
+            
+        Raises:
+            AbletonProxyError: If the proxy fails or returns an error status.
+        """
+        try:
+            res = proxy.request_state(command, kwargs)
+        except Exception as e:
+            logger.error("Failed to connect to Ableton Proxy", extra={"extra_data": {"command": command, "error": str(e)}})
+            raise AbletonProxyError(f"Connection failed: {str(e)}") from e
+
+        if not isinstance(res, dict):
+            logger.error("Invalid proxy response format", extra={"extra_data": {"command": command, "response": res}})
+            raise AbletonProxyError("Received non-dictionary response from proxy.")
 
         if res.get("status") != "success":
-            raise Exception(f"Ableton Proxy Error: {res.get('status')} - {res.get('message', '')}")
+            msg = res.get("message", "Unknown failure")
+            logger.error("Proxy returned failure status", extra={"extra_data": {"command": command, "message": msg}})
+            raise AbletonProxyError(f"Ableton Proxy Error: {res.get('status')} - {msg}")
 
         data = res.get("data", {})
         if isinstance(data, dict) and "error" in data:
-            raise Exception(f"Ableton Error: {data['error']}")
+            logger.error("Ableton returned an error", extra={"extra_data": {"command": command, "error": data["error"]}})
+            raise AbletonProxyError(f"Ableton Error: {data['error']}")
 
         if isinstance(data, dict) and "result" in data:
             return data["result"]
@@ -30,21 +59,33 @@ class AbletonToolMixin:
             req = schema.FetchResourceRequest(uri=uri)
             return str(self._execute_proxy_request("fetch_resource", **req.model_dump()))
         except ValidationError as e:
+            logger.warning("Validation error in fetch_resource", extra={"extra_data": {"uri": uri, "error": str(e)}})
+            return str(e)
+        except AbletonProxyError as e:
             return str(e)
 
     def test_ableton_connection(self) -> str:
         """Attempts to send a JSON 'ping' message to the Ableton Server."""
-        res = self._execute_proxy_request("ping")
-        return str(res)
+        try:
+            res = self._execute_proxy_request("ping")
+            return str(res)
+        except AbletonProxyError as e:
+            return str(e)
 
     def get_song_scale(self) -> str:
         """Retrieves whether Scale Mode is active, the root note, and the scale name (e.g. Minor, Major)."""
-        return str(self._execute_proxy_request("get_song_scale"))
+        try:
+            return str(self._execute_proxy_request("get_song_scale"))
+        except AbletonProxyError as e:
+            return str(e)
 
     def get_session_info(self) -> str:
         """Retrieves the current tracks and state in the Ableton Live session."""
-        res = self._execute_proxy_request("get_session_info")
-        return str(res)
+        try:
+            res = self._execute_proxy_request("get_session_info")
+            return str(res)
+        except AbletonProxyError as e:
+            return str(e)
 
     def set_tempo(self, tempo: float) -> str:
         """Sets the tempo (BPM) of the Ableton session."""
@@ -53,14 +94,22 @@ class AbletonToolMixin:
             return str(self._execute_proxy_request("set_tempo", **req.model_dump()))
         except ValidationError as e:
             return f"Validation error: {e}"
+        except AbletonProxyError as e:
+            return str(e)
 
     def start_playback(self) -> str:
         """Starts playback in Ableton."""
-        return str(self._execute_proxy_request("start_playback"))
+        try:
+            return str(self._execute_proxy_request("start_playback"))
+        except AbletonProxyError as e:
+            return str(e)
 
     def stop_playback(self) -> str:
         """Stops playback in Ableton."""
-        return str(self._execute_proxy_request("stop_playback"))
+        try:
+            return str(self._execute_proxy_request("stop_playback"))
+        except AbletonProxyError as e:
+            return str(e)
 
     def get_track_info(self, track_index: int) -> str:
         """Gets detailed info about a specific track by its integer index (0-indexed)."""
@@ -68,6 +117,8 @@ class AbletonToolMixin:
             req = schema.GetTrackInfoRequest(track_index=track_index)
             return str(self._execute_proxy_request("get_track_info", **req.model_dump()))
         except ValidationError as e:
+            return str(e)
+        except AbletonProxyError as e:
             return str(e)
 
     def create_midi_track(self, track_name: str) -> str:
@@ -77,6 +128,8 @@ class AbletonToolMixin:
             return str(self._execute_proxy_request("create_midi_track", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def set_track_name(self, track_index: int, name: str) -> str:
         """Sets the name of a specific track."""
@@ -85,16 +138,24 @@ class AbletonToolMixin:
             return str(self._execute_proxy_request("set_track_name", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def select_track(self, track_name: str) -> str:
         """Selects (focuses) a track by name."""
-        return str(self._execute_proxy_request("select_track", **{"track_name": track_name}))
+        try:
+            return str(self._execute_proxy_request("select_track", **{"track_name": track_name}))
+        except AbletonProxyError as e:
+            return str(e)
 
     def arm_track(self, track_name: str, arm: bool = True) -> str:
         """Arms or disarms a track for recording by name."""
-        return str(
-            self._execute_proxy_request("arm_track", **{"track_name": track_name, "arm": arm})
-        )
+        try:
+            return str(
+                self._execute_proxy_request("arm_track", **{"track_name": track_name, "arm": arm})
+            )
+        except AbletonProxyError as e:
+            return str(e)
 
     def create_clip(
         self, track_index: int, clip_slot_index: int, length: float, clip_name: str = ""
@@ -110,6 +171,8 @@ class AbletonToolMixin:
             return str(self._execute_proxy_request("create_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def set_clip_name(self, track_index: int, clip_slot_index: int, name: str) -> str:
         """Sets the name of an existing clip."""
@@ -120,9 +183,11 @@ class AbletonToolMixin:
             return str(self._execute_proxy_request("set_clip_name", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def add_notes_to_clip(
-        self, track_index: int, clip_slot_index: int, notes: list[schema.NoteSchema]
+        self, track_index: int, clip_slot_index: int, notes: List[schema.NoteSchema]
     ) -> str:
         """Adds MIDI notes to a clip using semantic pitch names (e.g. 'C3', 'Eb2')."""
         try:
@@ -152,28 +217,40 @@ class AbletonToolMixin:
                 track_index=track_index, clip_slot_index=clip_slot_index, notes=valid_notes
             )
             return str(self._execute_proxy_request("add_notes_to_clip", **req.model_dump()))
+        except ValidationError as e:
+            return str(e)
         except Exception as e:
+            logger.error("Failed to add notes to clip", extra={"extra_data": {"error": str(e)}})
             return f"Error adding notes: {e}"
 
     def fire_clip(self, track_index: int, clip_slot_index: int) -> str:
         """Fires (plays) a specific clip."""
-        return str(
-            self._execute_proxy_request(
-                "fire_clip", **{"track_index": track_index, "clip_slot_index": clip_slot_index}
+        try:
+            return str(
+                self._execute_proxy_request(
+                    "fire_clip", **{"track_index": track_index, "clip_slot_index": clip_slot_index}
+                )
             )
-        )
+        except AbletonProxyError as e:
+            return str(e)
 
     def stop_clip(self, track_index: int, clip_slot_index: int) -> str:
         """Stops playback of a specific clip."""
-        return str(
-            self._execute_proxy_request(
-                "stop_clip", **{"track_index": track_index, "clip_slot_index": clip_slot_index}
+        try:
+            return str(
+                self._execute_proxy_request(
+                    "stop_clip", **{"track_index": track_index, "clip_slot_index": clip_slot_index}
+                )
             )
-        )
+        except AbletonProxyError as e:
+            return str(e)
 
     def get_browser_tree(self) -> str:
         """Retrieves the root level tree of the Ableton Live browser."""
-        return str(self._execute_proxy_request("get_browser_tree"))
+        try:
+            return str(self._execute_proxy_request("get_browser_tree"))
+        except AbletonProxyError as e:
+            return str(e)
 
     def get_browser_items_at_path(self, path: str) -> str:
         """Retrieves a list of children items and folders at a specific path in the Ableton Live browser. Use this to dive deeper into folders."""
@@ -182,15 +259,17 @@ class AbletonToolMixin:
             return str(self._execute_proxy_request("get_browser_items_at_path", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def _pitch_name_to_midi(self, pitch_name: str) -> int:
         """Converts a pitch name (e.g., 'C1', 'F#2', 'Bb-1') to a MIDI note number (0-127)."""
         if not pitch_name:
-            raise ValueError("Empty pitch name")
+            raise SchemaValidationError("Empty pitch name provided")
 
         match = re.match(r"^([a-gA-G])([#b])?(-?[0-9]+)$", pitch_name.strip())
         if not match:
-            raise ValueError(f"Invalid pitch name format: {pitch_name}")
+            raise SchemaValidationError(f"Invalid pitch name format: {pitch_name}")
 
         note_str, accidental, octave_str = match.groups()
         octave = int(octave_str)
@@ -206,12 +285,12 @@ class AbletonToolMixin:
         midi_note = (octave + 2) * 12 + base_pitch
 
         if midi_note < 0 or midi_note > 127:
-            raise ValueError(f"MIDI note out of range (0-127) for {pitch_name}: {midi_note}")
+            raise SchemaValidationError(f"MIDI note out of range (0-127) for {pitch_name}: {midi_note}")
 
         return midi_note
 
     def inject_midi_to_new_clip(
-        self, track_index: int, length: float, notes: list, clip_name: str = ""
+        self, track_index: int, length: float, notes: List[Any], clip_name: str = ""
     ) -> str:
         """Finds the first empty clip slot on the track, creates a clip of the specified length, and injects notes."""
         try:
@@ -233,7 +312,7 @@ class AbletonToolMixin:
                     note_dict["pitch"] = midi_val
                     processed_notes.append(schema.SemanticNoteSchema(**note_dict))
                 except Exception as ve:
-                    print(f"Skipping invalid note {pitch_name}: {ve}")
+                    logger.warning("Skipping invalid note", extra={"extra_data": {"pitch_name": pitch_name, "error": str(ve)}})
 
             if not processed_notes:
                 return "Failed to parse any valid MIDI notes."
@@ -244,6 +323,7 @@ class AbletonToolMixin:
 
             return str(self._execute_proxy_request("inject_midi_to_new_clip", **req.model_dump()))
         except Exception as e:
+            logger.error("Error injecting midi", extra={"extra_data": {"error": str(e)}})
             return f"Error injecting midi: {e}"
 
     def load_instrument_or_effect(self, track_index: int, browser_path: str) -> str:
@@ -253,6 +333,8 @@ class AbletonToolMixin:
             return str(self._execute_proxy_request("load_instrument_or_effect", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def load_drum_kit(self, track_index: int, drum_kit_path: str) -> str:
         """Loads a drum kit onto a track."""
@@ -260,6 +342,8 @@ class AbletonToolMixin:
             req = schema.LoadDrumKitRequest(track_index=track_index, drum_kit_path=drum_kit_path)
             return str(self._execute_proxy_request("load_drum_kit", **req.model_dump()))
         except ValidationError as e:
+            return str(e)
+        except AbletonProxyError as e:
             return str(e)
 
     def get_notes_from_clip(self, track_index: int, clip_slot_index: int) -> str:
@@ -271,9 +355,11 @@ class AbletonToolMixin:
             return str(self._execute_proxy_request("get_notes_from_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def delete_notes_from_clip(
-        self, track_index: int, clip_slot_index: int, notes: list[schema.NoteSchema]
+        self, track_index: int, clip_slot_index: int, notes: List[schema.NoteSchema]
     ) -> str:
         """Deletes specific notes from a clip based on precisely matching both pitch and start_time."""
         try:
@@ -284,39 +370,51 @@ class AbletonToolMixin:
             return str(self._execute_proxy_request("delete_notes_from_clip", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def delete_track(self, track_index: int) -> str:
         """Deletes a track by its integer index."""
-        return str(self._execute_proxy_request("delete_track", **{"track_index": track_index}))
+        try:
+            return str(self._execute_proxy_request("delete_track", **{"track_index": track_index}))
+        except AbletonProxyError as e:
+            return str(e)
 
     def delete_clip(self, track_index: int, clip_slot_index: int) -> str:
         """Deletes a clip from a specific track and slot index."""
-        return str(
-            self._execute_proxy_request(
-                "delete_clip", **{"track_index": track_index, "clip_slot_index": clip_slot_index}
+        try:
+            return str(
+                self._execute_proxy_request(
+                    "delete_clip", **{"track_index": track_index, "clip_slot_index": clip_slot_index}
+                )
             )
-        )
+        except AbletonProxyError as e:
+            return str(e)
 
     def get_track_devices(self, track_index: int) -> str:
-        """Gets all devices loaded on a specific track. Args: track_index (int): The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc."""
+        """Gets all devices loaded on a specific track."""
         try:
             req = schema.GetTrackDevicesRequest(track_index=track_index)
             return str(self._execute_proxy_request("get_track_devices", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def get_device_parameters(self, track_index: int, device_index: int) -> str:
-        """Gets all parameters for a device on a track to discover their names, minimums, and maximums. You MUST use this before set_device_parameter. WARNING: Many Ableton parameters (Hz, dB, ms) are normalized to floats between 0.0 and 1.0. You must inspect the `min` and `max` values returned by this tool. Args: track_index (int): The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc."""
+        """Gets all parameters for a device on a track to discover their names, minimums, and maximums."""
         try:
             req = schema.DeviceIndexRequest(track_index=track_index, device_index=device_index)
             return str(self._execute_proxy_request("get_device_parameters", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def set_device_parameter(
         self, track_index: int, device_index: int, parameter_name: str, value: float
     ) -> str:
-        """Sets the numeric value of a specific parameter by its string name on a device. CRITICAL: If the parameter's min is 0.0 and max is 1.0, the value is normalized. You CANNOT send absolute real-world values (e.g., 400 for 400Hz). You MUST mathematically estimate and scale the desired real-world value into a float between 0.0 and 1.0 before making this call."""
+        """Sets the numeric value of a specific parameter by its string name on a device."""
         try:
             req = schema.SetDeviceParameterByNameRequest(
                 track_index=track_index,
@@ -327,20 +425,23 @@ class AbletonToolMixin:
             return str(self._execute_proxy_request("set_device_parameter", **req.model_dump()))
         except ValidationError as e:
             return str(e)
+        except AbletonProxyError as e:
+            return str(e)
 
     def _get_track_index_by_name(self, track_name: str) -> int:
+        """Helper to resolve a track index from its string name."""
         try:
             res = self._execute_proxy_request("get_session_info")
             tracks = res.get("tracks", [])
             for i, trk in enumerate(tracks):
                 if trk.get("name") == track_name:
                     return i
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error("Failed to get track index by name", exc_info=True)
         return -1
 
     def set_track_volume_by_name(self, track_name: str, gain_db: float) -> str:
-        """[COMPOUND TOOL - PREFERRED] Sets the volume of a track by its name in dB."""
+        """Sets the volume of a track by its name in dB."""
         try:
             track_index = self._get_track_index_by_name(track_name)
             if track_index == -1:
@@ -350,15 +451,17 @@ class AbletonToolMixin:
                     "set_track_volume", **{"track_index": track_index, "volume": gain_db}
                 )
             )
+        except AbletonProxyError as e:
+            return str(e)
         except Exception as e:
             return str(e)
 
     def mix_track(
-        self, track_index: int, volume: float = None, panning: float = None, mute: bool = None
+        self, track_index: int, volume: Optional[float] = None, panning: Optional[float] = None, mute: Optional[bool] = None
     ) -> str:
-        """[COMPOUND TOOL - PREFERRED] Sets mixer properties (volume, panning, mute) for a track."""
+        """Sets mixer properties (volume, panning, mute) for a track."""
         try:
-            params = {"track_index": track_index}
+            params: Dict[str, Any] = {"track_index": track_index}
             if volume is not None:
                 params["volume"] = volume
             if panning is not None:
@@ -366,11 +469,13 @@ class AbletonToolMixin:
             if mute is not None:
                 params["mute"] = mute
             return str(self._execute_proxy_request("set_track_mixer", **params))
+        except AbletonProxyError as e:
+            return str(e)
         except Exception as e:
             return str(e)
 
     def get_session_mix_status(self) -> str:
-        """[COMPOUND TOOL - PREFERRED] Retrieves a summary of volume/gain status for all tracks in the session in one go."""
+        """Retrieves a summary of volume/gain status for all tracks in the session in one go."""
         try:
             res = self._execute_proxy_request("get_session_info")
 
@@ -389,11 +494,13 @@ class AbletonToolMixin:
                 status_lines.append(f"Track {i} ({name}): Vol={volume}dB | Pan={panning}")
 
             return "\n".join(status_lines) if status_lines else "No tracks found."
+        except AbletonProxyError as e:
+            return str(e)
         except Exception as e:
             return str(e)
 
     def set_device_parameter_batch(
-        self, track_index: int, device_index: int, parameters: list
+        self, track_index: int, device_index: int, parameters: List[Any]
     ) -> str:
         """Sets multiple parameters on a single device sequentially."""
         try:
@@ -417,10 +524,13 @@ class AbletonToolMixin:
 
             return "Successfully updated parameters:\n" + "\n".join(f"- {s}" for s in success_keys)
 
+        except AbletonProxyError as e:
+            return str(e)
         except Exception as e:
+            logger.error("Batch parameter set failed", extra={"extra_data": {"error": str(e)}})
             return f"Error executing set_device_parameter_batch: {str(e)}"
 
-    def _flatten_schema(self, node, defs: dict):
+    def _flatten_schema(self, node: Any, defs: Dict[str, Any]) -> Any:
         """Recursively flattens JSON schemas by resolving $ref pointers and stripping $defs."""
         if isinstance(node, list):
             return [self._flatten_schema(item, defs) for item in node]
@@ -440,7 +550,8 @@ class AbletonToolMixin:
         else:
             return node
 
-    def _generate_minified_schemas(self) -> list:
+    def _generate_minified_schemas(self) -> List[Dict[str, Any]]:
+        """Generates minified JSON schemas for the exposed tools to feed into the prompt."""
         tool_schema_map = {
             "fetch_resource": schema.FetchResourceRequest,
             "create_midi_track": schema.TrackNameRequest,
@@ -455,14 +566,14 @@ class AbletonToolMixin:
         }
 
         tool_list = []
-        for func in self.tools:
+        for func in getattr(self, "tools", []): # self.tools is defined in CreativePlannerAgent
             func_name = func.__name__
             description = func.__doc__ or ""
 
-            tool_def = {"name": func_name, "description": description, "args": {}}
+            tool_def: Dict[str, Any] = {"name": func_name, "description": description, "args": {}}
 
             if func_name in tool_schema_map and tool_schema_map[func_name]:
-                js_schema = tool_schema_map[func_name].model_json_schema()
+                js_schema = tool_schema_map[func_name].model_json_schema()  # type: ignore
                 defs = js_schema.get("$defs", {})
                 flattened = self._flatten_schema(js_schema, defs)
 

@@ -2,7 +2,7 @@ import json
 import os
 import time
 import uuid
-from typing import Any
+from typing import Any, Optional
 
 SESSIONS_DIR = os.path.join(os.path.dirname(__file__), "data", "sessions")
 
@@ -18,9 +18,9 @@ class SessionManager:
     def create_session(
         self,
         title: str = "New Session",
-        genre: str | None = None,
-        chat_history: list[dict[str, Any]] = None,
-        metrics: dict[str, Any] = None,
+        genre: Optional[str] = None,
+        chat_history: Optional[list[dict[str, Any]]] = None,
+        metrics: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         session_id = str(uuid.uuid4())
         timestamp = time.time()

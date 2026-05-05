@@ -2,15 +2,27 @@ import asyncio
 import ast
 import json
 import os
+import inspect
+import traceback
+from typing import Optional, List, Dict, Any, AsyncGenerator
 
 from google import genai
 from google.genai import types
 
 from backend.gemini.retriever import RetrieverAgent
 from backend.gemini.tools import AbletonToolMixin
+from backend.logger import get_json_logger
+
+logger = get_json_logger(__name__)
 
 class CreativePlannerAgent(AbletonToolMixin):
-    def __init__(self):
+    """
+    Main orchestration agent (Single-Shot Compiler / Supervisor) that communicates
+    with the Gemini API, maintains the conversation history, and invokes
+    Ableton tools or the Retriever for RAG.
+    """
+
+    def __init__(self) -> None:
         api_key = os.getenv("GEMINI_API_KEY")
 
         if not api_key:
@@ -39,8 +51,6 @@ class CreativePlannerAgent(AbletonToolMixin):
             self.set_device_parameter_batch,
             self.search_device_parameters,
         ]
-
-        self.atomic_tools = []
 
         self.system_instruction = (
             "ROLE & TONE: You are a senior Ableton Live technical consultant and mixing engineer. Speak professionally, clinically, and concisely. "
@@ -80,9 +90,12 @@ class CreativePlannerAgent(AbletonToolMixin):
         return await self.retriever.search_catalog(device_name, intent)
 
     async def chat(
-        self, user_prompt: str, chat_history: list = None, require_approval: bool = True
-    ):
-        """Executes a Single-Shot Compiler agent to fulfill the prompt."""
+        self, user_prompt: str, chat_history: Optional[List[Dict[str, Any]]] = None, require_approval: bool = True
+    ) -> AsyncGenerator[str, None]:
+        """
+        Executes a Single-Shot Compiler agent to fulfill the prompt.
+        Yields JSON strings representing the status or final result.
+        """
         self.approval_event.clear()
         self.is_approved = False
         self.retriever.prompt_tokens = 0
@@ -105,8 +118,6 @@ class CreativePlannerAgent(AbletonToolMixin):
             )
             content_text = msg.get("content", "")
 
-            # Prevent double injection: if the last message is from the user,
-            # we merge it into the final augmented prompt instead of appending it as a separate turn.
             if i == history_len - 1 and role == "user":
                 if content_text:
                     final_user_text = content_text
@@ -126,6 +137,7 @@ class CreativePlannerAgent(AbletonToolMixin):
         try:
             session_state = await asyncio.to_thread(self.fetch_resource, "ableton://session/state")
         except Exception as e:
+            logger.warning("Failed to pre-fetch session", extra={"extra_data": {"error": str(e)}})
             session_state = f"Failed to pre-fetch session: {e}"
 
         augmented_prompt = f"LOCAL SESSION STATE:\n{session_state}\n\nUSER PROMPT:\n{final_user_text}\n\nNOTE: If you need more track details to execute the intent, output ONLY `fetch_resource` actions first. The system will run them and return the results so you can decide the final actions."
@@ -145,17 +157,17 @@ class CreativePlannerAgent(AbletonToolMixin):
 
         turn_count = 0
         max_turns = 4
+        script_actions = []
 
         while turn_count < max_turns:
             turn_count += 1
             try:
                 response = await self.client.aio.models.generate_content(
-                    model=self.pro_model, contents=contents, config=config
+                    model=self.pro_model, contents=contents, config=config  # type: ignore
                 )
             except Exception as e:
-                import traceback
-
                 tb_str = traceback.format_exc()
+                logger.error("Gemini API Error", exc_info=True)
                 yield (
                     json.dumps({"type": "debug", "content": f"GEMINI_API_ERROR:\n{tb_str}"}) + "\n"
                 )
@@ -182,6 +194,7 @@ class CreativePlannerAgent(AbletonToolMixin):
                 )
 
             if not response.text:
+                logger.error("Empty response from Gemini PRO.")
                 yield (
                     json.dumps(
                         {
@@ -198,15 +211,13 @@ class CreativePlannerAgent(AbletonToolMixin):
                 )
                 return
 
-            print("\n--- RAW LLM PAYLOAD ---")
-            print(response.text)
+            logger.info("Received payload from LLM", extra={"extra_data": {"turn": turn_count, "payload_len": len(response.text)}})
 
             raw_text = response.text.strip()
             start_idx = raw_text.find("[")
 
             clean_text = raw_text
             if start_idx != -1:
-                # Safely find the matching closing bracket by parsing characters
                 in_string = False
                 escape = False
                 depth = 0
@@ -241,6 +252,7 @@ class CreativePlannerAgent(AbletonToolMixin):
                     if not isinstance(script_actions, list):
                         script_actions = [script_actions]
                 except json.JSONDecodeError as e:
+                    logger.error("JSON Decode Error on Planner payload", extra={"extra_data": {"raw": response.text}})
                     yield (
                         json.dumps(
                             {
@@ -257,7 +269,6 @@ class CreativePlannerAgent(AbletonToolMixin):
                     )
                     return
 
-                # ReAct Loop Check: Are there only context-gathering actions?
                 has_mutations = any(
                     a.get("tool")
                     not in ["fetch_resource", "ui_text_response", "search_device_parameters"]
@@ -300,26 +311,25 @@ class CreativePlannerAgent(AbletonToolMixin):
                             res = await self.search_device_parameters(d_name, intent)
                             fetch_results.append(f"Result for RAG search '{d_name}':\n{res}")
 
-                    # Append the model's action and the tool results to the history
-                    contents.append(response.candidates[0].content)
+                    if response.candidates and len(response.candidates) > 0:
+                        if response.candidates[0].content:
+                            contents.append(response.candidates[0].content)
                     contents.append(
                         types.Content(
                             role="user",
                             parts=[types.Part.from_text(text="\n\n".join(fetch_results))],
                         )
                     )
-                    continue  # Loop again to get the next action from the model
+                    continue
 
-                # If we reach here, there are mutations or no fetches, so we break the ReAct loop
                 break
-
-            # End of ReAct loop
 
         if require_approval:
             yield json.dumps({"type": "approval_required", "actions": script_actions}) + "\n"
             await self.approval_event.wait()
 
             if not getattr(self, "is_approved", False):
+                logger.info("Execution cancelled by user")
                 yield (
                     json.dumps(
                         {
@@ -352,6 +362,7 @@ class CreativePlannerAgent(AbletonToolMixin):
             if not tool_name:
                 continue
 
+            logger.info("Executing Tool", extra={"extra_data": {"tool": tool_name}})
             yield (
                 json.dumps(
                     {
@@ -369,17 +380,12 @@ class CreativePlannerAgent(AbletonToolMixin):
                 continue
 
             if hasattr(self, tool_name):
-                import inspect
                 method = getattr(self, tool_name)
                 try:
                     if inspect.iscoroutinefunction(method):
                         res = await method(**args)
                     else:
                         res = await asyncio.to_thread(method, **args)
-
-                    if tool_name == "get_device_parameters":
-                        with open("parameter_dump.txt", "w") as f:
-                            f.write(str(res))
 
                     if isinstance(res, str) and res.strip().startswith("{") and "'" in res:
                         try:
@@ -395,16 +401,14 @@ class CreativePlannerAgent(AbletonToolMixin):
 
                     await asyncio.sleep(0.5)
                 except Exception as e:
-                    import traceback
-
-                    traceback.print_exc()
+                    logger.error("Tool execution failed", exc_info=True, extra={"extra_data": {"tool": tool_name}})
                     yield (
                         json.dumps({"type": "status", "message": f"Error in {tool_name}: {e}"})
                         + "\n"
                     )
             else:
                 error_msg = f"Hallucinated Tool Error: The LLM attempted to call a non-existent tool '{tool_name}'."
-                print(f"\n[ERROR] {error_msg}")
+                logger.error(error_msg)
                 yield json.dumps({"type": "status", "message": error_msg}) + "\n"
 
         final_text = (

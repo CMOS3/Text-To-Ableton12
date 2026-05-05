@@ -1,5 +1,11 @@
+import socket
+from typing import Tuple, Dict, Any
+
 class TrackMixin:
-    def _do_create_midi_track(self, track_name):
+    """Provides methods to create, delete, and modify tracks and their mixer properties."""
+
+    def _do_create_midi_track(self, track_name: str) -> None:
+        """Creates a new MIDI track with a specified name."""
         try:
             self.song().create_midi_track(-1)
             new_track = self.song().tracks[-1]
@@ -8,26 +14,30 @@ class TrackMixin:
         except Exception as e:
             self.log_message(f"Error creating track: {e}")
 
-    def _do_set_track_name(self, args):
+    def _do_set_track_name(self, args: Tuple[int, str]) -> None:
+        """Sets the string name of a track by its integer index."""
         idx, name = args
         try:
             self.song().tracks[idx].name = name
         except Exception as e:
             self.log_message(f"Error setting track name: {e}")
 
-    def _do_select_track(self, track_name):
+    def _do_select_track(self, track_name: str) -> None:
+        """Focuses the Live UI on the specified track."""
         for track in self.song().tracks:
             if track.name == track_name:
                 self.song().view.selected_track = track
                 return
 
-    def _do_arm_track(self, args):
+    def _do_arm_track(self, args: Tuple[str, bool]) -> None:
+        """Arms or disarms a specific track for recording."""
         track_name, arm = args
         for track in self.song().tracks:
             if track.name == track_name and track.can_be_armed:
                 track.arm = arm
 
-    def _do_delete_track(self, params):
+    def _do_delete_track(self, params: Dict[str, int]) -> None:
+        """Deletes a track by its index."""
         try:
             t_idx = params.get("track_index", 0)
             if t_idx >= 0 and t_idx < len(self.song().tracks):
@@ -37,7 +47,8 @@ class TrackMixin:
         except Exception as e:
             self.log_message(f"Delete track err: {e}")
 
-    def _do_set_track_mixer(self, args):
+    def _do_set_track_mixer(self, args: Tuple[Dict[str, Any], socket.socket]) -> None:
+        """Modifies mixer properties like volume, panning, and mute on a track."""
         params, client = args
         try:
             t_idx = params.get("track_index")

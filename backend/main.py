@@ -39,11 +39,13 @@ app.add_middleware(
 )
 
 # Initialize single client instance
+from typing import Optional
+gemini_client: Optional[CreativePlannerAgent] = None
+
 try:
     gemini_client = CreativePlannerAgent()
 except Exception as e:
     logger.error(f"Failed to initialize Gemini Client: {e}")
-    gemini_client = None
 
 
 class ChatResponse(BaseModel):

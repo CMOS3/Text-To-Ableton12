@@ -1,6 +1,7 @@
 import json
 import logging
 import socket
+from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +28,12 @@ class MCPProxy:
                 self.sock = None
             raise e
 
-    def _create_payload(self, method: str, params: dict = None) -> bytes:
+    def _create_payload(self, method: str, params: Optional[Dict[str, Any]] = None) -> bytes:
         payload = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params or {}}
         # Add newline delimiter just in case the server uses readline()
         return (json.dumps(payload) + "\n").encode("utf-8")
 
-    def send_command(self, method: str, params: dict = None) -> dict:
+    def send_command(self, method: str, params: Optional[Dict[str, Any]] = None) -> dict:
         """Sends a command and attempts to read an ack response."""
         try:
             self.connect()
@@ -67,7 +68,7 @@ class MCPProxy:
                 "message": f"Error communicating with Ableton MCP Server: {str(e)}",
             }
 
-    def request_state(self, method: str, params: dict = None) -> dict:
+    def request_state(self, method: str, params: Optional[dict[Any, Any]] = None) -> dict:
         """Requests state and attempts to parse the JSON response."""
         try:
             self.connect()

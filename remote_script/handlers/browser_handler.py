@@ -1,5 +1,11 @@
+import socket
+from typing import Dict, Any, Tuple, Optional
+
 class BrowserMixin:
-    def _do_get_browser_tree(self, client):
+    """Provides methods to traverse the Ableton Browser and load devices or resources."""
+
+    def _do_get_browser_tree(self, client: socket.socket) -> None:
+        """Retrieves the root-level folder structure of the Ableton Browser."""
         try:
             tree = []
             browser = self.application().browser
@@ -19,10 +25,11 @@ class BrowserMixin:
         except Exception as e:
             self._send_error(client, f"Get browser tree err: {e}")
 
-    def _do_get_browser_items_at_path(self, args):
+    def _do_get_browser_items_at_path(self, args: Tuple[Dict[str, Any], socket.socket]) -> None:
+        """Navigates to a specific browser path and retrieves its children items."""
         params, client = args
         try:
-            path = params.get("path", "")
+            path = str(params.get("path", ""))
             node = self._traverse_browser_path(path)
             if not node:
                 self._send_error(client, f"Path '{path}' not found in Ableton Browser.")
@@ -36,7 +43,8 @@ class BrowserMixin:
         except Exception as e:
             self._send_error(client, f"Get browser items err: {e}")
 
-    def _traverse_browser_path(self, path):
+    def _traverse_browser_path(self, path: str) -> Optional[Any]:
+        """Helper to walk the Ableton Browser tree given a string path (e.g., 'Instruments/Analog')."""
         parts = [p.strip() for p in path.split("/") if p.strip()]
         if not parts:
             return None
@@ -72,11 +80,12 @@ class BrowserMixin:
 
         return current_node
 
-    def _do_load_device(self, args):
+    def _do_load_device(self, args: Tuple[Dict[str, Any], socket.socket]) -> None:
+        """Loads an instrument or effect from the browser onto a specific track."""
         params, client = args
         try:
-            t_idx = params.get("track_index", 0)
-            path = params.get("browser_path", "")
+            t_idx = int(params.get("track_index", 0))
+            path = str(params.get("browser_path", ""))
 
             node = self._traverse_browser_path(path)
             if not node:
@@ -94,11 +103,12 @@ class BrowserMixin:
             self.log_message(f"Load device err: {e}")
             self._send_error(client, f"Load device err: {e}")
 
-    def _do_load_drum_kit(self, args):
+    def _do_load_drum_kit(self, args: Tuple[Dict[str, Any], socket.socket]) -> None:
+        """Loads a drum kit from the browser onto a specific track."""
         params, client = args
         try:
-            t_idx = params.get("track_index", 0)
-            path = params.get("drum_kit_path", "")
+            t_idx = int(params.get("track_index", 0))
+            path = str(params.get("drum_kit_path", ""))
 
             node = self._traverse_browser_path(path)
             if not node:
@@ -115,11 +125,12 @@ class BrowserMixin:
             self.log_message(f"Load drum kit err: {e}")
             self._send_error(client, f"Load drum kit err: {e}")
 
-    def _do_fetch_resource(self, args):
+    def _do_fetch_resource(self, args: Tuple[Dict[str, Any], socket.socket]) -> None:
+        """Fetches dynamic properties using deep URI routing for JIT retrieval."""
         params, client = args
         try:
-            uri = params.get("uri", "")
-            data = {}
+            uri = str(params.get("uri", ""))
+            data: Any = {}
 
             if uri.startswith("ableton://session/state"):
                 tracks = [
@@ -209,8 +220,8 @@ class BrowserMixin:
                         t = self.song().tracks[t_idx]
                         devs = []
                         for j, d in enumerate(t.devices):
-                            params = [{"n": p.name, "v": p.value} for p in d.parameters]
-                            devs.append({"i": j, "n": d.name, "p": params})
+                            params_arr = [{"n": p.name, "v": p.value} for p in d.parameters]
+                            devs.append({"i": j, "n": d.name, "p": params_arr})
                         data = devs
             self._send_response(client, {"uri": uri, "data": data})
         except Exception as e:

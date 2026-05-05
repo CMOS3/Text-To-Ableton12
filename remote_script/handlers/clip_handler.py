@@ -1,12 +1,17 @@
 import Live
+import socket
+from typing import Dict, Any, Tuple
 
 class ClipMixin:
-    def _do_create_clip(self, params):
+    """Provides methods for managing clips and injecting MIDI note data."""
+
+    def _do_create_clip(self, params: Dict[str, Any]) -> None:
+        """Creates an empty MIDI clip of a specified length in beats."""
         try:
-            t_idx = params.get("track_index", 0)
-            c_idx = params.get("clip_slot_index", 0)
-            length = params.get("length", 4.0)
-            clip_name = params.get("clip_name", "")
+            t_idx = int(params.get("track_index", 0))
+            c_idx = int(params.get("clip_slot_index", 0))
+            length = float(params.get("length", 4.0))
+            clip_name = str(params.get("clip_name", ""))
             slot = self.song().tracks[t_idx].clip_slots[c_idx]
             if not slot.has_clip:
                 slot.create_clip(length)
@@ -15,37 +20,41 @@ class ClipMixin:
         except Exception as e:
             self.log_message(f"Create clip err: {e}")
 
-    def _do_fire_clip(self, params):
+    def _do_fire_clip(self, params: Dict[str, Any]) -> None:
+        """Triggers playback of a specific clip slot."""
         try:
-            t_idx = params.get("track_index", 0)
-            c_idx = params.get("clip_slot_index", 0)
+            t_idx = int(params.get("track_index", 0))
+            c_idx = int(params.get("clip_slot_index", 0))
             self.song().tracks[t_idx].clip_slots[c_idx].fire()
         except Exception as e:
             self.log_message(f"Fire clip err: {e}")
 
-    def _do_set_clip_name(self, params):
+    def _do_set_clip_name(self, params: Dict[str, Any]) -> None:
+        """Renames an existing clip."""
         try:
-            t_idx = params.get("track_index", 0)
-            c_idx = params.get("clip_slot_index", 0)
-            name = params.get("name", "New Clip")
+            t_idx = int(params.get("track_index", 0))
+            c_idx = int(params.get("clip_slot_index", 0))
+            name = str(params.get("name", "New Clip"))
             clip = self.song().tracks[t_idx].clip_slots[c_idx].clip
             if clip:
                 clip.name = name
         except Exception as e:
             self.log_message(f"Set clip name err: {e}")
 
-    def _do_stop_clip(self, params):
+    def _do_stop_clip(self, params: Dict[str, Any]) -> None:
+        """Stops playback of a specific clip slot."""
         try:
-            t_idx = params.get("track_index", 0)
-            c_idx = params.get("clip_slot_index", 0)
+            t_idx = int(params.get("track_index", 0))
+            c_idx = int(params.get("clip_slot_index", 0))
             self.song().tracks[t_idx].clip_slots[c_idx].stop()
         except Exception as e:
             self.log_message(f"Stop clip err: {e}")
 
-    def _do_add_notes(self, params):
+    def _do_add_notes(self, params: Dict[str, Any]) -> None:
+        """Injects MIDI note objects directly into a clip."""
         try:
-            t_idx = params.get("track_index", 0)
-            c_idx = params.get("clip_slot_index", 0)
+            t_idx = int(params.get("track_index", 0))
+            c_idx = int(params.get("clip_slot_index", 0))
             notes_req = params.get("notes", [])
 
             clip = self.song().tracks[t_idx].clip_slots[c_idx].clip
@@ -54,10 +63,10 @@ class ClipMixin:
 
             notes_to_add = tuple(
                 Live.Clip.MidiNoteSpecification(
-                    pitch=n["pitch"],
-                    start_time=n["start_time"],
-                    duration=n["duration"],
-                    velocity=n["velocity"],
+                    pitch=int(n["pitch"]),
+                    start_time=float(n["start_time"]),
+                    duration=float(n["duration"]),
+                    velocity=int(n["velocity"]),
                     mute=False,
                 )
                 for n in notes_req
@@ -66,13 +75,14 @@ class ClipMixin:
         except Exception as e:
             self.log_message(f"Add notes err: {e}")
 
-    def _do_inject_midi_to_new_clip(self, args):
+    def _do_inject_midi_to_new_clip(self, args: Tuple[Dict[str, Any], socket.socket]) -> None:
+        """Finds an empty slot, creates a clip, and injects notes in one atomic operation."""
         params, client = args
         try:
-            t_idx = params.get("track_index", 0)
-            length = params.get("length", 4.0)
+            t_idx = int(params.get("track_index", 0))
+            length = float(params.get("length", 4.0))
             notes_req = params.get("notes", [])
-            clip_name = params.get("clip_name", "")
+            clip_name = str(params.get("clip_name", ""))
 
             if t_idx >= len(self.song().tracks):
                 self._send_error(client, "Track index out of bounds")
@@ -100,10 +110,10 @@ class ClipMixin:
             if notes_req and clip:
                 notes_to_add = tuple(
                     Live.Clip.MidiNoteSpecification(
-                        pitch=n["pitch"],
-                        start_time=n["start_time"],
-                        duration=n["duration"],
-                        velocity=n["velocity"],
+                        pitch=int(n["pitch"]),
+                        start_time=float(n["start_time"]),
+                        duration=float(n["duration"]),
+                        velocity=int(n["velocity"]),
                         mute=False,
                     )
                     for n in notes_req
@@ -116,11 +126,12 @@ class ClipMixin:
         except Exception as e:
             self._send_error(client, f"Inject midi err: {e}")
 
-    def _do_get_notes_from_clip(self, args):
+    def _do_get_notes_from_clip(self, args: Tuple[Dict[str, Any], socket.socket]) -> None:
+        """Retrieves an array of all notes currently stored in a clip."""
         params, client = args
         try:
-            t_idx = params.get("track_index", 0)
-            c_idx = params.get("clip_slot_index", 0)
+            t_idx = int(params.get("track_index", 0))
+            c_idx = int(params.get("clip_slot_index", 0))
 
             if t_idx >= len(self.song().tracks):
                 self._send_error(client, "Track index out of bounds")
@@ -152,10 +163,11 @@ class ClipMixin:
         except Exception as e:
             self._send_error(client, f"Get notes err: {e}")
 
-    def _do_delete_notes_from_clip(self, params):
+    def _do_delete_notes_from_clip(self, params: Dict[str, Any]) -> None:
+        """Deletes specific notes from a clip based on pitch and start_time matches."""
         try:
-            t_idx = params.get("track_index", 0)
-            c_idx = params.get("clip_slot_index", 0)
+            t_idx = int(params.get("track_index", 0))
+            c_idx = int(params.get("clip_slot_index", 0))
             notes_req = params.get("notes", [])
 
             if t_idx >= len(self.song().tracks):
@@ -177,10 +189,11 @@ class ClipMixin:
         except Exception as e:
             self.log_message(f"Delete notes err: {e}")
 
-    def _do_delete_clip(self, params):
+    def _do_delete_clip(self, params: Dict[str, Any]) -> None:
+        """Deletes a clip entirely from a slot."""
         try:
-            t_idx = params.get("track_index", 0)
-            c_idx = params.get("clip_slot_index", 0)
+            t_idx = int(params.get("track_index", 0))
+            c_idx = int(params.get("clip_slot_index", 0))
             if t_idx >= len(self.song().tracks):
                 return
             track = self.song().tracks[t_idx]

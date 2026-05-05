@@ -1,7 +1,12 @@
 import re
+import socket
+from typing import Dict, Any, Tuple
 
 class DeviceMixin:
-    def _do_get_track_devices(self, args):
+    """Provides methods to list devices, get their parameters, and modify values dynamically."""
+
+    def _do_get_track_devices(self, args: Tuple[Dict[str, Any], socket.socket]) -> None:
+        """Retrieves a list of all devices loaded on a specific track."""
         params, client = args
         try:
             t_idx = int(params.get("track_index", 0))
@@ -19,7 +24,8 @@ class DeviceMixin:
         except Exception as e:
             self._send_error(client, f"Get track devices err: {str(e)}")
 
-    def _do_get_device_parameters(self, args):
+    def _do_get_device_parameters(self, args: Tuple[Dict[str, Any], socket.socket]) -> None:
+        """Retrieves a list of all parameters for a specific device, including their min/max values."""
         params, client = args
         try:
             t_idx = int(params.get("track_index", 0))
@@ -51,18 +57,19 @@ class DeviceMixin:
         except Exception as e:
             self._send_error(client, f"Get device params err: {str(e)}")
 
-    def _do_set_device_parameter(self, args):
+    def _do_set_device_parameter(self, args: Tuple[Dict[str, Any], socket.socket]) -> None:
+        """Fuzzy-matches a string parameter name and sets its float value cleanly within bounds."""
         params, client = args
         try:
             t_idx = int(params.get("track_index", 0))
             d_idx = int(params.get("device_index", 0))
-            p_name = params.get("parameter_name", "")
-            val = params.get("value", 0.0)
+            p_name = str(params.get("parameter_name", ""))
+            val = float(params.get("value", 0.0))
 
             track = self.song().tracks[t_idx]
             device = track.devices[d_idx]
 
-            target_name = re.sub(r"[^a-z0-9]", "", str(p_name).lower())
+            target_name = re.sub(r"[^a-z0-9]", "", p_name.lower())
             if not target_name:
                 self._send_error(client, "Parameter name cannot be empty")
                 return
@@ -140,7 +147,7 @@ class DeviceMixin:
 
             # Safety clamp and assign
             clampped_val = max(
-                float(best_match.min), min(float(best_match.max), float(val))
+                float(best_match.min), min(float(best_match.max), val)
             )
             best_match.value = clampped_val
             self._send_response(client, str(best_match))
