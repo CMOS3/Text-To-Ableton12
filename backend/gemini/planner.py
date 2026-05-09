@@ -44,7 +44,7 @@ class CreativePlannerAgent(AbletonToolMixin):
             self.set_track_name,
             self.set_clip_name,
             self.load_instrument_or_effect,
-            self.set_track_volume_by_name,
+            self.load_drum_kit,
             self.mix_track,
             self.inject_midi_to_new_clip,
             self.set_device_parameter_batch,

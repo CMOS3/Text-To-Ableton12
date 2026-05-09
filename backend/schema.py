@@ -179,10 +179,6 @@ class SetDeviceParameterByNameRequest(BaseModel):
     value: float
 
 
-class SetTrackVolumeByNameRequest(BaseModel):
-    track_name: str
-    gain_db: float
-
 
 class MixTrackRequest(BaseModel):
     track_index: int = Field(

@@ -373,24 +373,6 @@ class AbletonToolMixin:
         except AbletonProxyError as e:
             return str(e)
 
-    def delete_track(self, track_index: int) -> str:
-        """Deletes a track by its integer index."""
-        try:
-            return str(self._execute_proxy_request("delete_track", **{"track_index": track_index}))
-        except AbletonProxyError as e:
-            return str(e)
-
-    def delete_clip(self, track_index: int, clip_slot_index: int) -> str:
-        """Deletes a clip from a specific track and slot index."""
-        try:
-            return str(
-                self._execute_proxy_request(
-                    "delete_clip", **{"track_index": track_index, "clip_slot_index": clip_slot_index}
-                )
-            )
-        except AbletonProxyError as e:
-            return str(e)
-
     def get_track_devices(self, track_index: int) -> str:
         """Gets all devices loaded on a specific track."""
         try:
@@ -426,34 +408,6 @@ class AbletonToolMixin:
         except ValidationError as e:
             return str(e)
         except AbletonProxyError as e:
-            return str(e)
-
-    def _get_track_index_by_name(self, track_name: str) -> int:
-        """Helper to resolve a track index from its string name."""
-        try:
-            res = self._execute_proxy_request("get_session_info")
-            tracks = res.get("tracks", [])
-            for i, trk in enumerate(tracks):
-                if trk.get("name") == track_name:
-                    return i
-        except Exception as e:
-            logger.error("Failed to get track index by name", exc_info=True)
-        return -1
-
-    def set_track_volume_by_name(self, track_name: str, gain_db: float) -> str:
-        """Sets the volume of a track by its name in dB."""
-        try:
-            track_index = self._get_track_index_by_name(track_name)
-            if track_index == -1:
-                return f"Error: Track '{track_name}' not found."
-            return str(
-                self._execute_proxy_request(
-                    "set_track_volume", **{"track_index": track_index, "volume": gain_db}
-                )
-            )
-        except AbletonProxyError as e:
-            return str(e)
-        except Exception as e:
             return str(e)
 
     def mix_track(
@@ -558,7 +512,7 @@ class AbletonToolMixin:
             "set_track_name": schema.TrackIndexNameRequest,
             "set_clip_name": schema.SetClipNameRequest,
             "load_instrument_or_effect": schema.LoadDeviceRequest,
-            "set_track_volume_by_name": schema.SetTrackVolumeByNameRequest,
+            "load_drum_kit": schema.LoadDrumKitRequest,
             "mix_track": schema.MixTrackRequest,
             "inject_midi_to_new_clip": schema.InjectMidiRequest,
             "set_device_parameter_batch": schema.SetDeviceParameterBatchRequest,
