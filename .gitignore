@@ -9,3 +9,4 @@ dist/
 ollama_debug_log.txt
 .agents/
 backend/data/sessions/
+project_docs/
