@@ -1,13 +1,5 @@
 import os
-
-from dotenv import load_dotenv
-
-load_dotenv()
 import logging
-
-# Load environment variables at the very top
-load_dotenv()
-
 import sys
 
 import uvicorn

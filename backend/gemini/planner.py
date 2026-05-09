@@ -27,8 +27,7 @@ class CreativePlannerAgent(AbletonToolMixin):
 
         if not api_key:
             raise ValueError(
-                "GEMINI_API_KEY not found in environment. Please ensure you have a '.env' file "
-                "in the project root directory with 'GEMINI_API_KEY=your_key_here'."
+                "GEMINI_API_KEY not found in environment. Please provide it in the Application Settings UI."
             )
 
         self.client = genai.Client(api_key=api_key)
