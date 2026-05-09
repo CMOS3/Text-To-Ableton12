@@ -134,16 +134,19 @@ class BrowserMixin:
 
             if uri.startswith("ableton://session/state"):
                 tracks = [
-                    {"i": i, "n": t.name} for i, t in enumerate(self.song().tracks)
+                    {"i": i, "n": t.name, "dev": [str(d.name) for d in getattr(t, "devices", [])]} 
+                    for i, t in enumerate(self.song().tracks)
                 ]
                 returns = [
-                    {"i": i, "n": t.name}
+                    {"i": i, "n": t.name, "dev": [str(d.name) for d in getattr(t, "devices", [])]}
                     for i, t in enumerate(self.song().return_tracks)
                 ]
                 try:
                     master_name = self.song().master_track.name
+                    master_devs = [str(d.name) for d in getattr(self.song().master_track, "devices", [])]
                 except Exception:
                     master_name = "Master"
+                    master_devs = []
 
                 scale_active = getattr(self.song(), "scale_mode", 0) == 1
                 root_note = getattr(self.song(), "root_note", -1)
@@ -153,7 +156,7 @@ class BrowserMixin:
                     "bpm": self.song().tempo,
                     "trk": tracks,
                     "returns": returns,
-                    "master": {"n": master_name},
+                    "master": {"n": master_name, "dev": master_devs},
                     "scale_active": scale_active,
                     "root_note": root_note,
                     "scale_name": scale_name,
