@@ -205,7 +205,11 @@ settingsSaveBtn.addEventListener('click', async () => {
         await fetch(`${backendUrl}/api/settings`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ gemini_api_key: geminiApiKey, mcp_port: mcpPort })
+            body: JSON.stringify({ 
+                gemini_api_key: geminiApiKey, 
+                mcp_port: mcpPort,
+                ableton_user_library_path: userLibraryPath
+            })
         });
     } catch (e) {
         console.warn("Failed to update backend settings:", e);
@@ -617,7 +621,11 @@ async function checkConnection() {
         await fetch(`${backendUrl}/api/settings`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ gemini_api_key: geminiApiKey, mcp_port: mcpPort })
+            body: JSON.stringify({ 
+                gemini_api_key: geminiApiKey, 
+                mcp_port: mcpPort,
+                ableton_user_library_path: userLibraryPath
+            })
         }).catch(e => console.warn("Could not sync initial settings to backend", e));
 
         await window.api.ping(backendUrl);

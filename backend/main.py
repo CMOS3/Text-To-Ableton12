@@ -10,6 +10,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Ensure the root directory is in the python path to allow direct execution
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -45,10 +48,13 @@ app.add_middleware(
 from typing import Optional
 gemini_client: Optional[CreativePlannerAgent] = None
 
-try:
-    gemini_client = CreativePlannerAgent()
-except Exception as e:
-    logger.error(f"Failed to initialize Gemini Client: {e}")
+if os.environ.get("GEMINI_API_KEY"):
+    try:
+        gemini_client = CreativePlannerAgent()
+    except Exception as e:
+        logger.error(f"Failed to initialize Gemini Client on boot: {e}")
+else:
+    logger.info("GEMINI_API_KEY not found in environment. Waiting for frontend to provide it via /api/settings.")
 
 
 class ChatResponse(BaseModel):
