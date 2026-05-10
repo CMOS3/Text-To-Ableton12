@@ -70,7 +70,7 @@ You are an expert Ableton Live sound designer and mixing engineer.
 I have a custom Ableton Device Group (.adg) named '{device_name}'.
 The user has mapped specific parameters to the 16 Macros. 
 Your task is to generate a JSON schema explaining these parameters, their likely use cases, and how they should be tweaked.
-Ableton macros use a 0.0 to 1.0 float scale internally via the API.
+Ableton macros use a 0 to 127 integer scale internally via the API.
 
 Here are the extracted macro names:
 """
@@ -86,10 +86,10 @@ Output ONLY a raw JSON object with the following schema:
   "description": "A 1-2 sentence overview of what this device likely is and when to use it.",
   "parameters": {
     "Exact Macro Name Extracted": {
-        "description": "How this parameter affects the sound. Provide specific examples of values on a 0.0 to 1.0 scale (e.g. 0.0 = dark, 1.0 = bright). If explicit user instructions were provided, you MUST map them accurately to the 0.0-1.0 scale (e.g. if instruction is '0=Sine, 127=Noise', map Sine to 0.0 and Noise to 1.0).",
-        "min": 0.0,
-        "max": 1.0,
-        "default": 0.5
+        "description": "How this parameter affects the sound. Provide specific examples of values on a 0 to 127 scale (e.g. 0 = dark, 127 = bright). If explicit user instructions were provided, you MUST map them accurately to the 0-127 scale (e.g. if instruction is '0=Sine, 127=Noise', map Sine to 0 and Noise to 127).",
+        "min": 0,
+        "max": 127,
+        "default": 63
     }
   }
 }
@@ -176,7 +176,7 @@ async def build_catalog():
         else:
             semantic_data = {"description": "No description available.", "parameters": {}}
             for _, name in macro_names.items():
-                semantic_data["parameters"][name] = {"description": "Custom mapped macro.", "min": 0.0, "max": 1.0, "default": 0.5}
+                semantic_data["parameters"][name] = {"description": "Custom mapped macro.", "min": 0, "max": 127, "default": 63}
                 
         # 3. Store
         new_catalog[device_name] = {

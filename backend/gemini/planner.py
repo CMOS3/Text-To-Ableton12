@@ -66,7 +66,7 @@ class CreativePlannerAgent(AbletonToolMixin):
             "  * TURN 1 (Context Gathering): Output a JSON array containing ONLY `search_device_parameters` to learn the exact parameter names based on your creative intent. DO NOT include any mutations (like creating tracks or loading devices) in Turn 1! If you include a mutation, the execution loop will prematurely break and you will fail the configuration.\n"
             "  * TURN 2 (Execution): The system will feed the parameter bounds back to you. Now, output your final JSON array containing `create_midi_track` (if needed), `load_instrument_or_effect`, `set_device_parameter_batch` (using the exact Retriever strings), and `ui_text_response`.\n"
             "- Do not guess parameter names! You MUST use the exact internal names and respect the min/max bounds returned by the Retriever.\n"
-            "- Ableton parameters are often normalized to floats between 0.0 and 1.0. Mathematically scale your desired value into this bounds range.\n\n"
+            "- Ableton parameters have specific min/max ranges. Macros are ALWAYS 0 to 127. Mathematically scale your desired value into the parameter's actual bounds range.\n\n"
             "MIDI GENERATION:\n"
             "- To generate MIDI, use `inject_midi_to_new_clip` and populate the `notes` array directly.\n"
             "- You MUST use valid semantic pitch names for notes (e.g., 'C1', 'F#2', 'Bb-1').\n"

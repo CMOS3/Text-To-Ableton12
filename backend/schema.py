@@ -205,7 +205,7 @@ class MixTrackRequest(BaseModel):
 
 class TweakSchema(BaseModel):
     parameter_name: str = Field(..., description="Name of the parameter to tweak.")
-    value: float = Field(..., description="New value for the parameter (0.0 to 1.0).")
+    value: float = Field(..., description="New value for the parameter. You MUST look at the min/max range. Macros are ALWAYS 0 to 127. Panning is -1.0 to 1.0.")
 
 
 class SetDeviceParameterBatchRequest(BaseModel):
