@@ -98,7 +98,7 @@ Do NOT output markdown code blocks. Output the raw JSON object.
 
     try:
         response = await client.aio.models.generate_content(
-            model="models/gemini-3.1-flash-preview", # Flash is fast enough for this RAG-like task
+            model="gemini-2.5-flash", # Use standard flash model
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.2,
