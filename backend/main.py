@@ -144,7 +144,7 @@ def delete_session(session_id: str):
 
 
 @app.post("/api/settings")
-def update_settings(req: schema.SettingsRequest):
+async def update_settings(req: schema.SettingsRequest):
     global gemini_client
     # Update MCP port
     if req.mcp_port:
