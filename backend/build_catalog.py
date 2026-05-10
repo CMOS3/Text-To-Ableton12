@@ -98,7 +98,7 @@ Do NOT output markdown code blocks. Output the raw JSON object.
 
     try:
         response = await client.aio.models.generate_content(
-            model="gemini-2.5-flash", # Use standard flash model
+            model="gemini-3.1-flash-lite", # Using the GA flash-lite model
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.2,
