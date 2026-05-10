@@ -157,7 +157,7 @@ class CreativePlannerAgent(AbletonToolMixin):
             available_devices = []
             
         device_list_str = ", ".join(available_devices) if available_devices else "Standard Ableton Devices"
-        dynamic_system_instruction = self.base_system_instruction.format(device_list_str=device_list_str)
+        dynamic_system_instruction = self.base_system_instruction.replace("{device_list_str}", device_list_str)
 
         config = types.GenerateContentConfig(
             system_instruction=dynamic_system_instruction,
