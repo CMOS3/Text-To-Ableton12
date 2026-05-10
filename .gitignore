@@ -10,3 +10,5 @@ ollama_debug_log.txt
 .agents/
 backend/data/sessions/
 project_docs/
+
+backend/device_catalog.json
