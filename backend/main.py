@@ -2,6 +2,9 @@ import os
 import logging
 import sys
 
+import asyncio
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,7 +22,15 @@ from backend.session_manager import session_manager
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Ableton MCP Backend")
+from backend.build_catalog import build_catalog
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Launch dynamic catalog builder in the background
+    asyncio.create_task(build_catalog())
+    yield
+
+app = FastAPI(title="Ableton MCP Backend", lifespan=lifespan)
 
 # Enable CORS for the frontend
 app.add_middleware(
@@ -142,6 +153,11 @@ def update_settings(req: schema.SettingsRequest):
         except Exception as e:
             logger.error(f"Failed to initialize Gemini Client with new key: {e}")
             return {"status": "error", "message": f"Failed to initialize Gemini: {e}"}
+
+    # Update User Library path and rebuild catalog
+    if req.ableton_user_library_path and req.ableton_user_library_path.strip():
+        os.environ["ABLETON_USER_LIBRARY_PATH"] = req.ableton_user_library_path
+        asyncio.create_task(build_catalog())
 
     return {"status": "success"}
 

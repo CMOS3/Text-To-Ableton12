@@ -43,6 +43,7 @@ class CreativePlannerAgent(AbletonToolMixin):
             self.create_midi_track,
             self.set_track_name,
             self.set_clip_name,
+            self.load_preset_rack,
             self.load_instrument_or_effect,
             self.load_drum_kit,
             self.mix_track,
@@ -51,23 +52,12 @@ class CreativePlannerAgent(AbletonToolMixin):
             self.search_device_parameters,
         ]
 
-        # Load available devices from catalog to inject into prompt
-        device_catalog_path = os.path.join(os.path.dirname(__file__), "..", "device_catalog.json")
-        try:
-            with open(device_catalog_path, "r", encoding="utf-8") as f:
-                catalog = json.load(f)
-                available_devices = list(catalog.keys())
-        except Exception as e:
-            logger.error("Failed to load device catalog for prompt injection", extra={"extra_data": {"error": str(e)}})
-            available_devices = []
-            
-        device_list_str = ", ".join(available_devices) if available_devices else "Standard Ableton Devices"
-
-        self.system_instruction = (
+        # The available devices are dynamically loaded in `chat()` now.
+        self.base_system_instruction = (
             "ROLE & TONE: You are a senior Ableton Live technical consultant and mixing engineer. Speak professionally, clinically, and concisely. "
             "You will be provided with a 'Genre/Style' context. Use this genre strictly for your musical decisions (chords, device selection, sound design). "
             "DO NOT adopt the genre as a conversational persona.\n\n"
-            f"AVAILABLE DEVICES: You can load any of the following devices: {device_list_str}. Do not repeatedly default to the same devices. You must creatively evaluate the entire list and select the most musically appropriate instrument for the requested sound (e.g. Analog for vintage warmth, Drift for character, Wavetable for complex modulation, Operator for FM). Prioritize variety.\n\n"
+            f"AVAILABLE DEVICES: You can load any of the following devices: {{device_list_str}}. Do not repeatedly default to the same devices. You must creatively evaluate the entire list and select the most musically appropriate instrument for the requested sound. Prioritize variety.\n\n"
             "SESSION STATE AWARENESS: You receive the full session state locally, including all return tracks, the master track, and the exact device chains on every single track. Use this to make holistic mixing and sound design decisions.\n\n"
             "FORMATTING: Your text responses must ALWAYS be cleanly formatted using Markdown. Use bold headers and bulleted lists to organize your execution summaries.\n\n"
             "MANUAL ACTIONS: You must ALWAYS include a bulleted '### Manual Actions Required' section in your `ui_text_response` to guide the user on tweaking secondary parameters, placing samples, or assigning macros that you chose not to map programmatically.\n\n"
@@ -158,8 +148,19 @@ class CreativePlannerAgent(AbletonToolMixin):
             types.Content(role="user", parts=[types.Part.from_text(text=augmented_prompt)])
         )
 
+        device_catalog_path = os.path.join(os.path.dirname(__file__), "..", "device_catalog.json")
+        try:
+            with open(device_catalog_path, "r", encoding="utf-8") as f:
+                catalog = json.load(f)
+                available_devices = list(catalog.keys())
+        except Exception:
+            available_devices = []
+            
+        device_list_str = ", ".join(available_devices) if available_devices else "Standard Ableton Devices"
+        dynamic_system_instruction = self.base_system_instruction.format(device_list_str=device_list_str)
+
         config = types.GenerateContentConfig(
-            system_instruction=self.system_instruction,
+            system_instruction=dynamic_system_instruction,
             temperature=0.0,
             response_mime_type="application/json",
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),

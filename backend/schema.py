@@ -36,6 +36,7 @@ class ApprovalRequest(BaseModel):
 class SettingsRequest(BaseModel):
     gemini_api_key: str | None = None
     mcp_port: int | None = 9877
+    ableton_user_library_path: str | None = Field(None, description="Path to the user's Ableton User Library directory.")
 
 
 class TrackNameRequest(BaseModel):
@@ -128,6 +129,14 @@ class LoadDeviceRequest(BaseModel):
         description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
     )
     browser_path: str = Field(..., description="Path to the instrument or effect in the browser.")
+
+
+class LoadPresetRackRequest(BaseModel):
+    track_index: int = Field(
+        ...,
+        description="The 0-based index of the target track. CRITICAL: If the user asks for 'Track 1', you MUST pass 0. 'Track 2' is 1, etc.",
+    )
+    rack_name: str = Field(..., description="The exact base filename of the custom rack, e.g. 'AI_Archetype_Analog'.")
 
 
 class LoadDrumKitRequest(BaseModel):

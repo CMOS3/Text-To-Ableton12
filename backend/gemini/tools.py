@@ -336,6 +336,14 @@ class AbletonToolMixin:
         except AbletonProxyError as e:
             return str(e)
 
+    def load_preset_rack(self, track_index: int, rack_name: str) -> str:
+        """Loads a custom .adg preset rack from the Text-to-Ableton user library folder."""
+        try:
+            browser_path = f"User Library/Presets/Text-to-Ableton/{rack_name}.adg"
+            return self.load_instrument_or_effect(track_index, browser_path)
+        except Exception as e:
+            return str(e)
+
     def load_drum_kit(self, track_index: int, drum_kit_path: str) -> str:
         """Loads a drum kit onto a track."""
         try:
@@ -511,6 +519,7 @@ class AbletonToolMixin:
             "create_midi_track": schema.TrackNameRequest,
             "set_track_name": schema.TrackIndexNameRequest,
             "set_clip_name": schema.SetClipNameRequest,
+            "load_preset_rack": schema.LoadPresetRackRequest,
             "load_instrument_or_effect": schema.LoadDeviceRequest,
             "load_drum_kit": schema.LoadDrumKitRequest,
             "mix_track": schema.MixTrackRequest,
